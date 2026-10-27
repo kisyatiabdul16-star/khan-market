@@ -2,111 +2,134 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Khan Market Tanzania</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f7f5;
-      color: #18352b;
-    }
-    header {
-      background: #075e3b;
-      color: white;
-      padding: 24px 16px;
-      text-align: center;
-    }
-    header h1 { margin: 0 0 8px; }
-    header p { margin: 0; }
-    main { padding: 20px 16px; max-width: 700px; margin: auto; }
-    .search {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-    h2 { margin-top: 25px; }
-    .card {
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-      margin: 12px 0;
-      box-shadow: 0 2px 8px #00000010;
-    }
-    .card h3 { margin-top: 0; }
-    button {
-      background: #087f4f;
-      color: white;
-      padding: 12px 16px;
-      border: 0;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #64746c;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khan Market Tanzania</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f7f4;color:#17352a}
+header{background:#075e3b;color:white;padding:20px 15px}
+.top{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header h1{margin:0}
+main{max-width:900px;margin:auto;padding:18px 14px}
+.hero{background:#dcefe4;padding:20px;border-radius:14px;margin-bottom:18px}
+input{width:100%;padding:14px;border:1px solid #ccc;border-radius:9px;font-size:16px;margin:8px 0 18px}
+button{padding:11px;border:0;border-radius:8px;background:#087747;color:white;font-size:15px}
+.lang{background:white;color:#075e3b}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.card,.cart{background:white;padding:14px;border-radius:12px;box-shadow:0 2px 7px #0000000d}
+.emoji{text-align:center;font-size:40px;padding:10px}
+.card h3{font-size:17px}
+.price{color:#087747;font-weight:bold;margin:12px 0}
+.add{width:100%}
+.cart{margin-top:24px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #ddd;padding:12px 0}
+.qty button{padding:6px 10px;background:#e0eee6;color:#075e3b}
+.total{font-size:20px;font-weight:bold;margin-top:18px}
+.checkout{width:100%;margin-top:12px}
+.note{font-size:13px;color:#66756d;line-height:1.5}
+footer{text-align:center;padding:24px;color:#66756d}
+</style>
 </head>
 <body>
-  <header>
-    <h1>🛍️ Khan Market</h1>
-    <p>Soko lako la kidijitali Tanzania</p>
-  </header>
+<header>
+<div class="top">
+<div><h1>🛍️ Khan Market</h1><p id="tag">Soko lako la kidijitali Tanzania</p></div>
+<button class="lang" onclick="language()" id="lang">English</button>
+</div>
+</header>
+<main>
+<section class="hero">
+<h2 id="welcome">Karibu Khan Market!</h2>
+<p id="intro">Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.</p>
+</section>
 
-  <main>
-    <input class="search" id="search"
-      placeholder="Tafuta bidhaa au duka..."
-      oninput="tafutaBidhaa()">
+<input id="search" placeholder="Tafuta bidhaa..." oninput="showProducts()">
 
-    <h2>Karibu Khan Market!</h2>
-    <p>Tafuta bidhaa, gundua maduka na nunua kwa urahisi.</p>
+<h2 id="heading">Bidhaa zinazopatikana</h2>
+<div class="products" id="products"></div>
 
-    <h2>Bidhaa na Huduma</h2>
-    <div id="bidhaa">
-      <div class="card">
-        <h3>👕 Nguo</h3>
-        <p>Gundua nguo kutoka maduka mbalimbali.</p>
-        <button onclick="agiza('Nguo')">Chagua bidhaa</button>
-      </div>
+<section class="cart">
+<h2 id="cartHeading">🛒 Kikapu changu</h2>
+<div id="items">Kikapu chako bado hakina bidhaa.</div>
+<div class="total"><span id="totalText">Jumla:</span> <span id="total">TSh 0</span></div>
+<button class="checkout" onclick="order()" id="orderButton">Endelea na oda</button>
+<p class="note" id="note">Bei ni za mfano. Oda halisi na malipo ya mtandaoni bado hayajaunganishwa.</p>
+</section>
+</main>
+<footer>© 2026 Khan Market Tanzania</footer>
 
-      <div class="card">
-        <h3>📱 Simu na Vifaa</h3>
-        <p>Tafuta simu na vifaa vyake.</p>
-        <button onclick="agiza('Simu na Vifaa')">Chagua bidhaa</button>
-      </div>
+<script>
+const products=[
+{id:1,sw:"Mchele",en:"Rice",price:3500,emoji:"🍚"},
+{id:2,sw:"Mafuta ya kupikia",en:"Cooking oil",price:6500,emoji:"🛢️"},
+{id:3,sw:"T-shirt",en:"T-shirt",price:12000,emoji:"👕"},
+{id:4,sw:"Viatu",en:"Shoes",price:25000,emoji:"👟"},
+{id:5,sw:"Simu",en:"Mobile phone",price:180000,emoji:"📱"},
+{id:6,sw:"Sukari",en:"Sugar",price:3000,emoji:"🧂"},
+{id:7,sw:"Mayai",en:"Eggs",price:7000,emoji:"🥚"},
+{id:8,sw:"Begia",en:"Bag",price:15000,emoji:"🎒"}
+];
+let cart={};
+let english=false;
+const money=n=>"TSh "+n.toLocaleString("en-US");
 
-      <div class="card">
-        <h3>🍚 Vyakula</h3>
-        <p>Gundua vyakula na bidhaa za nyumbani.</p>
-        <button onclick="agiza('Vyakula')">Chagua bidhaa</button>
-      </div>
-    </div>
-    <p id="ujumbe"></p>
-  </main>
+function showProducts(){
+const q=document.getElementById("search").value.toLowerCase();
+const found=products.filter(p=>(p.sw+" "+p.en).toLowerCase().includes(q));
+document.getElementById("products").innerHTML=found.map(p=>`
+<div class="card">
+<div class="emoji">${p.emoji}</div>
+<h3>${english?p.en:p.sw}</h3>
+<div class="price">${money(p.price)}</div>
+<button class="add" onclick="add(${p.id})">${english?"Add to cart":"Ongeza kikapuni"}</button>
+</div>`).join("");
+showCart();
+}
 
-  <footer>
-    © 2026 Khan Market Tanzania
-  </footer>
+function add(id){cart[id]=(cart[id]||0)+1;showCart()}
 
-  <script>
-    function tafutaBidhaa() {
-      const neno = document.getElementById('search').value.toLowerCase();
-      document.querySelectorAll('#bidhaa .card').forEach(kadi => {
-        kadi.style.display = kadi.innerText.toLowerCase().includes(neno)
-          ? 'block' : 'none';
-      });
-    }
+function change(id,n){
+cart[id]=(cart[id]||0)+n;
+if(cart[id]<=0)delete cart[id];
+showCart();
+}
 
-    function agiza(bidhaa) {
-      document.getElementById('ujumbe').innerText =
-        'Umechagua ' + bidhaa + '. Mfumo wa kuagiza utaongezwa hatua inayofuata.';
-    }
-  </script>
+function showCart(){
+const entries=Object.entries(cart);
+document.getElementById("items").innerHTML=entries.length?entries.map(([id,qty])=>{
+const p=products.find(x=>x.id===Number(id));
+return `<div class="item"><div><b>${english?p.en:p.sw}</b><br>${money(p.price)} × ${qty}</div>
+<div class="qty"><button onclick="change(${p.id},-1)">−</button> ${qty} <button onclick="change(${p.id},1)">+</button></div></div>`;
+}).join(""):(english?"Your cart is empty.":"Kikapu chako bado hakina bidhaa.");
+const total=entries.reduce((sum,[id,qty])=>sum+products.find(p=>p.id===Number(id)).price*qty,0);
+document.getElementById("total").textContent=money(total);
+}
+
+function language(){
+english=!english;
+document.documentElement.lang=english?"en":"sw";
+document.getElementById("lang").textContent=english?"Kiswahili":"English";
+document.getElementById("tag").textContent=english?"Your digital marketplace in Tanzania":"Soko lako la kidijitali Tanzania";
+document.getElementById("welcome").textContent=english?"Welcome to Khan Market!":"Karibu Khan Market!";
+document.getElementById("intro").textContent=english?"Find products and add what you need to your cart.":"Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.";
+document.getElementById("heading").textContent=english?"Available products":"Bidhaa zinazopatikana";
+document.getElementById("cartHeading").textContent=english?"🛒 My cart":"🛒 Kikapu changu";
+document.getElementById("totalText").textContent=english?"Total:":"Jumla:";
+document.getElementById("orderButton").textContent=english?"Continue to order":"Endelea na oda";
+document.getElementById("note").textContent=english?"Sample prices only. Real orders and online payments are not connected yet.":"Bei ni za mfano. Oda halisi na malipo ya mtandaoni bado hayajaunganishwa.";
+document.getElementById("search").placeholder=english?"Search products...":"Tafuta bidhaa...";
+showProducts();
+}
+
+function order(){
+if(!Object.keys(cart).length){
+alert(english?"Please add a product first.":"Tafadhali ongeza bidhaa kwanza.");
+return;
+}
+alert(english?"Your cart is ready. Real ordering will be added later.":"Kikapu chako kiko tayari. Mfumo halisi wa oda utaongezwa baadaye.");
+}
+showProducts();
+</script>
 </body>
 </html>
