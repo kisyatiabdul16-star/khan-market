@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khan Market Tanzania</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7f5;
+      color: #18352b;
+    }
+    header {
+      background: #075e3b;
+      color: white;
+      padding: 24px 16px;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 8px; }
+    header p { margin: 0; }
+    main { padding: 20px 16px; max-width: 700px; margin: auto; }
+    .search {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    h2 { margin-top: 25px; }
+    .card {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      margin: 12px 0;
+      box-shadow: 0 2px 8px #00000010;
+    }
+    .card h3 { margin-top: 0; }
+    button {
+      background: #087f4f;
+      color: white;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #64746c;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🛍️ Khan Market</h1>
+    <p>Soko lako la kidijitali Tanzania</p>
+  </header>
+
+  <main>
+    <input class="search" id="search"
+      placeholder="Tafuta bidhaa au duka..."
+      oninput="tafutaBidhaa()">
+
+    <h2>Karibu Khan Market!</h2>
+    <p>Tafuta bidhaa, gundua maduka na nunua kwa urahisi.</p>
+
+    <h2>Bidhaa na Huduma</h2>
+    <div id="bidhaa">
+      <div class="card">
+        <h3>👕 Nguo</h3>
+        <p>Gundua nguo kutoka maduka mbalimbali.</p>
+        <button onclick="agiza('Nguo')">Chagua bidhaa</button>
+      </div>
+
+      <div class="card">
+        <h3>📱 Simu na Vifaa</h3>
+        <p>Tafuta simu na vifaa vyake.</p>
+        <button onclick="agiza('Simu na Vifaa')">Chagua bidhaa</button>
+      </div>
+
+      <div class="card">
+        <h3>🍚 Vyakula</h3>
+        <p>Gundua vyakula na bidhaa za nyumbani.</p>
+        <button onclick="agiza('Vyakula')">Chagua bidhaa</button>
+      </div>
+    </div>
+    <p id="ujumbe"></p>
+  </main>
+
+  <footer>
+    © 2026 Khan Market Tanzania
+  </footer>
+
+  <script>
+    function tafutaBidhaa() {
+      const neno = document.getElementById('search').value.toLowerCase();
+      document.querySelectorAll('#bidhaa .card').forEach(kadi => {
+        kadi.style.display = kadi.innerText.toLowerCase().includes(neno)
+          ? 'block' : 'none';
+      });
+    }
+
+    function agiza(bidhaa) {
+      document.getElementById('ujumbe').innerText =
+        'Umechagua ' + bidhaa + '. Mfumo wa kuagiza utaongezwa hatua inayofuata.';
+    }
+  </script>
+</body>
+</html>
