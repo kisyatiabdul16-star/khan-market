@@ -44,7 +44,7 @@ footer{text-align:center;padding:24px;color:#66756d}
 <p id="intro">Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.</p>
 </section>
 
-<input id="search" placeholder="Tafuta bidhaa..." oninput="showProducts()">
+<input id="search" placeholder="Tafuta bidhaa..." oninput="loadProducts();">
 
 <h2 id="heading">Bidhaa zinazopatikana</h2>
 <div class="products" id="products"></div>
@@ -60,15 +60,30 @@ footer{text-align:center;padding:24px;color:#66756d}
 <footer>© 2026 Khan Market Tanzania</footer>
 
 <script>
-const products=[
-{id:1,sw:"Mchele",en:"Rice",price:3500,emoji:"🍚"},
-{id:2,sw:"Mafuta ya kupikia",en:"Cooking oil",price:6500,emoji:"🛢️"},
-{id:3,sw:"T-shirt",en:"T-shirt",price:12000,emoji:"👕"},
-{id:4,sw:"Viatu",en:"Shoes",price:25000,emoji:"👟"},
-{id:5,sw:"Simu",en:"Mobile phone",price:180000,emoji:"📱"},
-{id:6,sw:"Sukari",en:"Sugar",price:3000,emoji:"🧂"},
-{id:7,sw:"Mayai",en:"Eggs",price:7000,emoji:"🥚"},
-{id:8,sw:"Begia",en:"Bag",price:15000,emoji:"🎒"}
+
+let products = [];
+
+async function loadProducts() {
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*");
+
+  if (error) {
+    console.error("Imeshindwa kupakia bidhaa:", error.message);
+    return;
+  }
+
+  products = data.map(p => ({
+    id: p.id,
+    sw: p.name,
+    en: p.name,
+    price: Number(p.price),
+    emoji: "🛍️"
+  }));
+
+  showProducts();
+}
+"
 ];
 let cart={};
 let english=false;
