@@ -1,4 +1,4 @@
-
+8
 <!DOCTYPE html>
 <html lang="sw">
 <head>
@@ -44,7 +44,7 @@ footer{text-align:center;padding:24px;color:#66756d}
 <p id="intro">Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.</p>
 </section>
 
-<input id="search" placeholder="Tafuta bidhaa..." oninput="loadProducts();">
+<input id="search" placeholder="Tafuta bidhaa..." oninput="showProduct();">
 
 <h2 id="heading">Bidhaa zinazopatikana</h2>
 <div class="products" id="products"></div>
@@ -144,7 +144,7 @@ return;
 }
 alert(english?"Your cart is ready. Real ordering will be added later.":"Kikapu chako kiko tayari. Mfumo halisi wa oda utaongezwa baadaye.");
 }
-showProducts();
+loadProducts();
 </script>
     
 
