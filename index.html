@@ -67,10 +67,10 @@ async function loadProducts() {
   const { data, error } = await supabaseClient
     .from("products")
     .select("*");
-
-  if (error) {
-    console.error("Imeshindwa kupakia bidhaa:", error.message);
-    return;
+    if (error) {
+  alert("Supabase error: " + error.message);
+  return;
+    }
   }
 
   products = data.map(p => ({
