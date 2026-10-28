@@ -82,9 +82,10 @@ async function loadProducts() {
       console.error(error);
   return;
     }
-  products = (data || []).map(p => ({
   console.log("SUPABASE DATA:", data);
-console.log("FIRST PRODUCT:", data?.[0]);  
+console.log("FIRST PRODUCT:", data?.[0]);
+  products = (data || []).map(p => ({
+    
     id: p.id,
     sw: p.name,
     en: p.name,
