@@ -145,9 +145,11 @@ document.getElementById("search").placeholder=english?"Search products...":"Tafu
 showProducts();
 }
 
-function order(){
+
+
+async function order(){
   if(!Object.keys(cart).length){
-    alert(english?"Please add a product first.":"Tafadhali ongeza bidhaa kwanza.");
+    alert(english ? "Please add a product first." : "Tafadhali ongeza bidhaa kwanza.");
     return;
   }
 
@@ -160,19 +162,47 @@ function order(){
   const address = prompt(english ? "Enter delivery address:" : "Andika eneo la kupeleka bidhaa:");
   if(!address || !address.trim()) return;
 
-  const orderDetails = Object.entries(cart).map(([id,qty])=>{
-    const p = products.find(x=>x.id===Number(id));
-    return `${p ? (english?p.en:p.sw) : "Bidhaa"} x ${qty}`;
-  }).join("\n");
+  const items = Object.entries(cart).map(([id, qty]) => {
+    const p = products.find(x => x.id === Number(id));
+    return {
+      product_id: p.id,
+      product_name: english ? p.en : p.sw,
+      quantity: qty,
+      unit_price: p.price,
+      subtotal: p.price * qty
+    };
+  });
 
-  const total = Object.entries(cart).reduce((sum,[id,qty])=>{
-    const p = products.find(x=>x.id===Number(id));
-    return sum + (p ? p.price*qty : 0);
-  },0);
+  const total = items.reduce((sum, item) => sum + item.subtotal, 0);
 
-  const message = `ODA MPYA - KHAN MARKET\nJina: ${name}\nSimu: ${phone}\nAnwani: ${address}\nBidhaa:\n${orderDetails}\nJumla: ${money(total)}`;
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .insert([{
+      customer_name: name.trim(),
+      customer_phone: phone.trim(),
+      delivery_address: address.trim(),
+      order_items: items,
+      total_amount: total
+    }])
+    .select("id")
+    .single();
 
-  alert(message);
+  if(error){
+    console.error("ORDER ERROR:", error);
+    alert("Oda haijahifadhiwa: " + error.message);
+    return;
+  }
+
+  alert(
+    (english ? "Order submitted successfully! Order number: " : "Oda imehifadhiwa! Namba ya oda: ")
+    + data.id
+    + "\n"
+    + (english ? "Total: " : "Jumla: ")
+    + money(total)
+  );
+
+  cart = {};
+  showCart();
 }
 
 loadProducts();
