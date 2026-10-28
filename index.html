@@ -189,17 +189,14 @@ async function order(){
     return;
   }
 
-  alert(
-    (english ? "Order submitted successfully! Order number: " : "Oda imehifadhiwa! Namba ya oda: ")
-    + data.id
-    + "\n"
-    + (english ? "Total: " : "Jumla: ")
-    + money(total)
+    alert(
+    english
+      ? "Order submitted successfully!"
+      : "Hongera! Oda yako imepokelewa na kuhifadhiwa."
   );
 
   cart = {};
   showCart();
-}
 
 
 
