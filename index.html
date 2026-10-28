@@ -189,10 +189,10 @@ async function order(){
     return;
   }
 
-    alert(
+      alert(
     english
-      ? "Order submitted successfully!"
-      : "Hongera! Oda yako imepokelewa na kuhifadhiwa."
+      ? "Order submitted successfully! Total: " + money(total)
+      : "Hongera! Oda yako imepokelewa na kuhifadhiwa. Jumla: " + money(total)
   );
 
   cart = {};
