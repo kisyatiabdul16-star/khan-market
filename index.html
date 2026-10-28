@@ -146,12 +146,35 @@ showProducts();
 }
 
 function order(){
-if(!Object.keys(cart).length){
-alert(english?"Please add a product first.":"Tafadhali ongeza bidhaa kwanza.");
-return;
+  if(!Object.keys(cart).length){
+    alert(english?"Please add a product first.":"Tafadhali ongeza bidhaa kwanza.");
+    return;
+  }
+
+  const name = prompt(english ? "Enter your full name:" : "Andika jina lako kamili:");
+  if(!name || !name.trim()) return;
+
+  const phone = prompt(english ? "Enter your phone number:" : "Andika namba yako ya simu:");
+  if(!phone || !phone.trim()) return;
+
+  const address = prompt(english ? "Enter delivery address:" : "Andika eneo la kupeleka bidhaa:");
+  if(!address || !address.trim()) return;
+
+  const orderDetails = Object.entries(cart).map(([id,qty])=>{
+    const p = products.find(x=>x.id===Number(id));
+    return `${p ? (english?p.en:p.sw) : "Bidhaa"} x ${qty}`;
+  }).join("\n");
+
+  const total = Object.entries(cart).reduce((sum,[id,qty])=>{
+    const p = products.find(x=>x.id===Number(id));
+    return sum + (p ? p.price*qty : 0);
+  },0);
+
+  const message = `ODA MPYA - KHAN MARKET\nJina: ${name}\nSimu: ${phone}\nAnwani: ${address}\nBidhaa:\n${orderDetails}\nJumla: ${money(total)}`;
+
+  alert(message);
 }
-alert(english?"Your cart is ready. Real ordering will be added later.":"Kikapu chako kiko tayari. Mfumo halisi wa oda utaongezwa baadaye.");
-}
+
 loadProducts();
 </script>
 </body>
