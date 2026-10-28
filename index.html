@@ -84,15 +84,14 @@ async function loadProducts() {
     }
   console.log("SUPABASE DATA:", data);
 console.log("FIRST PRODUCT:", data?.[0]);
-  products = (data || []).map(p => ({
-    
+  
+products = (data || []).map(p => ({
     id: p.id,
-    sw: p.name,
-    en: p.name,
-    price: Number(p.price),
+    sw: p.sw || p.name || p.product_name || "Bidhaa",
+    en: p.en || p.name || p.product_name || "Product",
+    price: Number(p.price ?? p.amount ?? 0),
     emoji: "🛍️"
-  }));
-
+}));
   showProducts();
 }
 let cart={};
