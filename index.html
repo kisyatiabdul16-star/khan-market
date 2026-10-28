@@ -84,12 +84,11 @@ async function loadProducts() {
     }
   console.log("SUPABASE DATA:", data);
 console.log("FIRST PRODUCT:", data?.[0]);
-  
-products = (data || []).map(p => ({
+  products = (data || []).map(p => ({
     id: p.id,
-   sw: p.name || "Bidhaa",
-en: p.name || "Product",
-price: Number(p.price || 0), 
+    sw: p.Name || "Bidhaa",
+    en: p.Name || "Product",
+    price: Number(p.Price || 0),
     emoji: "🛍️"
 }));
   showProducts();
