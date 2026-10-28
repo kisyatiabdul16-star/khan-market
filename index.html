@@ -145,8 +145,6 @@ document.getElementById("search").placeholder=english?"Search products...":"Tafu
 showProducts();
 }
 
-
-
 async function order(){
   if(!Object.keys(cart).length){
     alert(english ? "Please add a product first." : "Tafadhali ongeza bidhaa kwanza.");
@@ -204,6 +202,8 @@ async function order(){
   cart = {};
   showCart();
 }
+
+
 
 loadProducts();
 </script>
