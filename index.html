@@ -83,6 +83,8 @@ async function loadProducts() {
   return;
     }
   products = (data || []).map(p => ({
+  console.log("SUPABASE DATA:", data);
+console.log("FIRST PRODUCT:", data?.[0]);  
     id: p.id,
     sw: p.name,
     en: p.name,
