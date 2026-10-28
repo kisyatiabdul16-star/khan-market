@@ -87,9 +87,9 @@ console.log("FIRST PRODUCT:", data?.[0]);
   
 products = (data || []).map(p => ({
     id: p.id,
-    sw: p.sw || p.name || p.product_name || "Bidhaa",
-    en: p.en || p.name || p.product_name || "Product",
-    price: Number(p.price ?? p.amount ?? 0),
+   sw: p.name || "Bidhaa",
+en: p.name || "Product",
+price: Number(p.price || 0), 
     emoji: "🛍️"
 }));
   showProducts();
