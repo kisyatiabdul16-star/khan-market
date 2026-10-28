@@ -175,16 +175,14 @@ async function order(){
 
   const { data, error } = await supabaseClient
     .from("orders")
+    
     .insert([{
       customer_name: name.trim(),
       customer_phone: phone.trim(),
       delivery_address: address.trim(),
       order_items: items,
       total_amount: total
-    }])
-    .select("id")
-    .single();
-
+    }]);
   if(error){
     console.error("ORDER ERROR:", error);
     alert("Oda haijahifadhiwa: " + error.message);
