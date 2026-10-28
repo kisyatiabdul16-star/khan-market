@@ -58,7 +58,15 @@ footer{text-align:center;padding:24px;color:#66756d}
 </section>
 </main>
 <footer>© 2026 Khan Market Tanzania</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "  https://idkeuyhlzhpqugbpntxk.supabase.co ";
+    const SUPABASE_KEY = "   "sb_publishable_cSLowgaYYPdC4PFWuMpOXQ_q-04K6v8;
 
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
 <script>
 
 let products = [];
@@ -146,19 +154,7 @@ alert(english?"Your cart is ready. Real ordering will be added later.":"Kikapu c
 }
 loadProducts();
 </script>
-    
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "  https://idkeuyhlzhpqugbpntxk.supabase.co ";
-    const SUPABASE_KEY = "   "sb_publishable_cSLowgaYYPdC4PFWuMpOXQ_q-04K6v8;
-
-    const supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
   </script>
-
 </body>
 </html>
 </body>
