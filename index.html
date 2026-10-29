@@ -400,7 +400,7 @@ document.getElementById("add-product").addEventListener("click", async () => {
     .single();
 
   if (storeError || !store) {
-    message.textContent = "Duka lako halijapatikana. Hakikisha umesajili duka.";
+    message.textContent = "Tatizo la duka: " + (storeError?.message || "Hakuna duka linaloonekana.");
     console.error("STORE ERROR:", storeError);
     return;
   }
