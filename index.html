@@ -229,6 +229,12 @@ document.getElementById("products").innerHTML=found.map(p=>`
 <div class="emoji">${p.emoji}</div>
 <h3>${english?p.en:p.sw}</h3>
 <div class="price">${money(p.price)}</div>
+<div class="store-name">
+  🏪 ${p.storeName}
+</div>
+<div class="store-location">
+  📍 ${p.location}
+</div>
 <button class="add" onclick="add(${p.id})">${english?"Add to cart":"Ongeza kikapuni"}</button>
 </div>`).join("");
 showCart();
