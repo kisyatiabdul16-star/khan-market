@@ -89,6 +89,27 @@ if (togglePassword && passwordInput) {
     return;
   }
 
+  const sellerToggle = document.getElementById("seller-toggle");
+  const sellerInfo = document.getElementById("seller-info");
+
+  if (sellerToggle && sellerInfo) {
+    sellerToggle.addEventListener("click", async () => {
+      const { data, error } = await supabaseClient.auth.getUser();
+
+      if (error || !data.user) {
+        message.textContent =
+          "Tafadhali fungua akaunti au ingia kwanza.";
+        return;
+      }
+
+      sellerInfo.hidden = !sellerInfo.hidden;
+
+      sellerToggle.textContent = sellerInfo.hidden
+        ? "Fungua sehemu ya muuzaji"
+        : "Funga sehemu ya muuzaji";
+    });
+  }
+
   signupButton.addEventListener("click", async () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
@@ -324,9 +345,9 @@ loadProducts();
   <p id="seller-message" role="status"></p>
 </div>
 
-  <button onclick="document.getElementById('seller-info').hidden = !document.getElementById('seller-info').hidden">
-    Fungua sehemu ya muuzaji
-  </button>
+  <button type="button" id="seller-toggle">
+  Fungua sehemu ya muuzaji
+</button>
 <div id="seller-info" hidden>
   <h3>🏪 Sajili Duka Lako</h3>
 
