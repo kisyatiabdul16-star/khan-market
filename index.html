@@ -273,38 +273,81 @@ loadProducts();
   <button onclick="document.getElementById('seller-info').hidden = !document.getElementById('seller-info').hidden">
     Fungua sehemu ya muuzaji
   </button>
+<div id="seller-info" hidden>
+  <h3>🏪 Sajili Duka Lako</h3>
 
-  <div id="seller-info" hidden>
-    <div>
-  <h3>🏪 Akaunti ya Muuzaji</h3>
-
-  <label for="seller-email">Barua pepe</label>
+  <label for="store-name">Jina la duka</label>
   <input
-    id="seller-email"
-    type="email"
-    placeholder="Ingiza barua pepe"
+    id="store-name"
+    type="text"
+    placeholder="Mfano: Khan Electronics"
     required
   >
 
-  <label for="seller-password">Nenosiri</label>
+  <label for="store-phone">Namba ya simu</label>
   <input
-    id="seller-password"
-    type="password"
-    placeholder="Tengeneza nenosiri"
+    id="store-phone"
+    type="tel"
+    placeholder="Mfano: 07XXXXXXXX"
     required
   >
 
-  <button type="button" id="seller-signup">
-    Jisajili
+  <label for="store-location">Eneo la duka</label>
+  <input
+    id="store-location"
+    type="text"
+    placeholder="Mfano: Kariakoo, Dar es Salaam"
+    required
+  >
+
+  <button type="button" id="register-store">
+    Sajili Duka
   </button>
 
-  <button type="button" id="seller-login">
-    Ingia kwenye akaunti
-  </button>
-
-  <p id="seller-message"></p>
+  <p id="store-message"></p>
+</div>
+  
 </div>
   </div>
 </section>
+<script>
+document.getElementById("register-store").addEventListener("click", async () => {
+  const storeName = document.getElementById("store-name").value.trim();
+  const phone = document.getElementById("store-phone").value.trim();
+  const location = document.getElementById("store-location").value.trim();
+  const message = document.getElementById("store-message");
+
+  if (!storeName || !phone || !location) {
+    message.textContent = "Tafadhali jaza sehemu zote.";
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = "Tafadhali ingia kwenye akaunti kwanza.";
+    return;
+  }
+
+  message.textContent = "Tunasajili duka lako...";
+
+  const { error } = await supabaseClient
+    .from("stores")
+    .insert({
+      owner_id: userData.user.id,
+      store_name: storeName,
+      phone: phone,
+      location: location
+    });
+
+  if (error) {
+    message.textContent = "Usajili umeshindikana: " + error.message;
+    return;
+  }
+
+  message.textContent = "Hongera! Duka lako limesajiliwa.";
+});
+</script>
 </body>
 </html>
