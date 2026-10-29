@@ -72,9 +72,18 @@ footer{text-align:center;padding:24px;color:#66756d}
   const emailInput = document.getElementById("seller-email");
   const passwordInput = document.getElementById("seller-password");
   const message = document.getElementById("seller-message");
-  const signupButton = document.getElementById("seller-signup");
-  const loginButton = document.getElementById("seller-login");
+const signupButton = document.getElementById("seller-signup");
+const loginButton = document.getElementById("seller-login");
 
+const togglePassword = document.getElementById("toggle-seller-password");
+
+if (togglePassword && passwordInput) {
+  togglePassword.addEventListener("click", () => {
+    const showing = passwordInput.type === "text";
+    passwordInput.type = showing ? "password" : "text";
+    togglePassword.textContent = showing ? "Show" : "Hide";
+  });
+}
   if (!emailInput || !passwordInput || !message ||
       !signupButton || !loginButton) {
     return;
@@ -132,7 +141,32 @@ message.textContent = "Umeingia kwenye akaunti kwa mafanikio!";
 console.log("Seller signed in:", data.user.id);
 
   });
-});
+
+  const forgotButton = document.getElementById("seller-forgot");
+
+  if (forgotButton) {
+    forgotButton.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+
+      if (!email) {
+        message.textContent = "Tafadhali ingiza barua pepe yako kwanza.";
+        return;
+      }
+
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: "https://kisyatiabdul16-star.github.io/khan-market/"
+      });
+
+      if (error) {
+        message.textContent = "Imeshindikana: " + error.message;
+        return;
+      }
+
+      message.textContent =
+        "Angalia barua pepe yako kwa maelekezo ya kubadilisha nenosiri.";
+    });
+  }
+    });
 </script>
   <script>
 
@@ -270,6 +304,25 @@ loadProducts();
 <section id="seller-section" style="margin:20px; padding:20px; border:1px solid #ddd; border-radius:12px;">
   <h2>🏪 Khan Market — Wauzaji</h2>
   <p>Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.</p>
+
+<div id="seller-account" style="margin:15px 0; padding:15px; border:1px solid #ccc; border-radius:10px;">
+  <h3>Akaunti ya Muuzaji</h3>
+
+  <label for="seller-email">Barua pepe</label>
+  <input id="seller-email" type="email" placeholder="Ingiza barua pepe yako" autocomplete="email" required>
+
+  <label for="seller-password">Nenosiri</label>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <input id="seller-password" type="password" placeholder="Angalau herufi 8" autocomplete="current-password" required>
+    <button type="button" id="toggle-seller-password">Show</button>
+  </div>
+
+  <button type="button" id="seller-signup">Fungua akaunti</button>
+  <button type="button" id="seller-login">Ingia</button>
+  <button type="button" id="seller-forgot">Forgot password?</button>
+
+  <p id="seller-message" role="status"></p>
+</div>
 
   <button onclick="document.getElementById('seller-info').hidden = !document.getElementById('seller-info').hidden">
     Fungua sehemu ya muuzaji
