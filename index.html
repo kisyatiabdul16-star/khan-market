@@ -404,9 +404,14 @@ loadProducts();
 
 <label for="product-description">Maelezo ya bidhaa</label>
 <textarea id="product-description" placeholder="Andika maelezo ya bidhaa"></textarea>
+<label for="product-images">Picha za bidhaa (Chagua picha nyingi)</label>
+<input
+  id="product-images"
+  type="file"
+  accept="image/*"
+  multiple
+>
 
-<label for="product-image">Kiungo cha picha (Image URL)</label>
-<input id="product-image" type="url" placeholder="https://...">
 
 <button type="button" id="add-product">
   Hifadhi Bidhaa
