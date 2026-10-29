@@ -305,9 +305,33 @@ loadProducts();
     Sajili Duka
   </button>
 
-  <p id="store-message"></p>
+  
+<p id="store-message"></p>
+
+<hr>
+
+<h3>📦 Ongeza Bidhaa Yako</h3>
+
+<label for="product-name">Jina la bidhaa</label>
+<input id="product-name" type="text" placeholder="Mfano: Mchele" required>
+
+<label for="product-price">Bei (TSh)</label>
+<input id="product-price" type="number" min="1" placeholder="Mfano: 3500" required>
+
+<label for="product-description">Maelezo ya bidhaa</label>
+<textarea id="product-description" placeholder="Andika maelezo ya bidhaa"></textarea>
+
+<label for="product-image">Kiungo cha picha (Image URL)</label>
+<input id="product-image" type="url" placeholder="https://...">
+
+<button type="button" id="add-product">
+  Hifadhi Bidhaa
+</button>
+
+<p id="product-message"></p>
 </div>
 </section>
+
 <script>
 document.getElementById("register-store").addEventListener("click", async () => {
   const storeName = document.getElementById("store-name").value.trim();
@@ -345,6 +369,65 @@ document.getElementById("register-store").addEventListener("click", async () => 
   }
 
   message.textContent = "Hongera! Duka lako limesajiliwa.";
+});
+
+document.getElementById("add-product").addEventListener("click", async () => {
+  const name = document.getElementById("product-name").value.trim();
+  const price = Number(document.getElementById("product-price").value);
+  const description = document.getElementById("product-description").value.trim();
+  const imageUrl = document.getElementById("product-image").value.trim();
+  const message = document.getElementById("product-message");
+
+  if (!name || !Number.isFinite(price) || price <= 0) {
+    message.textContent = "Ingiza jina la bidhaa na bei sahihi.";
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = "Tafadhali ingia kwenye akaunti kwanza.";
+    return;
+  }
+
+  message.textContent = "Tunahifadhi bidhaa...";
+
+  const { data: store, error: storeError } = await supabaseClient
+    .from("stores")
+    .select("id")
+    .eq("owner_id", userData.user.id)
+    .single();
+
+  if (storeError || !store) {
+    message.textContent = "Duka lako halijapatikana. Hakikisha umesajili duka.";
+    console.error("STORE ERROR:", storeError);
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("products")
+    .insert({
+      Name: name,
+      Price: price,
+      Dicription: description,
+      image_url: imageUrl || null,
+      store_id: store.id
+    });
+
+  if (error) {
+    message.textContent = "Bidhaa haijahifadhiwa: " + error.message;
+    console.error("PRODUCT ERROR:", error);
+    return;
+  }
+
+  message.textContent = "Bidhaa imehifadhiwa kwa mafanikio!";
+  document.getElementById("product-name").value = "";
+  document.getElementById("product-price").value = "";
+  document.getElementById("product-description").value = "";
+  document.getElementById("product-image").value = "";
+
+  await loadProducts();
 });
 </script>
 </body>
