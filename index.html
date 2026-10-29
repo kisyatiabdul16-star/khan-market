@@ -464,7 +464,7 @@ document.getElementById("add-product").addEventListener("click", async () => {
   const name = document.getElementById("product-name").value.trim();
   const price = Number(document.getElementById("product-price").value);
   const description = document.getElementById("product-description").value.trim();
-  const imageUrl = document.getElementById("product-image").value.trim();
+  
   const message = document.getElementById("product-message");
 
   if (!name || !Number.isFinite(price) || price <= 0) {
@@ -498,27 +498,81 @@ if (storeError || !stores || stores.length === 0) {
 
 const store = stores[0];
 
-  const { error } = await supabaseClient
-    .from("products")
-    .insert({
-      Name: name,
-      Price: price,
-      Dicription: description,
-      image_url: imageUrl || null,
-      store_id: store.id
-    });
+  const { data: product, error: productError } = await supabaseClient
+  .from("products")
+  .insert({
+    Name: name,
+    Price: price,
+    Dicription: description,
+    image_url: null,
+    store_id: store.id
+  })
+  .select("id")
+  .single();
 
-  if (error) {
-    message.textContent = "Bidhaa haijahifadhiwa: " + error.message;
-    console.error("PRODUCT ERROR:", error);
+if (productError) {
+  message.textContent = "Bidhaa haijahifadhiwa: " + productError.message;
+  console.error("PRODUCT ERROR:", productError);
+  return;
+}
+
+const imageFiles = Array.from(
+  document.getElementById("product-images").files
+);
+
+const savedImages = [];
+
+for (const file of imageFiles) {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `${userData.user.id}/${product.id}/${crypto.randomUUID()}-${safeName}`;
+
+  const { error: uploadError } = await supabaseClient
+    .storage
+    .from("product-images")
+    .upload(path, file);
+
+  if (uploadError) {
+    message.textContent =
+      "Bidhaa imehifadhiwa, lakini picha haikupakiwa: " + uploadError.message;
+    console.error("IMAGE UPLOAD ERROR:", uploadError);
     return;
   }
+
+  const { data: publicData } = supabaseClient
+    .storage
+    .from("product-images")
+    .getPublicUrl(path);
+
+  savedImages.push({
+    product_id: product.id,
+    image_url: publicData.publicUrl,
+    storage_path: path
+  });
+}
+
+if (savedImages.length > 0) {
+  const { error: imageError } = await supabaseClient
+    .from("product_images")
+    .insert(savedImages);
+
+  if (imageError) {
+    message.textContent =
+      "Bidhaa imehifadhiwa, lakini taarifa za picha zina hitilafu: " + imageError.message;
+    console.error("IMAGE DATABASE ERROR:", imageError);
+    return;
+  }
+
+  await supabaseClient
+    .from("products")
+    .update({ image_url: savedImages[0].image_url })
+    .eq("id", product.id);
+}
 
   message.textContent = "Bidhaa imehifadhiwa kwa mafanikio!";
   document.getElementById("product-name").value = "";
   document.getElementById("product-price").value = "";
   document.getElementById("product-description").value = "";
-  document.getElementById("product-image").value = "";
+  document.getElementById("product-images").value = "";
 
   await loadProducts();
 });
