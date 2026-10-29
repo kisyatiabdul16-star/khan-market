@@ -193,24 +193,28 @@ console.log("Seller signed in:", data.user.id);
 
 let products = [];
 
+
 async function loadProducts() {
   const { data, error } = await supabaseClient
-    .from("products")
+    .from("products_with_store")
     .select("*");
-    if (error) {
-  alert("Supabase error: " + error.message);
-      console.error(error);
-  return;
-    }
-  console.log("SUPABASE DATA:", data);
-console.log("FIRST PRODUCT:", data?.[0]);
+
+  if (error) {
+    console.error("Supabase error:", error);
+    alert("Imeshindikana kupakia bidhaa: " + error.message);
+    return;
+  }
+
   products = (data || []).map(p => ({
     id: p.id,
-    sw: p.Name || "Bidhaa",
-    en: p.Name || "Product",
-    price: Number(p.Price || 0),
-    emoji: "🛍️"
-}));
+    sw: p.product_name || "Bidhaa",
+    en: p.product_name || "Product",
+    price: Number(p.price || 0),
+    emoji: "🛍️",
+    storeName: p.store_name || "Duka halijatajwa",
+    location: p.location || "Eneo halijatajwa"
+  }));
+
   showProducts();
 }
 let cart={};
