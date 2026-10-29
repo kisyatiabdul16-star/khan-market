@@ -118,16 +118,19 @@ footer{text-align:center;padding:24px;color:#66756d}
     }
 
     message.textContent = "Tunaingia kwenye akaunti...";
+const { data, error } = await supabaseClient.auth.signInWithPassword({
+  email,
+  password
+});
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+if (error) {
+  message.textContent = "Kuingia kumeshindikana: " + error.message;
+  return;
+}
 
-    message.textContent = error
-      ? "Kuingia kumeshindikana: " + error.message
-      : "Umeingia kwenye akaunti kwa mafanikio!";
-  });
+message.textContent = "Umeingia kwenye akaunti kwa mafanikio!";
+console.log("Seller signed in:", data.user.id);
+    
 });
   </script>
   <script>
