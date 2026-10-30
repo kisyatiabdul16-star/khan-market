@@ -97,16 +97,15 @@ if (togglePassword && passwordInput) {
       const { data, error } = await supabaseClient.auth.getUser();
 
       if (error || !data.user) {
-        message.textContent =
-          "Tafadhali fungua akaunti au ingia kwanza.";
+      message.textContent = t("loginRequired");
         return;
       }
 
       sellerInfo.hidden = !sellerInfo.hidden;
 
-      sellerToggle.textContent = sellerInfo.hidden
-        ? "Fungua sehemu ya muuzaji"
-        : "Funga sehemu ya muuzaji";
+     sellerToggle.textContent = sellerInfo.hidden
+  ? t("openSeller")
+  : t("closeSeller"); 
     });
   }
 
@@ -115,12 +114,11 @@ if (togglePassword && passwordInput) {
     const password = passwordInput.value;
 
     if (!email || password.length < 8) {
-      message.textContent =
-        "Ingiza barua pepe na nenosiri lenye angalau herufi 8.";
+      message.textContent = t("invalidDetails");
       return;
     }
 
-    message.textContent = "Tunasajili akaunti yako...";
+   message.textContent = t("signingUp"); 
 
     const { data, error } = await supabaseClient.auth.signUp({
       email,
@@ -128,13 +126,13 @@ if (togglePassword && passwordInput) {
     });
 
     if (error) {
-      message.textContent = "Usajili umeshindikana: " + error.message;
+      message.textContent = t("signupError") + error.message;
       return;
     }
 
     message.textContent = data.session
-      ? "Akaunti imefunguliwa! Unaweza kuingia."
-      : "Ombi la usajili limepokelewa. Angalia barua pepe yako kama uthibitisho unahitajika.";
+  ? t("signupSuccess")
+  : t("signupPending");
   });
 
   loginButton.addEventListener("click", async () => {
@@ -142,23 +140,22 @@ if (togglePassword && passwordInput) {
     const password = passwordInput.value;
 
     if (!email || !password) {
-      message.textContent =
-        "Ingiza barua pepe na nenosiri kwanza.";
+      message.textContent = t("emailRequired");
       return;
     }
 
-    message.textContent = "Tunaingia kwenye akaunti...";
+    message.textContent = t("signingIn");
 const { data, error } = await supabaseClient.auth.signInWithPassword({
   email,
   password
 });
 
 if (error) {
-  message.textContent = "Kuingia kumeshindikana: " + error.message;
+  message.textContent = t("loginError") + error.message;
   return;
 }
 
-message.textContent = "Umeingia kwenye akaunti kwa mafanikio!";
+message.textContent = t("loginSuccess");
 console.log("Seller signed in:", data.user.id);
 
   });
@@ -170,7 +167,7 @@ console.log("Seller signed in:", data.user.id);
       const email = emailInput.value.trim();
 
       if (!email) {
-        message.textContent = "Tafadhali ingiza barua pepe yako kwanza.";
+        message.textContent = t("emailFirst");
         return;
       }
 
@@ -179,12 +176,11 @@ console.log("Seller signed in:", data.user.id);
       });
 
       if (error) {
-        message.textContent = "Imeshindikana: " + error.message;
+        message.textContent = t("resetError") + error.message;
         return;
       }
-
-      message.textContent =
-        "Angalia barua pepe yako kwa maelekezo ya kubadilisha nenosiri.";
+message.textContent = t("resetSuccess");
+  
     });
   }
     });
@@ -260,7 +256,7 @@ const translations = {
     sellers: "🏪 Khan Market — Wauzaji",
     sellerIntro: "Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.",
     sellerAccount: "Akaunti ya Muuzaji",
-    
+    fillAllFields: "Tafadhali jaza sehemu zote.",
   email: "Barua pepe",
 password: "Nenosiri",
 emailPlaceholder: "Ingiza barua pepe yako",
@@ -272,6 +268,17 @@ passwordPlaceholder: "Angalau herufi 8",
     closeSeller: "Funga sehemu ya muuzaji",
     registerStore: "Sajili Duka Lako",
 registerStoreButton: "Sajili Duka",
+    registeringStore: "Tunasajili duka lako...",
+    storeError: "Usajili umeshindikana: ",
+    storeSuccess: "Hongera! Duka lako limesajiliwa.",
+    invalidProduct: "Ingiza jina la bidhaa na bei sahihi.",
+    savingProduct: "Tunahifadhi bidhaa...",
+   storeNotFound: "Duka halijapatikana: ",
+noStoreAvailable: "Hakuna duka linaloonekana.", 
+    productSaveError: "Bidhaa haijahifadhiwa: ",
+    imageUploadError: "Bidhaa imehifadhiwa, lakini picha haikupakiwa: ",
+    imageInfoError: "Bidhaa imehifadhiwa, lakini taarifa za picha zina hitilafu: ",
+    productSuccess: "Bidhaa imehifadhiwa kwa mafanikio!",
     storeName: "Jina la duka",
     storePhone: "Namba ya simu",
     storeLocation: "Eneo la duka",
@@ -286,7 +293,22 @@ storePhonePlaceholder: "Mfano: 07XXXXXXXX",
 storeLocationPlaceholder: "Mfano: Kariakoo, Dar es Salaam",
 productNamePlaceholder: "Mfano: Mchele",
 productPricePlaceholder: "Mfano: 3500",
-descriptionPlaceholder: "Andika maelezo ya bidhaa"
+descriptionPlaceholder: "Andika maelezo ya bidhaa",
+
+loginRequired: "Tafadhali fungua akaunti au ingia kwanza.",
+  signupError: "Usajili umeshindikana: ",  
+invalidDetails: "Ingiza barua pepe na nenosiri lenye angalau herufi 8.",
+signingUp: "Tunasajili akaunti yako...",
+signupSuccess: "Akaunti imefunguliwa! Unaweza kuingia.",
+signupPending: "Ombi la usajili limepokelewa. Angalia barua pepe yako.",
+signingIn: "Tunaingia kwenye akaunti...",
+loginSuccess: "Umeingia kwenye akaunti kwa mafanikio!",
+loginError: "Kuingia kumeshindikana: ",
+emailRequired: "Ingiza barua pepe na nenosiri kwanza.",
+emailFirst: "Tafadhali ingiza barua pepe yako kwanza.",
+resetError: "Imeshindikana: ",
+resetSuccess: "Angalia barua pepe yako kwa maelekezo ya kubadilisha nenosiri."
+},
   },
 
   en: {
@@ -304,6 +326,7 @@ descriptionPlaceholder: "Andika maelezo ya bidhaa"
     sellers: "🏪 Khan Market — Sellers",
     sellerIntro: "Welcome! Sellers can manage their stores and products here.",
     sellerAccount: "Seller Account",
+    fillAllFields: "Please fill in all fields.",
    email: "Email",
 password: "Password",
 emailPlaceholder: "Enter your email address",
@@ -316,6 +339,17 @@ passwordPlaceholder: "At least 8 characters",
     closeSeller: "Close Seller Section",
     registerStore: "Register Your Store",
 registerStoreButton: "Register Store",
+    registeringStore: "Registering your store...",
+    storeError: "Store registration failed: ",
+    storeSuccess: "Congratulations! Your store has been registered.",
+    invalidProduct: "Enter a product name and a valid price.",
+    savingProduct: "Saving your product...",
+   storeNotFound: "Store not found: ",
+noStoreAvailable: "No store is available.", 
+    productSaveError: "Product was not saved: ",
+    imageUploadError: "Product saved, but the image could not be uploaded: ",
+    imageInfoError: "Product saved, but there was an error saving image details: ",
+    productSuccess: "Product saved successfully!",
     storeName: "Store Name",
     storePhone: "Phone Number",
     storeLocation: "Store Location",
@@ -331,6 +365,19 @@ storeLocationPlaceholder: "Example: Kariakoo, Dar es Salaam",
 productNamePlaceholder: "Example: Rice",
 productPricePlaceholder: "Example: 3500",
 descriptionPlaceholder: "Enter product description"
+    loginRequired: "Please create an account or log in first.",
+    signupError: "Registration failed: ",
+invalidDetails: "Enter an email and a password of at least 8 characters.",
+signingUp: "Creating your account...",
+signupSuccess: "Account created! You can now log in.",
+signupPending: "Registration received. Check your email for confirmation.",
+signingIn: "Logging into your account...",
+loginSuccess: "You have logged in successfully!",
+loginError: "Login failed: ",
+emailRequired: "Enter your email and password first.",
+emailFirst: "Please enter your email first.",
+resetError: "Failed: ",
+resetSuccess: "Check your email for password reset instructions.",
   },
 
   fr: {
@@ -348,6 +395,7 @@ descriptionPlaceholder: "Enter product description"
     sellers: "🏪 Khan Market — Vendeurs",
     sellerIntro: "Bienvenue ! Les vendeurs peuvent gérer leurs boutiques et produits ici.",
     sellerAccount: "Compte vendeur",
+    fillAllFields: "Veuillez remplir tous les champs.",
   email: "Adresse e-mail",
 password: "Mot de passe",
 emailPlaceholder: "Entrez votre adresse e-mail",
@@ -359,6 +407,17 @@ passwordPlaceholder: "Au moins 8 caractères",
     closeSeller: "Fermer l'espace vendeur",
     registerStore: "Enregistrer votre boutique",
 registerStoreButton: "Enregistrer la boutique",
+    registeringStore: "Enregistrement de votre boutique...",
+    storeError: "Échec de l'enregistrement de la boutique : ",
+    storeSuccess: "Félicitations ! Votre boutique a été enregistrée.",
+    invalidProduct: "Saisissez un nom de produit et un prix valide.",
+    savingProduct: "Enregistrement de votre produit...",
+    storeNotFound: "Boutique introuvable : ",
+noStoreAvailable: "Aucune boutique n'est disponible.",
+    productSaveError: "Le produit n'a pas été enregistré : ",
+    imageUploadError: "Produit enregistré, mais l'image n'a pas pu être téléversée : ",
+    imageInfoError: "Produit enregistré, mais une erreur est survenue lors de l'enregistrement des informations de l'image : ",
+    productSuccess: "Produit enregistré avec succès !",
     storeName: "Nom de la boutique",
     storePhone: "Numéro de téléphone",
     storeLocation: "Emplacement de la boutique",
@@ -374,6 +433,19 @@ storeLocationPlaceholder: "Exemple : Kariakoo, Dar es Salaam",
 productNamePlaceholder: "Exemple : Riz",
 productPricePlaceholder: "Exemple : 3500",
 descriptionPlaceholder: "Saisissez la description du produit"
+   loginRequired: "Veuillez créer un compte ou vous connecter d'abord.",
+    signupError: "Échec de l'inscription : ",
+invalidDetails: "Saisissez un e-mail et un mot de passe d'au moins 8 caractères.",
+signingUp: "Création de votre compte...",
+signupSuccess: "Compte créé ! Vous pouvez maintenant vous connecter.",
+signupPending: "Demande reçue. Consultez votre e-mail pour la confirmation.",
+signingIn: "Connexion à votre compte...",
+loginSuccess: "Connexion réussie !",
+loginError: "Échec de la connexion : ",
+emailRequired: "Saisissez d'abord votre e-mail et votre mot de passe.",
+emailFirst: "Veuillez saisir votre adresse e-mail.",
+resetError: "Échec : ",
+resetSuccess: "Consultez votre e-mail pour les instructions de réinitialisation.", 
   },
 
   ar: {
@@ -391,6 +463,7 @@ descriptionPlaceholder: "Saisissez la description du produit"
     sellers: "🏪 خان ماركت — البائعون",
     sellerIntro: "مرحباً! يمكن للبائعين إدارة متاجرهم ومنتجاتهم هنا.",
     sellerAccount: "حساب البائع",
+    fillAllFields: "يرجى ملء جميع الحقول.",
     email: "البريد الإلكتروني",
 password: "كلمة المرور",
 emailPlaceholder: "أدخل بريدك الإلكتروني",
@@ -402,6 +475,17 @@ passwordPlaceholder: "8 أحرف على الأقل",
     closeSeller: "إغلاق قسم البائع",
     registerStore: "سجّل متجرك",
 registerStoreButton: "تسجيل المتجر",
+    registeringStore: "جارٍ تسجيل متجرك...",
+    storeError: "فشل تسجيل المتجر: ",
+    storeSuccess: "تهانينا! تم تسجيل متجرك بنجاح.",
+    invalidProduct: "أدخل اسم المنتج وسعراً صحيحاً.",
+    savingProduct: "جارٍ حفظ منتجك...",
+   storeNotFound: "لم يتم العثور على المتجر: ",
+noStoreAvailable: "لا يوجد متجر متاح.", 
+    productSaveError: "لم يتم حفظ المنتج: ",
+    imageUploadError: "تم حفظ المنتج، ولكن تعذر تحميل الصورة: ",
+    imageInfoError: "تم حفظ المنتج، ولكن حدث خطأ في حفظ بيانات الصورة: ",
+    productSuccess: "تم حفظ المنتج بنجاح!",
     storeName: "اسم المتجر",
     storePhone: "رقم الهاتف",
     storeLocation: "موقع المتجر",
@@ -417,6 +501,19 @@ storeLocationPlaceholder: "مثال: كاريakoo، دار السلام",
 productNamePlaceholder: "مثال: أرز",
 productPricePlaceholder: "مثال: 3500",
 descriptionPlaceholder: "أدخل وصف المنتج"
+    loginRequired: "يرجى إنشاء حساب أو تسجيل الدخول أولاً.",
+    signupError: "فشل التسجيل: ",
+invalidDetails: "أدخل بريدك الإلكتروني وكلمة مرور من 8 أحرف على الأقل.",
+signingUp: "جارٍ إنشاء حسابك...",
+signupSuccess: "تم إنشاء الحساب! يمكنك تسجيل الدخول الآن.",
+signupPending: "تم استلام طلب التسجيل. تحقق من بريدك الإلكتروني للتأكيد.",
+signingIn: "جارٍ تسجيل الدخول إلى حسابك...",
+loginSuccess: "تم تسجيل الدخول بنجاح!",
+loginError: "فشل تسجيل الدخول: ",
+emailRequired: "أدخل بريدك الإلكتروني وكلمة المرور أولاً.",
+emailFirst: "يرجى إدخال بريدك الإلكتروني أولاً.",
+resetError: "تعذر إكمال العملية: ",
+resetSuccess: "تحقق من بريدك الإلكتروني للحصول على تعليمات تغيير كلمة المرور.",
   }
 };
 
@@ -709,7 +806,7 @@ document.getElementById("register-store").addEventListener("click", async () => 
   const message = document.getElementById("store-message");
 
   if (!storeName || !phone || !location) {
-    message.textContent = "Tafadhali jaza sehemu zote.";
+    message.textContent = t("fillAllFields");
     return;
   }
 
@@ -717,11 +814,11 @@ document.getElementById("register-store").addEventListener("click", async () => 
     await supabaseClient.auth.getUser();
 
   if (userError || !userData.user) {
-    message.textContent = "Tafadhali ingia kwenye akaunti kwanza.";
+    message.textContent =  t("loginRequired");
     return;
   }
 
-  message.textContent = "Tunasajili duka lako...";
+ message.textContent = t("registeringStore"); 
 
   const { error } = await supabaseClient
     .from("stores")
@@ -733,11 +830,11 @@ document.getElementById("register-store").addEventListener("click", async () => 
     });
 
   if (error) {
-    message.textContent = "Usajili umeshindikana: " + error.message;
+    message.textContent = t("storeError") + error.message;
     return;
   }
 
-  message.textContent = "Hongera! Duka lako limesajiliwa.";
+message.textContent = t("storeSuccess");
 });
 
 document.getElementById("add-product").addEventListener("click", async () => {
@@ -748,7 +845,7 @@ document.getElementById("add-product").addEventListener("click", async () => {
   const message = document.getElementById("product-message");
 
   if (!name || !Number.isFinite(price) || price <= 0) {
-    message.textContent = "Ingiza jina la bidhaa na bei sahihi.";
+    message.textContent = t("invalidProduct");
     return;
   }
 
@@ -756,11 +853,11 @@ document.getElementById("add-product").addEventListener("click", async () => {
     await supabaseClient.auth.getUser();
 
   if (userError || !userData.user) {
-    message.textContent = "Tafadhali ingia kwenye akaunti kwanza.";
+    message.textContent = t("loginRequired");
     return;
-  }
-
-  message.textContent = "Tunahifadhi bidhaa...";
+}
+  
+  message.textContent = t("savingProduct");
 
   const { data: stores, error: storeError } = await supabaseClient
   .from("stores")
@@ -770,8 +867,8 @@ document.getElementById("add-product").addEventListener("click", async () => {
 
 if (storeError || !stores || stores.length === 0) {
   message.textContent =
-    "Duka halijapatikana: " +
-    (storeError?.message || "Hakuna duka linaloonekana.");
+  t("storeNotFound") +
+  (storeError?.message || t("noStoreAvailable"));
   console.error("STORE ERROR:", storeError);
   return;
 }
@@ -791,7 +888,7 @@ const store = stores[0];
   .single();
 
 if (productError) {
-  message.textContent = "Bidhaa haijahifadhiwa: " + productError.message;
+  message.textContent = t("productSaveError") + productError.message;
   console.error("PRODUCT ERROR:", productError);
   return;
 }
@@ -812,8 +909,8 @@ for (const file of imageFiles) {
     .upload(path, file);
 
   if (uploadError) {
-    message.textContent =
-      "Bidhaa imehifadhiwa, lakini picha haikupakiwa: " + uploadError.message;
+   message.textContent =
+  t("imageUploadError") + uploadError.message; 
     console.error("IMAGE UPLOAD ERROR:", uploadError);
     return;
   }
@@ -837,7 +934,7 @@ if (savedImages.length > 0) {
 
   if (imageError) {
     message.textContent =
-      "Bidhaa imehifadhiwa, lakini taarifa za picha zina hitilafu: " + imageError.message;
+  t("imageInfoError") + imageError.message;
     console.error("IMAGE DATABASE ERROR:", imageError);
     return;
   }
@@ -848,7 +945,7 @@ if (savedImages.length > 0) {
     .eq("id", product.id);
 }
 
-  message.textContent = "Bidhaa imehifadhiwa kwa mafanikio!";
+  message.textContent = t("productSuccess");
   document.getElementById("product-name").value = "";
   document.getElementById("product-price").value = "";
   document.getElementById("product-description").value = "";
