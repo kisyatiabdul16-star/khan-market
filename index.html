@@ -279,7 +279,13 @@ passwordPlaceholder: "Angalau herufi 8",
     productPrice: "Bei (TSh)",
     description: "Maelezo ya bidhaa",
     productImages: "Picha za bidhaa (Chagua picha nyingi)",
-    saveProduct: "Hifadhi Bidhaa"
+    saveProduct: "Hifadhi Bidhaa",
+storeNamePlaceholder: "Mfano: Khan Electronics",
+storePhonePlaceholder: "Mfano: 07XXXXXXXX",
+storeLocationPlaceholder: "Mfano: Kariakoo, Dar es Salaam",
+productNamePlaceholder: "Mfano: Mchele",
+productPricePlaceholder: "Mfano: 3500",
+descriptionPlaceholder: "Andika maelezo ya bidhaa"
   },
 
   en: {
@@ -316,7 +322,13 @@ passwordPlaceholder: "At least 8 characters",
     productPrice: "Price (TSh)",
     description: "Product Description",
     productImages: "Product Images (Select multiple)",
-    saveProduct: "Save Product"
+    saveProduct: "Save Product",
+storeNamePlaceholder: "Example: Khan Electronics",
+storePhonePlaceholder: "Example: 07XXXXXXXX",
+storeLocationPlaceholder: "Example: Kariakoo, Dar es Salaam",
+productNamePlaceholder: "Example: Rice",
+productPricePlaceholder: "Example: 3500",
+descriptionPlaceholder: "Enter product description"
   },
 
   fr: {
@@ -352,7 +364,13 @@ passwordPlaceholder: "Au moins 8 caractères",
     productPrice: "Prix (TSh)",
     description: "Description du produit",
     productImages: "Images du produit (sélection multiple)",
-    saveProduct: "Enregistrer le produit"
+    saveProduct: "Enregistrer le produit",
+storeNamePlaceholder: "Exemple : Khan Electronics",
+storePhonePlaceholder: "Exemple : 07XXXXXXXX",
+storeLocationPlaceholder: "Exemple : Kariakoo, Dar es Salaam",
+productNamePlaceholder: "Exemple : Riz",
+productPricePlaceholder: "Exemple : 3500",
+descriptionPlaceholder: "Saisissez la description du produit"
   },
 
   ar: {
@@ -388,8 +406,13 @@ passwordPlaceholder: "8 أحرف على الأقل",
     productPrice: "السعر (TSh)",
     description: "وصف المنتج",
     productImages: "صور المنتج (يمكن اختيار عدة صور)",
-    saveProduct: "حفظ المنتج"
-  }
+    saveProduct: "حفظ المنتج",
+storeNamePlaceholder: "مثال: خان للإلكترونيات",
+storePhonePlaceholder: "مثال: 07XXXXXXXX",
+storeLocationPlaceholder: "مثال: كاريakoo، دار السلام",
+productNamePlaceholder: "مثال: أرز",
+productPricePlaceholder: "مثال: 3500",
+descriptionPlaceholder: "أدخل وصف المنتج"
 };
 
 function t(key) {
@@ -596,28 +619,29 @@ loadProducts();
   <h3 data-i18n="registerStore">🏪 Sajili Duka Lako</h3>
 
   <label for="store-name" data-i18n="storeName">Jina la duka</label>
-  <input
-    id="store-name"
-    type="text"
-    placeholder="Mfano: Khan Electronics"
+  <input id="store-name" type="text"
+data-i18n-placeholder="storeNamePlaceholder"
+placeholder="Mfano: Khan Electronics">
     required
   >
 
   <label for="store-phone" data-i18n="storePhone">Namba ya simu</label>
   <input
-    id="store-phone"
-    type="tel"
-    placeholder="Mfano: 07XXXXXXXX"
-    required
-  >
+  id="store-phone"
+  type="tel"
+  data-i18n-placeholder="storePhonePlaceholder"
+  placeholder="Mfano: 07XXXXXXXX"
+  required
+>
 
   <label for="store-location" data-i18n="storeLocation">Eneo la duka</label>
   <input
-    id="store-location"
-    type="text"
-    placeholder="Mfano: Kariakoo, Dar es Salaam"
-    required
-  >
+  id="store-location"
+  type="text"
+  data-i18n-placeholder="storeLocationPlaceholder"
+  placeholder="Mfano: Kariakoo, Dar es Salaam"
+  required
+>
 
   <button type="button" id="register-store">
     Sajili Duka
@@ -631,13 +655,30 @@ loadProducts();
 <h3 data-i18n="addProduct">📦 Ongeza Bidhaa Yako</h3>
 
 <label for="product-name" data-i18n="productName">Jina la bidhaa</label>
-<input id="product-name" type="text" placeholder="Mfano: Mchele" required>
+<input
+  id="product-name"
+  type="text"
+  data-i18n-placeholder="productNamePlaceholder"
+  placeholder="Mfano: Mchele"
+  required
+>
 
 <label for="product-price" data-i18n="productPrice">Bei (TSh)</label>
-<input id="product-price" type="number" min="1" placeholder="Mfano: 3500" required>
+<input
+  id="product-price"
+  type="number"
+  min="1"
+  data-i18n-placeholder="productPricePlaceholder"
+  placeholder="Mfano: 3500"
+  required
+>
 
 <label for="product-description" data-i18n="description">Maelezo ya bidhaa</label>
-<textarea id="product-description" placeholder="Andika maelezo ya bidhaa"></textarea>
+<textarea
+  id="product-description"
+  data-i18n-placeholder="descriptionPlaceholder"
+  placeholder="Andika maelezo ya bidhaa"
+></textarea>
 <label for="product-images" data-i18n="productImages">Picha za bidhaa (Chagua picha nyingi)</label>
 <input
   id="product-images"
