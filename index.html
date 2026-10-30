@@ -239,9 +239,158 @@ async function loadProducts() {
 
   showProducts();
 }
-let cart={};
-let english=false;
-const money=n=>"TSh "+n.toLocaleString("en-US");
+let cart = {};
+
+let currentLanguage =
+  localStorage.getItem("khan-language") || "sw";
+
+const translations = {
+  sw: {
+    tag: "Soko lako la kidijitali Tanzania",
+    welcome: "Karibu Khan Market!",
+    intro: "Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.",
+    search: "Tafuta bidhaa...",
+    heading: "Bidhaa zinazopatikana",
+    cart: "🛒 Kikapu changu",
+    emptyCart: "Kikapu chako bado hakina bidhaa.",
+    total: "Jumla:",
+    order: "Endelea na oda",
+    note: "Bei ni za mfano. Oda halisi na malipo ya mtandaoni bado hayajaunganishwa.",
+    add: "Ongeza kikapuni",
+    sellers: "🏪 Khan Market — Wauzaji",
+    sellerIntro: "Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.",
+    sellerAccount: "Akaunti ya Muuzaji",
+    email: "Barua pepe",
+    password: "Nenosiri",
+    signup: "Fungua akaunti",
+    login: "Ingia",
+    forgot: "Umesahau nenosiri?",
+    openSeller: "Fungua sehemu ya muuzaji",
+    closeSeller: "Funga sehemu ya muuzaji",
+    registerStore: "Sajili Duka Lako",
+    storeName: "Jina la duka",
+    storePhone: "Namba ya simu",
+    storeLocation: "Eneo la duka",
+    addProduct: "📦 Ongeza Bidhaa Yako",
+    productName: "Jina la bidhaa",
+    productPrice: "Bei (TSh)",
+    description: "Maelezo ya bidhaa",
+    productImages: "Picha za bidhaa (Chagua picha nyingi)",
+    saveProduct: "Hifadhi Bidhaa"
+  },
+
+  en: {
+    tag: "Your digital marketplace in Tanzania",
+    welcome: "Welcome to Khan Market!",
+    intro: "Find products and add what you need to your cart.",
+    search: "Search products...",
+    heading: "Available Products",
+    cart: "🛒 My Cart",
+    emptyCart: "Your cart is empty.",
+    total: "Total:",
+    order: "Continue to Order",
+    note: "Sample prices only. Real orders and online payments are not connected yet.",
+    add: "Add to Cart",
+    sellers: "🏪 Khan Market — Sellers",
+    sellerIntro: "Welcome! Sellers can manage their stores and products here.",
+    sellerAccount: "Seller Account",
+    email: "Email",
+    password: "Password",
+    signup: "Create Account",
+    login: "Login",
+    forgot: "Forgot password?",
+    openSeller: "Open Seller Section",
+    closeSeller: "Close Seller Section",
+    registerStore: "Register Your Store",
+    storeName: "Store Name",
+    storePhone: "Phone Number",
+    storeLocation: "Store Location",
+    addProduct: "📦 Add Your Product",
+    productName: "Product Name",
+    productPrice: "Price (TSh)",
+    description: "Product Description",
+    productImages: "Product Images (Select multiple)",
+    saveProduct: "Save Product"
+  },
+
+  fr: {
+    tag: "Votre marché numérique en Tanzanie",
+    welcome: "Bienvenue sur Khan Market !",
+    intro: "Trouvez des produits et ajoutez-les à votre panier.",
+    search: "Rechercher des produits...",
+    heading: "Produits disponibles",
+    cart: "🛒 Mon panier",
+    emptyCart: "Votre panier est vide.",
+    total: "Total :",
+    order: "Continuer la commande",
+    note: "Prix indicatifs. Les commandes réelles et les paiements en ligne ne sont pas encore disponibles.",
+    add: "Ajouter au panier",
+    sellers: "🏪 Khan Market — Vendeurs",
+    sellerIntro: "Bienvenue ! Les vendeurs peuvent gérer leurs boutiques et produits ici.",
+    sellerAccount: "Compte vendeur",
+    email: "Adresse e-mail",
+    password: "Mot de passe",
+    signup: "Créer un compte",
+    login: "Se connecter",
+    forgot: "Mot de passe oublié ?",
+    openSeller: "Ouvrir l'espace vendeur",
+    closeSeller: "Fermer l'espace vendeur",
+    registerStore: "Enregistrer votre boutique",
+    storeName: "Nom de la boutique",
+    storePhone: "Numéro de téléphone",
+    storeLocation: "Emplacement de la boutique",
+    addProduct: "📦 Ajouter votre produit",
+    productName: "Nom du produit",
+    productPrice: "Prix (TSh)",
+    description: "Description du produit",
+    productImages: "Images du produit (sélection multiple)",
+    saveProduct: "Enregistrer le produit"
+  },
+
+  ar: {
+    tag: "سوقك الرقمي في تنزانيا",
+    welcome: "مرحباً بك في خان ماركت!",
+    intro: "ابحث عن المنتجات وأضف ما تحتاجه إلى سلتك.",
+    search: "ابحث عن المنتجات...",
+    heading: "المنتجات المتاحة",
+    cart: "🛒 سلتي",
+    emptyCart: "سلتك فارغة حالياً.",
+    total: "الإجمالي:",
+    order: "متابعة الطلب",
+    note: "هذه أسعار تجريبية. الطلبات الحقيقية والدفع عبر الإنترنت غير متاحين بعد.",
+    add: "أضف إلى السلة",
+    sellers: "🏪 خان ماركت — البائعون",
+    sellerIntro: "مرحباً! يمكن للبائعين إدارة متاجرهم ومنتجاتهم هنا.",
+    sellerAccount: "حساب البائع",
+    email: "البريد الإلكتروني",
+    password: "كلمة المرور",
+    signup: "إنشاء حساب",
+    login: "تسجيل الدخول",
+    forgot: "نسيت كلمة المرور؟",
+    openSeller: "فتح قسم البائع",
+    closeSeller: "إغلاق قسم البائع",
+    registerStore: "سجّل متجرك",
+    storeName: "اسم المتجر",
+    storePhone: "رقم الهاتف",
+    storeLocation: "موقع المتجر",
+    addProduct: "📦 أضف منتجك",
+    productName: "اسم المنتج",
+    productPrice: "السعر (TSh)",
+    description: "وصف المنتج",
+    productImages: "صور المنتج (يمكن اختيار عدة صور)",
+    saveProduct: "حفظ المنتج"
+  }
+};
+
+function t(key) {
+  return translations[currentLanguage]?.[key]
+    || translations.sw[key]
+    || key;
+}
+
+let english = currentLanguage === "en";
+
+const money = n => "TSh " + n.toLocaleString("en-US");
 function showProducts(){
   const q = document.getElementById("search").value.toLowerCase();
 
@@ -271,7 +420,7 @@ function showProducts(){
       <div class="store-location">📍 ${p.location}</div>
 
       <button class="add" onclick="add(${p.id})">
-        ${english ? "Add to cart" : "Ongeza kikapuni"}
+        ${t("add")}
       </button>
     </div>
   `).join("");
@@ -293,26 +442,56 @@ document.getElementById("items").innerHTML=entries.length?entries.map(([id,qty])
 const p=products.find(x=>x.id===Number(id));
 return `<div class="item"><div><b>${english?p.en:p.sw}</b><br>${money(p.price)} × ${qty}</div>
 <div class="qty"><button onclick="change(${p.id},-1)">−</button> ${qty} <button onclick="change(${p.id},1)">+</button></div></div>`;
-}).join(""):(english?"Your cart is empty.":"Kikapu chako bado hakina bidhaa.");
+}).join(""):t("emptyCart")
 const total=entries.reduce((sum,[id,qty])=>sum+products.find(p=>p.id===Number(id)).price*qty,0);
 document.getElementById("total").textContent=money(total);
 }
 
-function language(){
-english=!english;
-document.documentElement.lang=english?"en":"sw";
-document.getElementById("lang").textContent=english?"Kiswahili":"English";
-document.getElementById("tag").textContent=english?"Your digital marketplace in Tanzania":"Soko lako la kidijitali Tanzania";
-document.getElementById("welcome").textContent=english?"Welcome to Khan Market!":"Karibu Khan Market!";
-document.getElementById("intro").textContent=english?"Find products and add what you need to your cart.":"Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.";
-document.getElementById("heading").textContent=english?"Available products":"Bidhaa zinazopatikana";
-document.getElementById("cartHeading").textContent=english?"🛒 My cart":"🛒 Kikapu changu";
-document.getElementById("totalText").textContent=english?"Total:":"Jumla:";
-document.getElementById("orderButton").textContent=english?"Continue to order":"Endelea na oda";
-document.getElementById("note").textContent=english?"Sample prices only. Real orders and online payments are not connected yet.":"Bei ni za mfano. Oda halisi na malipo ya mtandaoni bado hayajaunganishwa.";
-document.getElementById("search").placeholder=english?"Search products...":"Tafuta bidhaa...";
-showProducts();
+function language() {
+  const languages = ["sw", "en", "fr", "ar"];
+
+  const currentIndex = languages.indexOf(currentLanguage);
+
+  const nextIndex = (currentIndex + 1) % languages.length;
+
+  setLanguage(languages[nextIndex]);
 }
+
+function setLanguage(lang) {
+  if (!translations[lang]) return;
+
+  currentLanguage = lang;
+  localStorage.setItem("khan-language", lang);
+
+  english = lang === "en";
+
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
+  const languageNames = {
+    sw: "🇹🇿 Kiswahili",
+    en: "🇬🇧 English",
+    fr: "🇫🇷 Français",
+    ar: "🇸🇦 العربية"
+  };
+
+  document.getElementById("lang").textContent =
+    languageNames[lang];
+
+  document.getElementById("tag").textContent = t("tag");
+  document.getElementById("welcome").textContent = t("welcome");
+  document.getElementById("intro").textContent = t("intro");
+  document.getElementById("heading").textContent = t("heading");
+  document.getElementById("cartHeading").textContent = t("cart");
+  document.getElementById("totalText").textContent = t("total");
+  document.getElementById("orderButton").textContent = t("order");
+  document.getElementById("note").textContent = t("note");
+  document.getElementById("search").placeholder = t("search");
+
+  showProducts();
+}
+
+setLanguage(currentLanguage);
 
 async function order(){
   if(!Object.keys(cart).length){
