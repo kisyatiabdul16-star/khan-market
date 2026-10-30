@@ -477,7 +477,11 @@ function setLanguage(lang) {
 
   document.getElementById("lang").textContent =
     languageNames[lang];
-
+  
+document.querySelectorAll("[data-i18n]").forEach(element => {
+  const key = element.getAttribute("data-i18n");
+  element.textContent = t(key);
+});
   document.getElementById("tag").textContent = t("tag");
   document.getElementById("welcome").textContent = t("welcome");
   document.getElementById("intro").textContent = t("intro");
@@ -551,35 +555,33 @@ loadProducts();
 </script>
 <!-- Khan Market Seller Section -->
 <section id="seller-section" style="margin:20px; padding:20px; border:1px solid #ddd; border-radius:12px;">
-  <h2>🏪 Khan Market — Wauzaji</h2>
-  <p>Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.</p>
+  <h2 data-i18n="sellers">🏪 Khan Market — Wauzaji</h2>
+  <p data-i18n="sellerIntro">Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.</p>
 
 <div id="seller-account" style="margin:15px 0; padding:15px; border:1px solid #ccc; border-radius:10px;">
-  <h3>Akaunti ya Muuzaji</h3>
-
-  <label for="seller-email">Barua pepe</label>
+  
+<h3 data-i18n="sellerAccount">Akaunti ya Muuzaji</h3>
+  <label for="seller-email" data-i18n="email">Barua pepe</label>
   <input id="seller-email" type="email" placeholder="Ingiza barua pepe yako" autocomplete="email" required>
 
-  <label for="seller-password">Nenosiri</label>
+  <label for="seller-password" data-i18n="password">Nenosiri</label>
   <div style="display:flex; gap:8px; align-items:center;">
     <input id="seller-password" type="password" placeholder="Angalau herufi 8" autocomplete="current-password" required>
     <button type="button" id="toggle-seller-password">Show</button>
   </div>
 
-  <button type="button" id="seller-signup">Fungua akaunti</button>
-  <button type="button" id="seller-login">Ingia</button>
-  <button type="button" id="seller-forgot">Forgot password?</button>
+ <button id="seller-signup" data-i18n="signup">Fungua akaunti</button> 
+  <button id="seller-login" data-i18n="login">Ingia</button>
+  <button id="seller-forgot" data-i18n="forgot">Umesahau nenosiri?</button>
 
   <p id="seller-message" role="status"></p>
 </div>
 
-  <button type="button" id="seller-toggle">
-  Fungua sehemu ya muuzaji
-</button>
+  <button id="seller-toggle" data-i18n="openSeller">Fungua sehemu ya muuzaji</button>
 <div id="seller-info" hidden>
-  <h3>🏪 Sajili Duka Lako</h3>
+  <h3 data-i18n="registerStore">🏪 Sajili Duka Lako</h3>
 
-  <label for="store-name">Jina la duka</label>
+  <label for="store-name" data-i18n="storeName">Jina la duka</label>
   <input
     id="store-name"
     type="text"
@@ -587,7 +589,7 @@ loadProducts();
     required
   >
 
-  <label for="store-phone">Namba ya simu</label>
+  <label for="store-phone" data-i18n="storePhone">Namba ya simu</label>
   <input
     id="store-phone"
     type="tel"
@@ -595,7 +597,7 @@ loadProducts();
     required
   >
 
-  <label for="store-location">Eneo la duka</label>
+  <label for="store-location" data-i18n="storeLocation">Eneo la duka</label>
   <input
     id="store-location"
     type="text"
@@ -612,17 +614,17 @@ loadProducts();
 
 <hr>
 
-<h3>📦 Ongeza Bidhaa Yako</h3>
+<h3 data-i18n="addProduct">📦 Ongeza Bidhaa Yako</h3>
 
-<label for="product-name">Jina la bidhaa</label>
+<label for="product-name" data-i18n="productName">Jina la bidhaa</label>
 <input id="product-name" type="text" placeholder="Mfano: Mchele" required>
 
-<label for="product-price">Bei (TSh)</label>
+<label for="product-price" data-i18n="productPrice">Bei (TSh)</label>
 <input id="product-price" type="number" min="1" placeholder="Mfano: 3500" required>
 
-<label for="product-description">Maelezo ya bidhaa</label>
+<label for="product-description" data-i18n="description">Maelezo ya bidhaa</label>
 <textarea id="product-description" placeholder="Andika maelezo ya bidhaa"></textarea>
-<label for="product-images">Picha za bidhaa (Chagua picha nyingi)</label>
+<label for="product-images" data-i18n="productImages">Picha za bidhaa (Chagua picha nyingi)</label>
 <input
   id="product-images"
   type="file"
@@ -631,9 +633,7 @@ loadProducts();
 >
 
 
-<button type="button" id="add-product">
-  Hifadhi Bidhaa
-</button>
+<button type="button" id="add-product" data-i18n="saveProduct">Hifadhi Bidhaa</button>
 
 <p id="product-message"></p>
 </div>
@@ -794,6 +794,9 @@ if (savedImages.length > 0) {
 
   await loadProducts();
 });
+</script>
+  <script>
+  setLanguage(currentLanguage);
 </script>
 </body>
 </html>
