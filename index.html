@@ -5,31 +5,378 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Khan Market Tanzania</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f3f7f4;color:#17352a}
-header{background:#075e3b;color:white;padding:20px 15px}
-.top{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
-header h1{margin:0}
-main{max-width:900px;margin:auto;padding:18px 14px}
-.hero{background:#dcefe4;padding:20px;border-radius:14px;margin-bottom:18px}
-input{width:100%;padding:14px;border:1px solid #ccc;border-radius:9px;font-size:16px;margin:8px 0 18px}
-button{padding:11px;border:0;border-radius:8px;background:#087747;color:white;font-size:15px}
-.lang{background:white;color:#075e3b}
-.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-.card,.cart{background:white;padding:14px;border-radius:12px;box-shadow:0 2px 7px #0000000d}
-.emoji{text-align:center;font-size:40px;padding:10px}
-.card h3{font-size:17px}
-.price{color:#087747;font-weight:bold;margin:12px 0}
-.add{width:100%}
-.cart{margin-top:24px}
-.item{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #ddd;padding:12px 0}
-.qty button{padding:6px 10px;background:#e0eee6;color:#075e3b}
-.total{font-size:20px;font-weight:bold;margin-top:18px}
-.checkout{width:100%;margin-top:12px}
-.note{font-size:13px;color:#66756d;line-height:1.5}
-footer{text-align:center;padding:24px;color:#66756d}
+/* KHAN MARKET PREMIUM DESIGN */
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --green: #075e3b;
+  --green-dark: #06452e;
+  --green-light: #e7f3ec;
+  --gold: #d6ad55;
+  --white: #ffffff;
+  --background: #f5f7f5;
+  --text: #17352a;
+  --muted: #718078;
+  --border: #e2e9e4;
+  --shadow: 0 8px 25px rgba(0,0,0,.06);
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+header {
+  background: linear-gradient(120deg, var(--green-dark), var(--green));
+  color: white;
+  padding: 22px 18px;
+  box-shadow: 0 4px 15px rgba(0,0,0,.12);
+}
+
+.top {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -.5px;
+}
+
+header p {
+  margin: 3px 0 0;
+  color: #d9eee2;
+}
+
+main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 25px 18px;
+}
+
+h2 {
+  line-height: 1.3;
+}
+
+.hero {
+  background: linear-gradient(120deg, #dcefe4, #f7f3e7);
+  padding: 35px 28px;
+  border-radius: 20px;
+  margin-bottom: 25px;
+  border: 1px solid #e1eee5;
+}
+
+.hero h2 {
+  font-size: 30px;
+  color: var(--green-dark);
+  margin-top: 0;
+}
+
+.hero p {
+  color: #52685b;
+}
+
+#search {
+  width: 100%;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  font-size: 16px;
+  background: white;
+  box-shadow: var(--shadow);
+  margin: 10px 0 25px;
+}
+
+#heading {
+  color: var(--green-dark);
+  margin-bottom: 18px;
+}
+
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 20px;
+}
+
+.card,
+.cart {
+  background: white;
+  padding: 17px;
+  border-radius: 17px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.card {
+  transition: transform .2s ease, box-shadow .2s ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,.10);
+}
+
+.card img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.emoji {
+  text-align: center;
+  font-size: 45px;
+  padding: 15px;
+}
+
+.card h3 {
+  font-size: 17px;
+  margin: 12px 0 5px;
+}
+
+.price {
+  color: var(--green);
+  font-size: 19px;
+  font-weight: bold;
+  margin: 12px 0;
+}
+
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--green);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+button:hover {
+  background: var(--green-dark);
+  transform: translateY(-1px);
+}
+
+.lang {
+  background: white;
+  color: var(--green);
+  border: 1px solid var(--gold);
+}
+
+.add,
+.checkout {
+  width: 100%;
+}
+
+.cart {
+  margin-top: 30px;
+  padding: 22px;
+}
+
+.cart h2 {
+  color: var(--green-dark);
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+
+.qty button {
+  padding: 6px 12px;
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.total {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 20px;
+  color: var(--green-dark);
+}
+
+.checkout {
+  margin-top: 15px;
+  padding: 15px;
+  background: var(--gold);
+  color: #263a2d;
+}
+
+.checkout:hover {
+  background: #c59b42;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* SELLER DASHBOARD */
+
+#seller-section {
+  max-width: 1200px;
+  margin: 35px auto !important;
+  padding: 28px !important;
+  background: white;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--shadow);
+}
+
+#seller-section h2 {
+  color: var(--green-dark);
+  font-size: 26px;
+}
+
+#seller-section h3 {
+  color: var(--green);
+  font-size: 20px;
+  margin: 20px 0 14px;
+}
+
+#seller-account,
+#seller-info,
+#seller-store-management {
+  background: #f8faf8;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 20px;
+  margin: 18px 0;
+}
+
+#seller-section label {
+  display: block;
+  font-weight: 600;
+  margin: 12px 0 5px;
+  color: #42594b;
+}
+
+#seller-section input,
+#seller-section textarea,
+#seller-section select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #dce5de;
+  border-radius: 10px;
+  background: white;
+  font-size: 15px;
+  margin: 7px 0 15px;
+  font-family: inherit;
+}
+
+#seller-section input:focus,
+#seller-section textarea:focus,
+#seller-section select:focus {
+  outline: 2px solid #b6dbc3;
+  border-color: var(--green);
+}
+
+#seller-section textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+#seller-section button {
+  margin: 5px 4px 5px 0;
+}
+
+#seller-section hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 28px 0;
+}
+
+#seller-products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+#seller-section p {
+  line-height: 1.6;
+}
+
+footer {
+  text-align: center;
+  padding: 30px 18px;
+  color: var(--muted);
+  background: white;
+  border-top: 1px solid var(--border);
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 600px) {
+  header {
+    padding: 17px 13px;
+  }
+
+  header h1 {
+    font-size: 23px;
+  }
+
+  main {
+    padding: 17px 12px;
+  }
+
+  .hero {
+    padding: 25px 18px;
+  }
+
+  .hero h2 {
+    font-size: 24px;
+  }
+
+  .products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .card {
+    padding: 11px;
+  }
+
+  #seller-section {
+    margin: 18px 10px !important;
+    padding: 16px !important;
+  }
+
+  #seller-account,
+  #seller-info,
+  #seller-store-management {
+    padding: 14px;
+  }
+
+  #seller-section button {
+    max-width: 100%;
+  }
+
+  .item {
+    flex-wrap: wrap;
+  }
+}
 </style>
+
 </head>
 <body>
 <header>
