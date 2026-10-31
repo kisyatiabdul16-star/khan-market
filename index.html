@@ -301,11 +301,12 @@ async function loadSellerProducts() {
     `;
   }).join("");
 }
- async function editProduct(productId) {
+
+async function editProduct(productId) {
   const { data: userData } = await supabaseClient.auth.getUser();
 
   if (!userData.user) {
-    alert("Tafadhali ingia kwanza.");
+    alert(t("loginRequired"));
     return;
   }
 
@@ -315,7 +316,7 @@ async function loadSellerProducts() {
     .eq("owner_id", userData.user.id);
 
   if (storeError || !stores || stores.length === 0) {
-    alert("Duka lako halijapatikana.");
+    alert(t("storeNotFound"));
     return;
   }
 
@@ -329,18 +330,18 @@ async function loadSellerProducts() {
     .single();
 
   if (error || !product) {
-    alert("Bidhaa haijapatikana.");
+    alert(t("productSaveError"));
     return;
   }
 
-  const newName = const newName = prompt(t("newProductName"), product.Name);
+  const newName = prompt(t("newProductName"), product.Name);
   if (newName === null || newName.trim() === "") return;
 
   const newPrice = prompt(t("newProductPrice"), product.Price);
   if (newPrice === null || newPrice.trim() === "") return;
 
   if (!Number.isFinite(Number(newPrice)) || Number(newPrice) <= 0) {
-    alert(t("editSuccess"));
+    alert(t("invalidProduct"));
     return;
   }
 
@@ -354,14 +355,17 @@ async function loadSellerProducts() {
     .in("store_id", storeIds);
 
   if (updateError) {
-  alert(t("editError") + updateError.message);  
+    alert(t("editError") + updateError.message);
     return;
   }
 
-  alert("Bidhaa imehaririwa kikamilifu!");
+  alert(t("editSuccess"));
+
   await loadSellerProducts();
   await loadProducts();
-}   
+}
+
+let cart = {};    
 let cart = {};
 
 let currentLanguage =
