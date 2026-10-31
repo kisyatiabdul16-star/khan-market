@@ -982,6 +982,11 @@ selectStore: "Chagua duka",
 myProducts: "📦 Bidhaa Zangu",
    storeManagementIntro: "Chagua duka unalotaka kusimamia",
 storeRegistrationIntro: "Sajili duka jipya kwenye Khan Market.",
+    editStoreProfile: "Hariri Taarifa za Duka",
+saveStoreChanges: "Hifadhi Mabadiliko",
+    savingStoreChanges: "Inahifadhi mabadiliko...",
+storeUpdateError: "Imeshindikana kuhifadhi mabadiliko: ",
+storeUpdateSuccess: "Taarifa za duka zimebadilishwa kikamilifu.",
 myProductsIntro: "Bidhaa ulizoweka kwenye maduka yako.",
 emptySellerProducts: "Bidhaa zako zitaonekana hapa.", 
     sellerIntro: "Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.",
@@ -1074,6 +1079,11 @@ selectStore: "Select a Store",
 myProducts: "📦 My Products",
    storeManagementIntro: "Choose the store you want to manage",
 storeRegistrationIntro: "Register a new store on Khan Market.",
+  editStoreProfile: "Edit Store Profile",
+saveStoreChanges: "Save Changes",  
+    savingStoreChanges: "Saving changes...",
+storeUpdateError: "Failed to update store: ",
+storeUpdateSuccess: "Store details updated successfully.",
 myProductsIntro: "Products you have added to your stores.",
 emptySellerProducts: "Your products will appear here.", 
     sellerIntro: "Welcome! Sellers can manage their stores and products here.",
@@ -1166,6 +1176,11 @@ selectStore: "Choisir une boutique",
 myProducts: "📦 Mes produits",
    storeManagementIntro: "Choisissez la boutique que vous souhaitez gérer",
 storeRegistrationIntro: "Enregistrez une nouvelle boutique sur Khan Market.",
+    editStoreProfile: "Modifier le profil du magasin",
+saveStoreChanges: "Enregistrer les modifications",
+savingStoreChanges: "Enregistrement des modifications...",
+storeUpdateError: "Échec de la mise à jour du magasin : ",
+storeUpdateSuccess: "Les informations du magasin ont été mises à jour.",    
 myProductsIntro: "Les produits que vous avez ajoutés à vos boutiques.",
 emptySellerProducts: "Vos produits apparaîtront ici.", 
     sellerIntro: "Bienvenue ! Les vendeurs peuvent gérer leurs boutiques et produits ici.",
@@ -1257,6 +1272,11 @@ selectStore: "اختر متجراً",
 myProducts: "📦 منتجاتي", 
     storeManagementIntro: "اختر المتجر الذي تريد إدارته",
 storeRegistrationIntro: "سجّل متجراً جديداً على خان ماركت.",
+    editStoreProfile: "تعديل بيانات المتجر",
+saveStoreChanges: "حفظ التغييرات",
+    savingStoreChanges: "جارٍ حفظ التغييرات...",
+storeUpdateError: "تعذر تحديث المتجر: ",
+storeUpdateSuccess: "تم تحديث بيانات المتجر بنجاح.",
 myProductsIntro: "المنتجات التي أضفتها إلى متاجرك.",
 emptySellerProducts: "ستظهر منتجاتك هنا.",
     sellerIntro: "مرحباً! يمكن للبائعين إدارة متاجرهم ومنتجاتهم هنا.",
@@ -1570,6 +1590,26 @@ loadProducts();
 
       <p id="seller-store-message" role="status"></p>
     </div>
+    <!-- EDIT STORE PROFILE -->
+<div id="edit-store-card" class="seller-card" hidden>
+  <h3 data-i18n="editStoreProfile">✏️ Hariri Taarifa za Duka</h3>
+
+  <label for="edit-store-name" data-i18n="storeName">Jina la duka</label>
+  <input id="edit-store-name" type="text">
+
+  <label for="edit-store-phone" data-i18n="storePhone">Namba ya simu</label>
+  <input id="edit-store-phone" type="tel">
+
+  <label for="edit-store-location" data-i18n="storeLocation">Eneo la duka</label>
+  <input id="edit-store-location" type="text">
+
+  <button type="button" id="save-store-profile"
+    data-i18n="saveStoreChanges">
+    Hifadhi Mabadiliko
+  </button>
+
+  <p id="edit-store-message" role="status"></p>
+</div>
 
     <!-- REGISTER NEW STORE -->
     <div class="seller-card">
@@ -1675,7 +1715,7 @@ loadProducts();
 
   const { data: stores, error } = await supabaseClient
     .from("stores")
-    .select("id, store_name")
+    .select("id, store_name, phone, location")
     .eq("owner_id", userData.user.id)
     .order("id", { ascending: true });
 
@@ -1698,6 +1738,140 @@ loadProducts();
 
   message.textContent = "";
 }
+document.getElementById("seller-store-select").addEventListener("change", async () => {
+  const storeId = document.getElementById("seller-store-select").value;
+  const editCard = document.getElementById("edit-store-card");
+  const message = document.getElementById("edit-store-message");
+
+  if (!storeId) {
+    editCard.hidden = true;
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    editCard.hidden = true;
+    return;
+  }
+
+  const { data: store, error } = await supabaseClient
+    .from("stores")
+    .select("id, store_name, phone, location")
+    .eq("id", storeId)
+    .eq("owner_id", userData.user.id)
+    .single();
+
+  if (error || !store) {
+    message.textContent = error?.message || t("noStoreAvailable");
+    editCard.hidden = true;
+    return;
+  }
+
+  document.getElementById("edit-store-name").value = store.store_name || "";
+  document.getElementById("edit-store-phone").value = store.phone || "";
+  document.getElementById("edit-store-location").value = store.location || "";
+
+  message.textContent = "";
+  editCard.hidden = false;
+}); 
+  document.getElementById("save-store-profile").addEventListener("click", async () => {
+  const storeId = document.getElementById("seller-store-select").value;
+  const storeName = document.getElementById("edit-store-name").value.trim();
+  const phone = document.getElementById("edit-store-phone").value.trim();
+  const location = document.getElementById("edit-store-location").value.trim();
+  const message = document.getElementById("edit-store-message");
+
+  if (!storeId) {
+    message.textContent = t("selectStore");
+    return;
+  }
+
+  if (!storeName || !phone || !location) {
+    message.textContent = t("fillAllFields");
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    return;
+  }
+
+  message.textContent = t("savingStoreChanges");
+
+  const { error } = await supabaseClient
+    .from("stores")
+    .update({
+      store_name: storeName,
+      phone: phone,
+      location: location
+    })
+    .eq("id", storeId)
+    .eq("owner_id", userData.user.id);
+
+  if (error) {
+    message.textContent = t("storeUpdateError") + error.message;
+    return;
+  }
+
+  message.textContent = t("storeUpdateSuccess");
+
+  await loadSellerStores();
+  document.getElementById("seller-store-select").value = storeId;
+});
+ document.getElementById("save-store-profile").addEventListener("click", async () => {
+  const storeId = document.getElementById("seller-store-select").value;
+  const storeName = document.getElementById("edit-store-name").value.trim();
+  const phone = document.getElementById("edit-store-phone").value.trim();
+  const location = document.getElementById("edit-store-location").value.trim();
+  const message = document.getElementById("edit-store-message");
+
+  if (!storeId) {
+    message.textContent = t("selectStore");
+    return;
+  }
+
+  if (!storeName || !phone || !location) {
+    message.textContent = t("fillAllFields");
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    return;
+  }
+
+  message.textContent = t("savingStoreChanges");
+
+  const { error } = await supabaseClient
+    .from("stores")
+    .update({
+      store_name: storeName,
+      phone: phone,
+      location: location
+    })
+    .eq("id", storeId)
+    .eq("owner_id", userData.user.id);
+
+  if (error) {
+    message.textContent = t("storeUpdateError") + error.message;
+    return;
+  }
+
+  message.textContent = t("storeUpdateSuccess");
+
+  await loadSellerStores();
+
+  document.getElementById("seller-store-select").value = storeId;
+}); 
 document.getElementById("register-store").addEventListener("click", async () => {
   const storeName = document.getElementById("store-name").value.trim();
   const phone = document.getElementById("store-phone").value.trim();
