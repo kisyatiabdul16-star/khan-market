@@ -333,14 +333,14 @@ async function loadSellerProducts() {
     return;
   }
 
-  const newName = prompt("Ingiza jina jipya la bidhaa:", product.Name);
+  const newName = const newName = prompt(t("newProductName"), product.Name);
   if (newName === null || newName.trim() === "") return;
 
-  const newPrice = prompt("Ingiza bei mpya:", product.Price);
+  const newPrice = prompt(t("newProductPrice"), product.Price);
   if (newPrice === null || newPrice.trim() === "") return;
 
   if (!Number.isFinite(Number(newPrice)) || Number(newPrice) <= 0) {
-    alert("Tafadhali ingiza bei sahihi.");
+    alert(t("editSuccess"));
     return;
   }
 
@@ -354,7 +354,7 @@ async function loadSellerProducts() {
     .in("store_id", storeIds);
 
   if (updateError) {
-    alert("Imeshindikana kuhariri: " + updateError.message);
+  alert(t("editError") + updateError.message);  
     return;
   }
 
@@ -435,6 +435,10 @@ emailRequired: "Ingiza barua pepe na nenosiri kwanza.",
 emailFirst: "Tafadhali ingiza barua pepe yako kwanza.",
 resetError: "Imeshindikana: ",
 resetSuccess: "Angalia barua pepe yako kwa maelekezo ya kubadilisha nenosiri."
+ newProductName: "Ingiza jina jipya la bidhaa:",
+newProductPrice: "Ingiza bei mpya:",
+editSuccess: "Bidhaa imehaririwa kikamilifu!",
+editError: "Imeshindikana kuhariri bidhaa: ",   
 },
 
   en: {
@@ -504,6 +508,10 @@ emailRequired: "Enter your email and password first.",
 emailFirst: "Please enter your email first.",
 resetError: "Failed: ",
 resetSuccess: "Check your email for password reset instructions.",
+      newProductName: "Enter the new product name:",
+newProductPrice: "Enter the new price:",
+editSuccess: "Product updated successfully!",
+editError: "Failed to update product: ",
   },
 
   fr: {
@@ -572,6 +580,10 @@ emailRequired: "Saisissez d'abord votre e-mail et votre mot de passe.",
 emailFirst: "Veuillez saisir votre adresse e-mail.",
 resetError: "Échec : ",
 resetSuccess: "Consultez votre e-mail pour les instructions de réinitialisation.", 
+ newProductName: "Saisissez le nouveau nom du produit :",
+newProductPrice: "Saisissez le nouveau prix :",
+editSuccess: "Produit modifié avec succès !",
+editError: "Échec de la modification du produit : ",     
   },
 
   ar: {
@@ -640,6 +652,10 @@ emailRequired: "أدخل بريدك الإلكتروني وكلمة المرور
 emailFirst: "يرجى إدخال بريدك الإلكتروني أولاً.",
 resetError: "تعذر إكمال العملية: ",
 resetSuccess: "تحقق من بريدك الإلكتروني للحصول على تعليمات تغيير كلمة المرور.",
+  newProductName: "أدخل اسم المنتج الجديد:",
+newProductPrice: "أدخل السعر الجديد:",
+editSuccess: "تم تعديل المنتج بنجاح!",
+editError: "تعذر تعديل المنتج: ",    
   }
 };
 
