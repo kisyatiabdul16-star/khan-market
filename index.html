@@ -1030,21 +1030,16 @@ if (savedImages.length > 0) {
 
   message.textContent = "Umetoka kwenye akaunti kwa mafanikio.";
 }); 
-
- document.getElementById("seller-toggle").addEventListener("click", async () => {
+document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
   const sellerToggle = document.getElementById("seller-toggle");
 
-  sellerInfo.hidden = !sellerInfo.hidden;
+  sellerInfo.hidden = false;
+  sellerToggle.textContent = t("closeSeller");
 
-  sellerToggle.textContent = sellerInfo.hidden
-    ? t("openSeller")
-    : t("closeSeller");
-
-  if (!sellerInfo.hidden) {
-    await loadSellerProducts();
-  }
-}); 
+  await loadSellerProducts();
+});
+ 
 </script>
   <script>
   setLanguage(currentLanguage);
