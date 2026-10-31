@@ -375,6 +375,160 @@ footer {
     flex-wrap: wrap;
   }
 }
+/* KHAN MARKET - MODERN SELLER DASHBOARD */
+
+#seller-section {
+  max-width: 1100px;
+  margin: 35px auto !important;
+  padding: 28px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+}
+
+.seller-heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.seller-heading h2 {
+  color: #123b2a;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.seller-heading p:first-of-type {
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.seller-heading p:last-of-type {
+  color: #64748b;
+}
+
+.seller-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  margin: 18px 0 !important;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+}
+
+.seller-card h3 {
+  color: #123b2a;
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.seller-card p {
+  color: #64748b;
+}
+
+.seller-card label {
+  display: block;
+  margin: 14px 0 7px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.seller-card input,
+.seller-card select,
+.seller-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.seller-password-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.seller-password-row input {
+  flex: 1;
+}
+
+.seller-password-row button,
+.seller-account-buttons button,
+#seller-toggle,
+#register-store,
+#add-product {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #15803d;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 5px 4px 5px 0;
+}
+
+.seller-account-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+#seller-info {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-top: 20px !important;
+}
+
+#seller-toggle {
+  display: block;
+  width: 100%;
+  margin: 18px 0;
+  padding: 15px;
+  font-size: 16px;
+}
+
+#seller-products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.seller-card button:hover,
+#seller-toggle:hover {
+  background: #166534;
+}
+
+@media (max-width: 600px) {
+  #seller-section {
+    margin: 15px 8px !important;
+    padding: 15px !important;
+  }
+
+  .seller-card {
+    padding: 17px !important;
+  }
+
+  .seller-heading h2 {
+    font-size: 23px;
+  }
+
+  .seller-password-row {
+    flex-wrap: wrap;
+  }
+
+  .seller-password-row button {
+    width: 100%;
+  }
+}  
 </style>
 
 </head>
@@ -1312,134 +1466,142 @@ async function order(){
 
 loadProducts();
 </script>
-<!-- Khan Market Seller Section -->
-<section id="seller-section" style="margin:20px; padding:20px; border:1px solid #ddd; border-radius:12px;">
-  <h2 data-i18n="sellers">🏪 Khan Market — Wauzaji</h2>
-  <p data-i18n="sellerIntro">Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.</p>
 
-<div id="seller-account" style="margin:15px 0; padding:15px; border:1px solid #ccc; border-radius:10px;">
-  
-<h3 data-i18n="sellerAccount">Akaunti ya Muuzaji</h3>
-  <label for="seller-email" data-i18n="email">Barua pepe</label>
-  <input id="seller-email" type="email" data-i18n-placeholder="emailPlaceholder" placeholder="Ingiza barua pepe yako" autocomplete="email" required>
+<!-- KHAN MARKET SELLER SECTION -->
+<section id="seller-section">
 
-  <label for="seller-password" data-i18n="password">Nenosiri</label>
-  <div style="display:flex; gap:8px; align-items:center;">
-    <input id="seller-password" type="password" data-i18n-placeholder="passwordPlaceholder" placeholder="Angalau herufi 8" autocomplete="current-password" required>
-    <button type="button" id="toggle-seller-password">Show</button>
+  <div class="seller-heading">
+    <h2 data-i18n="sellers">🏪 Seller Dashboard</h2>
+    <p>KHAN MARKET • STORE MANAGEMENT</p>
+    <p data-i18n="sellerIntro">
+      Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.
+    </p>
   </div>
 
- <button id="seller-signup" data-i18n="signup">Fungua akaunti</button> 
-  <button id="seller-login" data-i18n="login">Ingia</button>
-  <button type="button" id="seller-logout" data-i18n="logout">Toka kwenye akaunti</button>
-  <button id="seller-forgot" data-i18n="forgot">Umesahau nenosiri?</button>
+  <!-- SELLER ACCOUNT -->
+  <div id="seller-account" class="seller-card">
+    <h3 data-i18n="sellerAccount">Akaunti ya Muuzaji</h3>
 
-  <p id="seller-message" role="status"></p>
-</div>
+    <label for="seller-email" data-i18n="email">Barua pepe</label>
+    <input id="seller-email" type="email"
+      data-i18n-placeholder="emailPlaceholder"
+      placeholder="Ingiza barua pepe yako"
+      autocomplete="email" required>
 
-  <button type="button" id="seller-toggle" data-i18n="openSeller">Fungua sehemu ya muuzaji</button>
-<div id="seller-info" hidden>
-  <div id="seller-store-management">
-  <h3 data-i18n="myStores">🏪 Maduka Yangu</h3>
+    <label for="seller-password" data-i18n="password">Nenosiri</label>
 
-  <label for="seller-store-select" data-i18n="selectStore">
-    Chagua duka
-  </label>
+    <div class="seller-password-row">
+      <input id="seller-password" type="password"
+        data-i18n-placeholder="passwordPlaceholder"
+        placeholder="Angalau herufi 8"
+        autocomplete="current-password" required>
+      <button type="button" id="toggle-seller-password">Show</button>
+    </div>
 
-  <select id="seller-store-select">
-    <option value="">Chagua duka lako</option>
-  </select>
+    <div class="seller-account-buttons">
+      <button type="button" id="seller-signup" data-i18n="signup">Fungua akaunti</button>
+      <button type="button" id="seller-login" data-i18n="login">Ingia</button>
+      <button type="button" id="seller-logout" data-i18n="logout">Toka kwenye akaunti</button>
+      <button type="button" id="seller-forgot" data-i18n="forgot">Umesahau nenosiri?</button>
+    </div>
 
-  <p id="seller-store-message" role="status"></p>
-</div>
-  <h3 data-i18n="registerStore">🏪 Sajili Duka Lako</h3>
+    <p id="seller-message" role="status"></p>
+  </div>
 
-  <label for="store-name" data-i18n="storeName">Jina la duka</label>
-  <input
-  id="store-name"
-  type="text"
-  data-i18n-placeholder="storeNamePlaceholder"
-  placeholder="Mfano: Khan Electronics"
-  required
->
-  <label for="store-phone" data-i18n="storePhone">Namba ya simu</label>
-  <input
-  id="store-phone"
-  type="tel"
-  data-i18n-placeholder="storePhonePlaceholder"
-  placeholder="Mfano: 07XXXXXXXX"
-  required
->
+  <button type="button" id="seller-toggle" data-i18n="openSeller">
+    Fungua sehemu ya muuzaji
+  </button>
 
-  <label for="store-location" data-i18n="storeLocation">Eneo la duka</label>
-  <input
-  id="store-location"
-  type="text"
-  data-i18n-placeholder="storeLocationPlaceholder"
-  placeholder="Mfano: Kariakoo, Dar es Salaam"
-  required
->  
-<button
-  type="button"
-  id="register-store"
-  data-i18n="registerStoreButton"
->
-  Sajili Duka
-</button>
-  
-<p id="store-message"></p>
+  <!-- SELLER MANAGEMENT -->
+  <div id="seller-info" hidden>
 
-<hr>
+    <!-- MY STORES -->
+    <div id="seller-store-management" class="seller-card">
+      <h3 data-i18n="myStores">🏪 Maduka Yangu</h3>
+      <p>Chagua duka unalotaka kusimamia</p>
 
-<h3 data-i18n="addProduct">📦 Ongeza Bidhaa Yako</h3>
+      <label for="seller-store-select" data-i18n="selectStore">
+        Chagua duka
+      </label>
 
-<label for="product-name" data-i18n="productName">Jina la bidhaa</label>
-<input
-  id="product-name"
-  type="text"
-  data-i18n-placeholder="productNamePlaceholder"
-  placeholder="Mfano: Mchele"
-  required
->
+      <select id="seller-store-select">
+        <option value="">Chagua duka lako</option>
+      </select>
 
-<label for="product-price" data-i18n="productPrice">Bei (TSh)</label>
-<input
-  id="product-price"
-  type="number"
-  min="1"
-  data-i18n-placeholder="productPricePlaceholder"
-  placeholder="Mfano: 3500"
-  required
->
+      <p id="seller-store-message" role="status"></p>
+    </div>
 
-<label for="product-description" data-i18n="description">Maelezo ya bidhaa</label>
-<textarea
-  id="product-description"
-  data-i18n-placeholder="descriptionPlaceholder"
-  placeholder="Andika maelezo ya bidhaa"
-></textarea>
-<label for="product-images" data-i18n="productImages">Picha za bidhaa (Chagua picha nyingi)</label>
-<input
-  id="product-images"
-  type="file"
-  accept="image/*"
-  multiple
->
+    <!-- REGISTER NEW STORE -->
+    <div class="seller-card">
+      <h3 data-i18n="registerStore">🏪 Sajili Duka Lako</h3>
+      <p>Sajili duka jipya kwenye Khan Market.</p>
 
+      <label for="store-name" data-i18n="storeName">Jina la duka</label>
+      <input id="store-name" type="text"
+        data-i18n-placeholder="storeNamePlaceholder"
+        placeholder="Mfano: Khan Electronics" required>
 
-<button type="button" id="add-product" data-i18n="saveProduct">Hifadhi Bidhaa</button>
+      <label for="store-phone" data-i18n="storePhone">Namba ya simu</label>
+      <input id="store-phone" type="tel"
+        data-i18n-placeholder="storePhonePlaceholder"
+        placeholder="Mfano: 07XXXXXXXX" required>
 
-<p id="product-message"></p>
-<hr>
+      <label for="store-location" data-i18n="storeLocation">Eneo la duka</label>
+      <input id="store-location" type="text"
+        data-i18n-placeholder="storeLocationPlaceholder"
+        placeholder="Mfano: Kariakoo, Dar es Salaam" required>
 
-<h3 data-i18n="myProducts">📦 Bidhaa Zangu</h3>
+      <button type="button" id="register-store" data-i18n="registerStoreButton">
+        + Sajili duka
+      </button>
 
-<div id="seller-products">
-  <p>Bidhaa zako zitaonekana hapa.</p>
-</div>
+      <p id="store-message" role="status"></p>
+    </div>
 
-</div>
+    <!-- ADD PRODUCTS -->
+    <div class="seller-card">
+      <h3 data-i18n="addProduct">📦 Ongeza Bidhaa Yako</h3>
+
+      <label for="product-name" data-i18n="productName">Jina la bidhaa</label>
+      <input id="product-name" type="text"
+        data-i18n-placeholder="productNamePlaceholder"
+        placeholder="Mfano: Mchele" required>
+
+      <label for="product-price" data-i18n="productPrice">Bei (TSh)</label>
+      <input id="product-price" type="number" min="1"
+        data-i18n-placeholder="productPricePlaceholder"
+        placeholder="Mfano: 3500" required>
+
+      <label for="product-description" data-i18n="description">Maelezo ya bidhaa</label>
+      <textarea id="product-description"
+        data-i18n-placeholder="descriptionPlaceholder"
+        placeholder="Andika maelezo ya bidhaa"></textarea>
+
+      <label for="product-images" data-i18n="productImages">
+        Picha za bidhaa (Chagua picha nyingi)
+      </label>
+      <input id="product-images" type="file" accept="image/*" multiple>
+
+      <button type="button" id="add-product" data-i18n="saveProduct">
+        Hifadhi Bidhaa
+      </button>
+
+      <p id="product-message" role="status"></p>
+    </div>
+
+    <!-- MY PRODUCTS -->
+    <div class="seller-card">
+      <h3 data-i18n="myProducts">📦 Bidhaa Zangu</h3>
+      <p>Bidhaa ulizoweka kwenye maduka yako.</p>
+
+      <div id="seller-products">
+        <p>Bidhaa zako zitaonekana hapa.</p>
+      </div>
+    </div>
+
+  </div>
 </section>
+  
 <script>
   async function loadSellerStores() {
   const select = document.getElementById("seller-store-select");
