@@ -296,7 +296,11 @@ async function loadSellerProducts() {
   style="background:#1976d2; color:white; padding:8px 15px; border:0; border-radius:6px; cursor:pointer;">
 ✏️ ${t("editButton")}
 </button>
-        
+  <button
+  onclick="deleteProduct(${product.id})"
+  style="background:#d32f2f; color:white; padding:8px 15px; border:0; border-radius:6px; cursor:pointer;">
+  🗑️ ${t("deleteButton")}
+</button>      
       </div>
     `;
   }).join("");
@@ -364,6 +368,94 @@ async function editProduct(productId) {
   await loadSellerProducts();
   await loadProducts();
 }
+  async function deleteProduct(productId) {
+  const confirmed = confirm(t("deleteConfirm"));
+  if (!confirmed) return;
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    alert(t("loginRequired"));
+    return;
+  }
+
+  const { data: stores, error: storeError } = await supabaseClient
+    .from("stores")
+    .select("id")
+    .eq("owner_id", userData.user.id);
+
+  if (storeError || !stores || stores.length === 0) {
+    alert(t("storeNotFound"));
+    return;
+  }
+
+  const storeIds = stores.map(store => store.id);
+
+  const { data: product, error } = await supabaseClient
+    .from("products")
+    .select("id")
+    .eq("id", productId)
+    .in("store_id", storeIds)
+    .single();
+
+  if (error || !product) {
+    alert(t("productSaveError"));
+    return;
+  }
+
+  const { data: images, error: imageError } = await supabaseClient
+    .from("product_images")
+    .select("storage_path")
+    .eq("product_id", productId);
+
+  if (imageError) {
+    alert(t("deleteError") + imageError.message);
+    return;
+  }
+
+  const paths = (images || [])
+    .map(image => image.storage_path)
+    .filter(Boolean);
+
+  if (paths.length > 0) {
+    const { error: storageError } = await supabaseClient
+      .storage
+      .from("product-images")
+      .remove(paths);
+
+    if (storageError) {
+      alert(t("deleteError") + storageError.message);
+      return;
+    }
+  }
+
+  const { error: imageDeleteError } = await supabaseClient
+    .from("product_images")
+    .delete()
+    .eq("product_id", productId);
+
+  if (imageDeleteError) {
+    alert(t("deleteError") + imageDeleteError.message);
+    return;
+  }
+
+  const { error: deleteError } = await supabaseClient
+    .from("products")
+    .delete()
+    .eq("id", productId)
+    .in("store_id", storeIds);
+
+  if (deleteError) {
+    alert(t("deleteError") + deleteError.message);
+    return;
+  }
+
+  alert(t("deleteSuccess"));
+
+  await loadSellerProducts();
+  await loadProducts();
+}  
    
 let cart = {};
 
@@ -442,7 +534,11 @@ resetSuccess: "Angalia barua pepe yako kwa maelekezo ya kubadilisha nenosiri.",
 newProductPrice: "Ingiza bei mpya:",
 editSuccess: "Bidhaa imehaririwa kikamilifu!",
 editError: "Imeshindikana kuhariri bidhaa: ",  
- editButton: "Hariri",   
+ editButton: "Hariri", 
+  deleteButton: "Futa",  
+    deleteConfirm: "Una uhakika unataka kufuta bidhaa hii?",
+deleteError: "Imeshindikana kufuta bidhaa: ",
+deleteSuccess: "Bidhaa imefutwa kikamilifu!",
    logout: "Toka kwenye akaunti",
 loggingOut: "Tunakuondoa kwenye akaunti...",
 logoutError: "Imeshindikana kutoka: ",
@@ -521,6 +617,10 @@ newProductPrice: "Enter the new price:",
 editSuccess: "Product updated successfully!",
 editError: "Failed to update product: ",
     editButton: "Edit",
+   deleteButton: "Delete", 
+    deleteConfirm: "Are you sure you want to delete this product?",
+deleteError: "Failed to delete product: ",
+deleteSuccess: "Product deleted successfully!",
 logout: "Log out",
 loggingOut: "Logging out...",
 logoutError: "Failed to log out: ",
@@ -598,6 +698,10 @@ newProductPrice: "Saisissez le nouveau prix :",
 editSuccess: "Produit modifié avec succès !",
 editError: "Échec de la modification du produit : ",  
    editButton: "Modifier", 
+   deleteButton: "Supprimer",
+    deleteConfirm: "Voulez-vous vraiment supprimer ce produit ?",
+deleteError: "Échec de la suppression du produit : ",
+deleteSuccess: "Produit supprimé avec succès !",
    logout: "Se déconnecter",
 loggingOut: "Déconnexion en cours...",
 logoutError: "Échec de la déconnexion : ",
@@ -675,6 +779,10 @@ newProductPrice: "أدخل السعر الجديد:",
 editSuccess: "تم تعديل المنتج بنجاح!",
 editError: "تعذر تعديل المنتج: ",  
  editButton: "تعديل",  
+    deleteButton: "حذف",
+    deleteConfirm: "هل أنت متأكد أنك تريد حذف هذا المنتج؟",
+deleteError: "تعذر حذف المنتج: ",
+deleteSuccess: "تم حذف المنتج بنجاح!",
    logout: "تسجيل الخروج",
 loggingOut: "جارٍ تسجيل الخروج...",
 logoutError: "تعذر تسجيل الخروج: ",
