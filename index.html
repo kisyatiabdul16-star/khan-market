@@ -235,6 +235,59 @@ async function loadProducts() {
 
   showProducts();
 }
+async function loadSellerProducts() {
+  const container = document.getElementById("seller-products");
+
+  container.innerHTML = "<p>Inapakia bidhaa zako...</p>";
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    container.textContent = "Tafadhali ingia kwenye akaunti kwanza.";
+    return;
+  }
+
+  const { data: stores, error: storeError } = await supabaseClient
+    .from("stores")
+    .select("id")
+    .eq("owner_id", userData.user.id);
+
+  if (storeError) {
+    container.textContent = "Hitilafu: " + storeError.message;
+    return;
+  }
+
+  if (!stores || stores.length === 0) {
+    container.textContent = "Hujasajili duka bado.";
+    return;
+  }
+
+  const storeIds = stores.map(store => store.id);
+
+  const { data: myProducts, error: productError } = await supabaseClient
+    .from("products")
+    .select("*")
+    .in("store_id", storeIds);
+
+  if (productError) {
+    container.textContent = "Hitilafu: " + productError.message;
+    return;
+  }
+
+  if (!myProducts || myProducts.length === 0) {
+    container.textContent = "Bado hujaongeza bidhaa.";
+    return;
+  }
+
+  container.innerHTML = myProducts.map(product => `
+    <div style="border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:8px;">
+      <h4>${product.Name || "Bidhaa"}</h4>
+      <p>Bei: TSh ${Number(product.Price || 0).toLocaleString("en-US")}</p>
+    </div>
+  `).join("");
+}
+    
 let cart = {};
 
 let currentLanguage =
@@ -721,12 +774,13 @@ loadProducts();
   <h3 data-i18n="registerStore">🏪 Sajili Duka Lako</h3>
 
   <label for="store-name" data-i18n="storeName">Jina la duka</label>
-  <input id="store-name" type="text"
-data-i18n-placeholder="storeNamePlaceholder"
-placeholder="Mfano: Khan Electronics">
-    required
-  >
-
+  <input
+  id="store-name"
+  type="text"
+  data-i18n-placeholder="storeNamePlaceholder"
+  placeholder="Mfano: Khan Electronics"
+  required
+>
   <label for="store-phone" data-i18n="storePhone">Namba ya simu</label>
   <input
   id="store-phone"
@@ -795,9 +849,14 @@ placeholder="Mfano: Khan Electronics">
 <button type="button" id="add-product" data-i18n="saveProduct">Hifadhi Bidhaa</button>
 
 <p id="product-message"></p>
-</div>
-</section>
+<hr>
 
+<h3 data-i18n="myProducts">📦 Bidhaa Zangu</h3>
+
+<div id="seller-products">
+  <p>Bidhaa zako zitaonekana hapa.</p>
+</div>  
+</section>
 <script>
 document.getElementById("register-store").addEventListener("click", async () => {
   const storeName = document.getElementById("store-name").value.trim();
@@ -970,6 +1029,21 @@ if (savedImages.length > 0) {
   document.getElementById("seller-password").value = "";
 
   message.textContent = "Umetoka kwenye akaunti kwa mafanikio.";
+}); 
+
+ document.getElementById("seller-toggle").addEventListener("click", async () => {
+  const sellerInfo = document.getElementById("seller-info");
+  const sellerToggle = document.getElementById("seller-toggle");
+
+  sellerInfo.hidden = !sellerInfo.hidden;
+
+  sellerToggle.textContent = sellerInfo.hidden
+    ? t("openSeller")
+    : t("closeSeller");
+
+  if (!sellerInfo.hidden) {
+    await loadSellerProducts();
+  }
 }); 
 </script>
   <script>
