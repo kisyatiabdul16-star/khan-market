@@ -710,6 +710,7 @@ loadProducts();
 
  <button id="seller-signup" data-i18n="signup">Fungua akaunti</button> 
   <button id="seller-login" data-i18n="login">Ingia</button>
+  <button type="button" id="seller-logout">Toka kwenye akaunti</button>
   <button id="seller-forgot" data-i18n="forgot">Umesahau nenosiri?</button>
 
   <p id="seller-message" role="status"></p>
@@ -952,6 +953,24 @@ if (savedImages.length > 0) {
 
   await loadProducts();
 });
+ document.getElementById("seller-logout").addEventListener("click", async () => {
+  const message = document.getElementById("seller-message");
+
+  message.textContent = "Tunakuondoa kwenye akaunti...";
+
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    message.textContent = "Imeshindikana kutoka: " + error.message;
+    return;
+  }
+
+  document.getElementById("seller-info").hidden = true;
+  document.getElementById("seller-email").value = "";
+  document.getElementById("seller-password").value = "";
+
+  message.textContent = "Umetoka kwenye akaunti kwa mafanikio.";
+}); 
 </script>
   <script>
   setLanguage(currentLanguage);
