@@ -853,11 +853,24 @@ async function editProduct(productId) {
     return;
   }
 
+  const newStock = prompt(
+    t("newProductStock"),
+    String(product.stock ?? 0)
+  );
+
+  if (newStock === null || newStock.trim() === "") return;
+
+  if (!Number.isInteger(Number(newStock)) || Number(newStock) < 0) {
+    alert(t("invalidStock"));
+    return;
+  }
+
   const { error: updateError } = await supabaseClient
     .from("products")
     .update({
       Name: newName.trim(),
-      Price: Number(newPrice)
+      Price: Number(newPrice),
+      stock: Number(newStock)
     })
     .eq("id", productId)
     .in("store_id", storeIds);
@@ -1026,6 +1039,8 @@ noStoreAvailable: "Hakuna duka linaloonekana.",
     description: "Maelezo ya bidhaa",
     productImages: "Picha za bidhaa (Chagua picha nyingi)",
     productStock: "Idadi ya bidhaa zilizopo dukani",
+    newProductStock: "Ingiza idadi mpya ya bidhaa:",
+invalidStock: "Tafadhali ingiza idadi sahihi ya bidhaa (sifuri au zaidi).",
     chooseImages: "Chagua picha",
 noImagesSelected: "Hakuna picha iliyochaguliwa",
     imagesSelected: "picha zimechaguliwa",
@@ -1125,6 +1140,8 @@ noStoreAvailable: "No store is available.",
     description: "Product Description",
     productImages: "Product Images (Select multiple)",
     productStock: "Available Stock Quantity",
+    newProductStock: "Enter the new stock quantity:",
+invalidStock: "Please enter a valid stock quantity (zero or more).",
  chooseImages: "Choose images",
   noImagesSelected: "No images selected",
 imagesSelected: "images selected",
@@ -1222,6 +1239,8 @@ noStoreAvailable: "Aucune boutique n'est disponible.",
     description: "Description du produit",
     productImages: "Images du produit (sélection multiple)",
     productStock: "Quantité de produits en stock",
+ newProductStock: "Saisissez la nouvelle quantité en stock :",
+invalidStock: "Veuillez saisir une quantité valide (zéro ou plus).",   
     chooseImages: "Choisir des images",
 noImagesSelected: "Aucune image sélectionnée",
 imagesSelected: "images sélectionnées",
@@ -1318,7 +1337,9 @@ noStoreAvailable: "لا يوجد متجر متاح.",
     productPrice: "السعر (TSh)",
     description: "وصف المنتج",
     productImages: "صور المنتج (يمكن اختيار عدة صور)",
-   productStock: "كمية المنتجات المتوفرة في المخزون", 
+   productStock: "كمية المنتجات المتوفرة في المخزون",
+    newProductStock: "أدخل كمية المخزون الجديدة:",
+invalidStock: "يرجى إدخال كمية مخزون صحيحة (صفر أو أكثر).",
     chooseImages: "اختر الصور",
 noImagesSelected: "لم يتم اختيار أي صور",
 imagesSelected: "صور محددة",
