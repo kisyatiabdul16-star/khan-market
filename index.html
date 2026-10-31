@@ -992,6 +992,19 @@ loadProducts();
 
   <button type="button" id="seller-toggle" data-i18n="openSeller">Fungua sehemu ya muuzaji</button>
 <div id="seller-info" hidden>
+  <div id="seller-store-management">
+  <h3 data-i18n="myStores">🏪 Maduka Yangu</h3>
+
+  <label for="seller-store-select" data-i18n="selectStore">
+    Chagua duka
+  </label>
+
+  <select id="seller-store-select">
+    <option value="">Chagua duka lako</option>
+  </select>
+
+  <p id="seller-store-message" role="status"></p>
+</div>
   <h3 data-i18n="registerStore">🏪 Sajili Duka Lako</h3>
 
   <label for="store-name" data-i18n="storeName">Jina la duka</label>
@@ -1076,10 +1089,50 @@ loadProducts();
 
 <div id="seller-products">
   <p>Bidhaa zako zitaonekana hapa.</p>
-</div> 
-  
+</div>
+
+</div>
 </section>
 <script>
+  async function loadSellerStores() {
+  const select = document.getElementById("seller-store-select");
+  const message = document.getElementById("seller-store-message");
+
+  select.innerHTML = `<option value="">${t("selectStore")}</option>`;
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    return;
+  }
+
+  const { data: stores, error } = await supabaseClient
+    .from("stores")
+    .select("id, store_name")
+    .eq("owner_id", userData.user.id)
+    .order("id", { ascending: true });
+
+  if (error) {
+    message.textContent = error.message;
+    return;
+  }
+
+  if (!stores || stores.length === 0) {
+    message.textContent = t("noStoreAvailable");
+    return;
+  }
+
+  stores.forEach(store => {
+    const option = document.createElement("option");
+    option.value = store.id;
+    option.textContent = store.store_name;
+    select.appendChild(option);
+  });
+
+  message.textContent = "";
+}
 document.getElementById("register-store").addEventListener("click", async () => {
   const storeName = document.getElementById("store-name").value.trim();
   const phone = document.getElementById("store-phone").value.trim();
@@ -1260,6 +1313,7 @@ document.getElementById("seller-toggle").addEventListener("click", async () => {
   sellerToggle.textContent = t("closeSeller");
 
   await loadSellerProducts();
+  await loadSellerStores();
 });
  
 </script>
