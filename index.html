@@ -729,7 +729,7 @@ async function loadSellerProducts() {
     await supabaseClient.auth.getUser();
 
   if (userError || !userData.user) {
-    container.textContent = "Tafadhali ingia kwenye akaunti kwanza.";
+   container.textContent = t("loginRequired"); 
     return;
   }
 
@@ -980,6 +980,10 @@ const translations = {
     myStores: "🏪 Maduka Yangu",
 selectStore: "Chagua duka",
 myProducts: "📦 Bidhaa Zangu",
+   storeManagementIntro: "Chagua duka unalotaka kusimamia",
+storeRegistrationIntro: "Sajili duka jipya kwenye Khan Market.",
+myProductsIntro: "Bidhaa ulizoweka kwenye maduka yako.",
+emptySellerProducts: "Bidhaa zako zitaonekana hapa.", 
     sellerIntro: "Karibu! Hapa ndipo wauzaji watakapoweza kusimamia maduka na bidhaa zao.",
     sellerAccount: "Akaunti ya Muuzaji",
     fillAllFields: "Tafadhali jaza sehemu zote.",
@@ -1065,6 +1069,10 @@ logoutSuccess: "Umetoka kwenye akaunti kwa mafanikio.",
     myStores: "🏪 My Stores",
 selectStore: "Select a Store",
 myProducts: "📦 My Products",
+   storeManagementIntro: "Choose the store you want to manage",
+storeRegistrationIntro: "Register a new store on Khan Market.",
+myProductsIntro: "Products you have added to your stores.",
+emptySellerProducts: "Your products will appear here.", 
     sellerIntro: "Welcome! Sellers can manage their stores and products here.",
     sellerAccount: "Seller Account",
     fillAllFields: "Please fill in all fields.",
@@ -1150,6 +1158,10 @@ logoutSuccess: "Logged out successfully.",
     myStores: "🏪 Mes boutiques",
 selectStore: "Choisir une boutique",
 myProducts: "📦 Mes produits",
+   storeManagementIntro: "Choisissez la boutique que vous souhaitez gérer",
+storeRegistrationIntro: "Enregistrez une nouvelle boutique sur Khan Market.",
+myProductsIntro: "Les produits que vous avez ajoutés à vos boutiques.",
+emptySellerProducts: "Vos produits apparaîtront ici.", 
     sellerIntro: "Bienvenue ! Les vendeurs peuvent gérer leurs boutiques et produits ici.",
     sellerAccount: "Compte vendeur",
     fillAllFields: "Veuillez remplir tous les champs.",
@@ -1233,7 +1245,11 @@ logoutSuccess: "Déconnexion réussie.",
     sellers: "🏪 خان ماركت — البائعون",
   myStores: "🏪 متاجري",
 selectStore: "اختر متجراً",
-myProducts: "📦 منتجاتي",  
+myProducts: "📦 منتجاتي", 
+    storeManagementIntro: "اختر المتجر الذي تريد إدارته",
+storeRegistrationIntro: "سجّل متجراً جديداً على خان ماركت.",
+myProductsIntro: "المنتجات التي أضفتها إلى متاجرك.",
+emptySellerProducts: "ستظهر منتجاتك هنا.",
     sellerIntro: "مرحباً! يمكن للبائعين إدارة متاجرهم ومنتجاتهم هنا.",
     sellerAccount: "حساب البائع",
     fillAllFields: "يرجى ملء جميع الحقول.",
@@ -1530,7 +1546,7 @@ loadProducts();
     <!-- MY STORES -->
     <div id="seller-store-management" class="seller-card">
       <h3 data-i18n="myStores">🏪 Maduka Yangu</h3>
-      <p>Chagua duka unalotaka kusimamia</p>
+      <p data-i18n="storeManagementIntro">Chagua duka unalotaka kusimamia</p>
 
       <label for="seller-store-select" data-i18n="selectStore">
         Chagua duka
@@ -1546,7 +1562,7 @@ loadProducts();
     <!-- REGISTER NEW STORE -->
     <div class="seller-card">
       <h3 data-i18n="registerStore">🏪 Sajili Duka Lako</h3>
-      <p>Sajili duka jipya kwenye Khan Market.</p>
+      <p data-i18n="storeRegistrationIntro">Sajili duka jipya kwenye Khan Market.</p>
 
       <label for="store-name" data-i18n="storeName">Jina la duka</label>
       <input id="store-name" type="text"
@@ -1604,10 +1620,10 @@ loadProducts();
     <!-- MY PRODUCTS -->
     <div class="seller-card">
       <h3 data-i18n="myProducts">📦 Bidhaa Zangu</h3>
-      <p>Bidhaa ulizoweka kwenye maduka yako.</p>
+      <p data-i18n="myProductsIntro">Bidhaa ulizoweka kwenye maduka yako.</p>
 
       <div id="seller-products">
-        <p>Bidhaa zako zitaonekana hapa.</p>
+        <p data-i18n="emptySellerProducts">Bidhaa zako zitaonekana hapa.</p>
       </div>
     </div>
 
