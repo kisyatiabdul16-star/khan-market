@@ -291,13 +291,77 @@ async function loadSellerProducts() {
             style="width:120px; height:120px; object-fit:cover; border-radius:8px; margin:5px;"
           >
         `).join("")}
-
-        <p>Bei: TSh ${Number(product.Price || 0).toLocaleString("en-US")}</p>
+<button
+  onclick="editProduct(${product.id})"
+  style="background:#1976d2; color:white; padding:8px 15px; border:0; border-radius:6px; cursor:pointer;">
+  ✏️ Hariri
+</button>
+        
       </div>
     `;
   }).join("");
 }
-    
+ async function editProduct(productId) {
+  const { data: userData } = await supabaseClient.auth.getUser();
+
+  if (!userData.user) {
+    alert("Tafadhali ingia kwanza.");
+    return;
+  }
+
+  const { data: stores, error: storeError } = await supabaseClient
+    .from("stores")
+    .select("id")
+    .eq("owner_id", userData.user.id);
+
+  if (storeError || !stores || stores.length === 0) {
+    alert("Duka lako halijapatikana.");
+    return;
+  }
+
+  const storeIds = stores.map(store => store.id);
+
+  const { data: product, error } = await supabaseClient
+    .from("products")
+    .select("*")
+    .eq("id", productId)
+    .in("store_id", storeIds)
+    .single();
+
+  if (error || !product) {
+    alert("Bidhaa haijapatikana.");
+    return;
+  }
+
+  const newName = prompt("Ingiza jina jipya la bidhaa:", product.Name);
+  if (newName === null || newName.trim() === "") return;
+
+  const newPrice = prompt("Ingiza bei mpya:", product.Price);
+  if (newPrice === null || newPrice.trim() === "") return;
+
+  if (!Number.isFinite(Number(newPrice)) || Number(newPrice) <= 0) {
+    alert("Tafadhali ingiza bei sahihi.");
+    return;
+  }
+
+  const { error: updateError } = await supabaseClient
+    .from("products")
+    .update({
+      Name: newName.trim(),
+      Price: Number(newPrice)
+    })
+    .eq("id", productId)
+    .in("store_id", storeIds);
+
+  if (updateError) {
+    alert("Imeshindikana kuhariri: " + updateError.message);
+    return;
+  }
+
+  alert("Bidhaa imehaririwa kikamilifu!");
+  await loadSellerProducts();
+  await loadProducts();
+}   
 let cart = {};
 
 let currentLanguage =
