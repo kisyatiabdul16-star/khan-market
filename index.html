@@ -1017,6 +1017,9 @@ noStoreAvailable: "Hakuna duka linaloonekana.",
     productPrice: "Bei (TSh)",
     description: "Maelezo ya bidhaa",
     productImages: "Picha za bidhaa (Chagua picha nyingi)",
+    chooseImages: "Chagua picha",
+noImagesSelected: "Hakuna picha iliyochaguliwa",
+    imagesSelected: "picha zimechaguliwa",
     saveProduct: "Hifadhi Bidhaa",
 storeNamePlaceholder: "Mfano: Khan Electronics",
 storePhonePlaceholder: "Mfano: 07XXXXXXXX",
@@ -1107,6 +1110,9 @@ noStoreAvailable: "No store is available.",
     productPrice: "Price (TSh)",
     description: "Product Description",
     productImages: "Product Images (Select multiple)",
+ chooseImages: "Choose images",
+  noImagesSelected: "No images selected",
+imagesSelected: "images selected",
     saveProduct: "Save Product",
 storeNamePlaceholder: "Example: Khan Electronics",
 storePhonePlaceholder: "Example: 07XXXXXXXX",
@@ -1195,6 +1201,9 @@ noStoreAvailable: "Aucune boutique n'est disponible.",
     productPrice: "Prix (TSh)",
     description: "Description du produit",
     productImages: "Images du produit (sélection multiple)",
+    chooseImages: "Choisir des images",
+noImagesSelected: "Aucune image sélectionnée",
+imagesSelected: "images sélectionnées",
     saveProduct: "Enregistrer le produit",
 storeNamePlaceholder: "Exemple : Khan Electronics",
 storePhonePlaceholder: "Exemple : 07XXXXXXXX",
@@ -1283,6 +1292,9 @@ noStoreAvailable: "لا يوجد متجر متاح.",
     productPrice: "السعر (TSh)",
     description: "وصف المنتج",
     productImages: "صور المنتج (يمكن اختيار عدة صور)",
+    chooseImages: "اختر الصور",
+noImagesSelected: "لم يتم اختيار أي صور",
+imagesSelected: "صور محددة",
     saveProduct: "حفظ المنتج",
 storeNamePlaceholder: "مثال: خان للإلكترونيات",
 storePhonePlaceholder: "مثال: 07XXXXXXXX",
@@ -1608,8 +1620,24 @@ loadProducts();
       <label for="product-images" data-i18n="productImages">
         Picha za bidhaa (Chagua picha nyingi)
       </label>
-      <input id="product-images" type="file" accept="image/*" multiple>
+      
+<div class="image-picker">
+  <input
+    id="product-images"
+    type="file"
+    accept="image/*"
+    multiple
+    hidden
+  >
 
+  <label for="product-images" class="image-picker-button" data-i18n="chooseImages">
+    Chagua picha
+  </label>
+
+  <span id="selected-images-label" data-i18n="noImagesSelected">
+    Hakuna picha iliyochaguliwa
+  </span>
+</div>
       <button type="button" id="add-product" data-i18n="saveProduct">
         Hifadhi Bidhaa
       </button>
@@ -1858,6 +1886,20 @@ document.getElementById("seller-toggle").addEventListener("click", async () => {
     sellerToggle.textContent = t("openSeller");
   }
 });
+ const productImagesInput = document.getElementById("product-images");
+const selectedImagesLabel = document.getElementById("selected-images-label");
+
+if (productImagesInput && selectedImagesLabel) {
+  productImagesInput.addEventListener("change", () => {
+    const count = productImagesInput.files.length;
+
+    if (count === 0) {
+      selectedImagesLabel.textContent = t("noImagesSelected");
+    } else {
+      selectedImagesLabel.textContent = `${count} ${t("imagesSelected")}`;
+    }
+  });
+} 
  
 </script>
   <script>
