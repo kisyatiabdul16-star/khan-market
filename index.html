@@ -92,22 +92,6 @@ if (togglePassword && passwordInput) {
   const sellerToggle = document.getElementById("seller-toggle");
   const sellerInfo = document.getElementById("seller-info");
 
-  if (sellerToggle && sellerInfo) {
-    sellerToggle.addEventListener("click", async () => {
-      const { data, error } = await supabaseClient.auth.getUser();
-
-      if (error || !data.user) {
-      message.textContent = t("loginRequired");
-        return;
-      }
-
-      sellerInfo.hidden = !sellerInfo.hidden;
-
-     sellerToggle.textContent = sellerInfo.hidden
-  ? t("openSeller")
-  : t("closeSeller"); 
-    });
-  }
 
   signupButton.addEventListener("click", async () => {
     const email = emailInput.value.trim();
@@ -855,7 +839,8 @@ loadProducts();
 
 <div id="seller-products">
   <p>Bidhaa zako zitaonekana hapa.</p>
-</div>  
+</div> 
+  
 </section>
 <script>
 document.getElementById("register-store").addEventListener("click", async () => {
