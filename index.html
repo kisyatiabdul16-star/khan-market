@@ -443,6 +443,10 @@ newProductPrice: "Ingiza bei mpya:",
 editSuccess: "Bidhaa imehaririwa kikamilifu!",
 editError: "Imeshindikana kuhariri bidhaa: ",  
  editButton: "Hariri",   
+   logout: "Toka kwenye akaunti",
+loggingOut: "Tunakuondoa kwenye akaunti...",
+logoutError: "Imeshindikana kutoka: ",
+logoutSuccess: "Umetoka kwenye akaunti kwa mafanikio.", 
 },
 
   en: {
@@ -517,6 +521,10 @@ newProductPrice: "Enter the new price:",
 editSuccess: "Product updated successfully!",
 editError: "Failed to update product: ",
     editButton: "Edit",
+logout: "Log out",
+loggingOut: "Logging out...",
+logoutError: "Failed to log out: ",
+logoutSuccess: "Logged out successfully.",    
   },
 
   fr: {
@@ -590,6 +598,10 @@ newProductPrice: "Saisissez le nouveau prix :",
 editSuccess: "Produit modifié avec succès !",
 editError: "Échec de la modification du produit : ",  
    editButton: "Modifier", 
+   logout: "Se déconnecter",
+loggingOut: "Déconnexion en cours...",
+logoutError: "Échec de la déconnexion : ",
+logoutSuccess: "Déconnexion réussie.", 
   },
 
   ar: {
@@ -662,7 +674,11 @@ resetSuccess: "تحقق من بريدك الإلكتروني للحصول على
 newProductPrice: "أدخل السعر الجديد:",
 editSuccess: "تم تعديل المنتج بنجاح!",
 editError: "تعذر تعديل المنتج: ",  
- editButton: "تعديل",   
+ editButton: "تعديل",  
+   logout: "تسجيل الخروج",
+loggingOut: "جارٍ تسجيل الخروج...",
+logoutError: "تعذر تسجيل الخروج: ",
+logoutSuccess: "تم تسجيل الخروج بنجاح.", 
   }
 };
 
@@ -860,7 +876,7 @@ loadProducts();
 
  <button id="seller-signup" data-i18n="signup">Fungua akaunti</button> 
   <button id="seller-login" data-i18n="login">Ingia</button>
-  <button type="button" id="seller-logout">Toka kwenye akaunti</button>
+  <button type="button" id="seller-logout" data-i18n="logout">Toka kwenye akaunti</button>
   <button id="seller-forgot" data-i18n="forgot">Umesahau nenosiri?</button>
 
   <p id="seller-message" role="status"></p>
@@ -1113,12 +1129,12 @@ if (savedImages.length > 0) {
  document.getElementById("seller-logout").addEventListener("click", async () => {
   const message = document.getElementById("seller-message");
 
-  message.textContent = "Tunakuondoa kwenye akaunti...";
+  message.textContent = t("loggingOut");
 
   const { error } = await supabaseClient.auth.signOut();
 
   if (error) {
-    message.textContent = "Imeshindikana kutoka: " + error.message;
+    message.textContent = t("logoutError") + error.message;
     return;
   }
 
@@ -1126,7 +1142,7 @@ if (savedImages.length > 0) {
   document.getElementById("seller-email").value = "";
   document.getElementById("seller-password").value = "";
 
-  message.textContent = "Umetoka kwenye akaunti kwa mafanikio.";
+  message.textContent = t("logoutSuccess");
 }); 
 document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
