@@ -673,55 +673,87 @@ message.textContent = t("resetSuccess");
   <script>
 
 let products = [];
-
-
-async function loadProducts() {
-  const { data, error } = await supabaseClient
-    .from("products_with_store")
-    .select("*");
-
-  if (error) {
-    console.error("PRODUCT ERROR:", error);
-    alert("Imeshindikana kupakia bidhaa: " + error.message);
+async function order(){
+  if(!Object.keys(cart).length){
+    alert(t("orderEmptyCart"));
     return;
   }
 
-  const loadedProducts = data || [];
-  const productIds = loadedProducts.map(p => p.id);
+  const name = prompt(t("orderEnterName"));
+  if(!name || !name.trim()) return;
 
-  let images = [];
+  const phone = prompt(t("orderEnterPhone"));
+  if(!phone || !phone.trim()) return;
 
-  if (productIds.length > 0) {
-    const { data: imageData, error: imageError } = await supabaseClient
-      .from("product_images")
-      .select("product_id, image_url")
-      .in("product_id", productIds);
+  const address = prompt(t("orderEnterAddress"));
+  if(!address || !address.trim()) return;
 
-    if (imageError) {
-      console.error("IMAGE READ ERROR:", imageError);
-      alert("Picha hazijasomeka: " + imageError.message);
-    } else {
-      images = imageData || [];
+  const ordersByStore = {};
+
+  for(const [id, qty] of Object.entries(cart)){
+    const p = products.find(x => String(x.id) === String(id));
+
+    if(!p){
+      alert(t("orderProductMissing"));
+      return;
     }
+
+    if(!p.storeId){
+      alert(p.sw + t("orderNoStore"));
+      return;
+    }
+
+    const storeId = p.storeId;
+
+    if(!ordersByStore[storeId]){
+      ordersByStore[storeId] = [];
+    }
+
+    ordersByStore[storeId].push({
+      product_id: p.id,
+      product_name: currentLanguage === "en" ? p.en : p.sw,
+      quantity: qty,
+      unit_price: p.price,
+      subtotal: p.price * qty
+    });
   }
 
-  products = loadedProducts.map(p => ({
-    id: p.id,
-    sw: p.product_name || "Bidhaa",
-    en: p.product_name || "Product",
-    price: Number(p.price || 0),
-    emoji: "🛍️",
-    storeName: p.store_name || "Duka halijatajwa",
-    storeId: p.store_id,
-    location: p.location || "Eneo halijatajwa",
-    stock: Number(p.stock ?? 0),
-    images: images
-      .filter(img => Number(img.product_id) === Number(p.id))
-      .map(img => img.image_url)
-  }));
+  const orderRows = Object.entries(ordersByStore).map(([storeId, items]) => {
+    const total = items.reduce((sum, item) => sum + item.subtotal, 0);
 
-  showProducts();
+    return {
+      store_id: storeId,
+      customer_name: name.trim(),
+      customer_phone: phone.trim(),
+      delivery_address: address.trim(),
+      order_items: items,
+      total_amount: total,
+      status: "pending"
+    };
+  });
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .insert(orderRows);
+
+  if(error){
+    console.error("ORDER ERROR:", error);
+    alert(t("orderSaveError") + error.message);
+    return;
+  }
+
+  const grandTotal = orderRows.reduce(
+    (sum, order) => sum + Number(order.total_amount),
+    0
+  );
+
+  alert(t("orderSuccess") + money(grandTotal));
+
+  cart = {};
+  showCart();
 }
+
+
 async function loadSellerProducts() {
   const container = document.getElementById("seller-products");
 
@@ -1133,6 +1165,14 @@ productPricePlaceholder: "Mfano: 3500",
 descriptionPlaceholder: "Andika maelezo ya bidhaa",
 
 loginRequired: "Tafadhali fungua akaunti au ingia kwanza.",
+    orderEmptyCart: "Tafadhali ongeza bidhaa kwanza.",
+    orderEnterName: "Andika jina lako kamili:",
+orderEnterPhone: "Andika namba yako ya simu:",
+orderEnterAddress: "Andika eneo la kupeleka bidhaa:",
+orderProductMissing: "Bidhaa haijapatikana. Tafadhali jaribu tena.",
+orderNoStore: "haina taarifa ya duka. Oda haijatumwa.",
+orderSaveError: "Oda haijahifadhiwa: ",
+orderSuccess: "Hongera! Oda zako zimepokelewa. Jumla: "
   signupError: "Usajili umeshindikana: ",  
 invalidDetails: "Ingiza barua pepe na nenosiri lenye angalau herufi 8.",
 signingUp: "Tunasajili akaunti yako...",
@@ -1235,6 +1275,14 @@ productNamePlaceholder: "Example: Rice",
 productPricePlaceholder: "Example: 3500",
 descriptionPlaceholder: "Enter product description",
 loginRequired: "Please create an account or log in first.",
+orderEmptyCart: "Please add a product first.",      
+ orderEnterName: "Enter your full name:",
+orderEnterPhone: "Enter your phone number:",
+orderEnterAddress: "Enter delivery address:",
+orderProductMissing: "Product not found. Please try again.",
+orderNoStore: " has no store information. Order was not submitted.",
+orderSaveError: "Order could not be saved: ",
+orderSuccess: "Your orders have been received successfully! Total: " 
     signupError: "Registration failed: ",
 invalidDetails: "Enter an email and a password of at least 8 characters.",
 signingUp: "Creating your account...",
@@ -1336,6 +1384,14 @@ productNamePlaceholder: "Exemple : Riz",
 productPricePlaceholder: "Exemple : 3500",
 descriptionPlaceholder: "Saisissez la description du produit",
 loginRequired: "Veuillez créer un compte ou vous connecter d'abord.",
+ orderEmptyCart: "Veuillez d'abord ajouter un produit.",     
+    orderEnterName: "Entrez votre nom complet :",
+orderEnterPhone: "Entrez votre numéro de téléphone :",
+orderEnterAddress: "Entrez l'adresse de livraison :",
+orderProductMissing: "Produit introuvable. Veuillez réessayer.",
+orderNoStore: " n'a pas d'informations sur le magasin. La commande n'a pas été envoyée.",
+orderSaveError: "Impossible d'enregistrer la commande : ",
+orderSuccess: "Vos commandes ont été reçues avec succès ! Total : "
     signupError: "Échec de l'inscription : ",
 invalidDetails: "Saisissez un e-mail et un mot de passe d'au moins 8 caractères.",
 signingUp: "Création de votre compte...",
@@ -1437,6 +1493,14 @@ productNamePlaceholder: "مثال: أرز",
 productPricePlaceholder: "مثال: 3500",
 descriptionPlaceholder: "أدخل وصف المنتج",
 loginRequired: "يرجى إنشاء حساب أو تسجيل الدخول أولاً.",
+      orderEmptyCart: "يرجى إضافة منتج أولاً.",
+  orderEnterName: "أدخل اسمك الكامل:",
+orderEnterPhone: "أدخل رقم هاتفك:",
+orderEnterAddress: "أدخل عنوان التوصيل:",
+orderProductMissing: "لم يتم العثور على المنتج. يرجى المحاولة مرة أخرى.",
+orderNoStore: " لا توجد معلومات عن المتجر. لم يتم إرسال الطلب.",
+orderSaveError: "تعذر حفظ الطلب: ",
+orderSuccess: "تم استلام طلباتك بنجاح! الإجمالي: "  
     signupError: "فشل التسجيل: ",
 invalidDetails: "أدخل بريدك الإلكتروني وكلمة مرور من 8 أحرف على الأقل.",
 signingUp: "جارٍ إنشاء حسابك...",
