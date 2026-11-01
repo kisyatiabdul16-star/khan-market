@@ -811,6 +811,82 @@ async function loadSellerProducts() {
     `;
   }).join("");
 }
+    async function loadSellerOrders() {
+  const container = document.getElementById("seller-orders");
+
+  container.innerHTML = "<p>Inapakia oda...</p>";
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    container.textContent = t("loginRequired");
+    return;
+  }
+
+  const { data: stores, error: storeError } = await supabaseClient
+    .from("stores")
+    .select("id")
+    .eq("owner_id", userData.user.id);
+
+  if (storeError) {
+    container.textContent = "Hitilafu: " + storeError.message;
+    return;
+  }
+
+  if (!stores || stores.length === 0) {
+    container.textContent = "Hujasajili duka bado.";
+    return;
+  }
+
+  const storeIds = stores.map(store => store.id);
+
+  const { data: orders, error: orderError } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .in("store_id", storeIds)
+    .order("created_at", { ascending: false });
+
+  if (orderError) {
+    console.error("SELLER ORDERS ERROR:", orderError);
+    container.textContent = "Hitilafu: " + orderError.message;
+    return;
+  }
+
+  if (!orders || orders.length === 0) {
+    container.textContent = "Bado hakuna oda za duka lako.";
+    return;
+  }
+
+  container.innerHTML = orders.map(order => {
+    const items = Array.isArray(order.order_items)
+      ? order.order_items
+      : [];
+
+    return `
+      <div style="border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:8px;">
+        <h4>Oda #${order.id}</h4>
+
+        <p>👤 Mteja: ${order.customer_name}</p>
+        <p>📞 Simu: ${order.customer_phone}</p>
+        <p>📍 Eneo: ${order.delivery_address}</p>
+
+        <h4>Bidhaa zilizoagizwa:</h4>
+
+        ${items.map(item => `
+          <p>
+            ${item.product_name} —
+            Idadi: ${item.quantity} —
+            Jumla: ${money(item.subtotal)}
+          </p>
+        `).join("")}
+
+        <p><strong>Jumla ya oda: ${money(order.total_amount)}</strong></p>
+        <p>Hali ya oda: ${order.status}</p>
+      </div>
+    `;
+  }).join("");
+}
 
 async function editProduct(productId) {
   const { data: userData } = await supabaseClient.auth.getUser();
@@ -1774,8 +1850,16 @@ loadProducts();
       <p data-i18n="myProductsIntro">Bidhaa ulizoweka kwenye maduka yako.</p>
 
       <div id="seller-products">
-        <p data-i18n="emptySellerProducts">Bidhaa zako zitaonekana hapa.</p>
-      </div>
+  <p data-i18n="emptySellerProducts">Bidhaa zako zitaonekana hapa.</p>
+</div>
+
+<hr>
+
+<h3 data-i18n="sellerOrdersTitle">Oda za Wateja</h3>
+
+<div id="seller-orders">
+  <p>Oda za wateja zitaonekana hapa.</p>
+</div>
     </div>
 
   </div>
@@ -2144,6 +2228,7 @@ document.getElementById("seller-toggle").addEventListener("click", async () => {
     sellerToggle.textContent = t("closeSeller");
 
     await loadSellerProducts();
+    await loadSellerOrders();
     await loadSellerStores();
 
   } else {
