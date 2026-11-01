@@ -712,6 +712,7 @@ async function loadProducts() {
     price: Number(p.price || 0),
     emoji: "🛍️",
     storeName: p.store_name || "Duka halijatajwa",
+    storeId: p.store_id,
     location: p.location || "Eneo halijatajwa",
     stock: Number(p.stock ?? 0),
     images: images
@@ -1511,7 +1512,6 @@ document.querySelectorAll("[data-i18n]").forEach(element => {
 }
 
 setLanguage(currentLanguage);
-
 async function order(){
   if(!Object.keys(cart).length){
     alert(english ? "Please add a product first." : "Tafadhali ongeza bidhaa kwanza.");
@@ -1527,42 +1527,72 @@ async function order(){
   const address = prompt(english ? "Enter delivery address:" : "Andika eneo la kupeleka bidhaa:");
   if(!address || !address.trim()) return;
 
-  const items = Object.entries(cart).map(([id, qty]) => {
+  const ordersByStore = {};
+
+  for(const [id, qty] of Object.entries(cart)){
     const p = products.find(x => x.id === Number(id));
-    return {
+
+    if(!p){
+      alert("Bidhaa haijapatikana. Tafadhali jaribu tena.");
+      return;
+    }
+
+    if(!p.storeId){
+      alert("Bidhaa " + p.sw + " haina taarifa ya duka. Oda haijatumwa.");
+      return;
+    }
+
+    const storeId = p.storeId;
+
+    if(!ordersByStore[storeId]){
+      ordersByStore[storeId] = [];
+    }
+
+    ordersByStore[storeId].push({
       product_id: p.id,
       product_name: english ? p.en : p.sw,
       quantity: qty,
       unit_price: p.price,
       subtotal: p.price * qty
-    };
-  });
+    });
+  }
 
-  const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+  const orderRows = Object.entries(ordersByStore).map(([storeId, items]) => {
+    const total = items.reduce((sum, item) => sum + item.subtotal, 0);
 
-  const { data, error } = await supabaseClient
-    .from("orders")
-    
-    .insert([{
+    return {
+      store_id: storeId,
       customer_name: name.trim(),
       customer_phone: phone.trim(),
       delivery_address: address.trim(),
       order_items: items,
-      total_amount: total
-    }]);
+      total_amount: total,
+      status: "pending"
+    };
+  });
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .insert(orderRows);
+
   if(error){
     console.error("ORDER ERROR:", error);
     alert("Oda haijahifadhiwa: " + error.message);
     return;
   }
 
-      alert(
-    english
-      ? "Order submitted successfully! Total: " + money(total)
-      : "Hongera! Oda yako imepokelewa na kuhifadhiwa. Jumla: " + money(total)
+  const grandTotal = orderRows.reduce(
+    (sum, order) => sum + Number(order.total_amount),
+    0
   );
 
-    cart = {};
+  alert(
+    english
+      ? "Your orders have been submitted successfully! Total: " + money(grandTotal)
+      : "Hongera! Oda zako zimepokelewa. Jumla: " + money(grandTotal)
+  );
+
+  cart = {};
   showCart();
 }
 
