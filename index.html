@@ -1016,10 +1016,35 @@ async function loadSellerOrders() {
     return;
   }
 
-  if (!orders || orders.length === 0) {
-    container.textContent = t("sellerNoOrders");
-    return;
+  // FEATURE 7: SELLER NOTIFICATIONS
+
+const notificationBox = document.getElementById("seller-notification-list");
+const pendingCount = document.getElementById("seller-pending-count");
+
+const pendingOrders = (orders || []).filter(
+  order => order.status === "pending"
+);
+
+if (pendingCount) {
+  pendingCount.textContent = pendingOrders.length;
+}
+
+if (notificationBox) {
+  if (pendingOrders.length === 0) {
+    notificationBox.innerHTML = `<p>${t("noNewNotifications")}</p>`;
+  } else {
+    notificationBox.innerHTML = pendingOrders.map(order => `
+      <div style="background:white;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #b7dfcc;">
+        🔔 ${t("sellerOrderTitle")} #${order.id}
+      </div>
+    `).join("");
   }
+}
+
+if (!orders || orders.length === 0) {
+  container.textContent = t("sellerNoOrders");
+  return;
+}
 
   container.innerHTML = orders.map(order => {
     const items = Array.isArray(order.order_items)
@@ -1393,6 +1418,9 @@ sellerStoreError: "Hitilafu: ",
 sellerNoStore: "Hujasajili duka bado.",
 sellerNoOrders: "Bado hakuna oda za duka lako.",
 sellerOrderTitle: "Oda",
+ sellerNotificationsTitle: "Arifa za Oda",
+pendingOrdersCount: "Oda zinazosubiri:",
+noNewNotifications: "Hakuna arifa mpya kwa sasa.",   
 sellerCustomer: "Mteja",
 sellerPhone: "Simu",
 sellerAddress: "Eneo",
@@ -1539,6 +1567,9 @@ sellerStoreError: "Error: ",
 sellerNoStore: "You have not registered a store yet.",
 sellerNoOrders: "There are no orders for your store yet.",
 sellerOrderTitle: "Order",
+   sellerNotificationsTitle: "Order Notifications",
+pendingOrdersCount: "Pending orders:",
+noNewNotifications: "No new notifications.", 
 sellerCustomer: "Customer",
 sellerPhone: "Phone",
 sellerAddress: "Address",
@@ -1684,6 +1715,9 @@ sellerStoreError: "Erreur : ",
 sellerNoStore: "Vous n'avez pas encore enregistré de boutique.",
 sellerNoOrders: "Votre boutique n'a pas encore reçu de commandes.",
 sellerOrderTitle: "Commande",
+    sellerNotificationsTitle: "Notifications des commandes",
+pendingOrdersCount: "Commandes en attente :",
+noNewNotifications: "Aucune nouvelle notification.",
 sellerCustomer: "Client",
 sellerPhone: "Téléphone",
 sellerAddress: "Adresse",
@@ -1829,6 +1863,9 @@ sellerStoreError: "خطأ: ",
 sellerNoStore: "لم تقم بتسجيل متجر بعد.",
 sellerNoOrders: "لا توجد طلبات لمتجرك حتى الآن.",
 sellerOrderTitle: "الطلب",
+    sellerNotificationsTitle: "إشعارات الطلبات",
+pendingOrdersCount: "الطلبات قيد الانتظار:",
+noNewNotifications: "لا توجد إشعارات جديدة.",
 sellerCustomer: "العميل",
 sellerPhone: "الهاتف",
 sellerAddress: "العنوان",
@@ -2245,7 +2282,21 @@ loadProducts();
 <hr>
 
 <h3 data-i18n="sellerOrderTitle">Oda za Wateja</h3>
+      
+<div id="seller-notifications">
+  <h3 data-i18n="sellerNotificationsTitle">Arifa za Oda</h3>
 
+  <p>
+    <span data-i18n="pendingOrdersCount">Oda zinazosubiri:</span>
+    <strong id="seller-pending-count">0</strong>
+  </p>
+
+  <div id="seller-notification-list">
+    <p data-i18n="noNewNotifications">
+      Hakuna arifa mpya kwa sasa.
+    </p>
+  </div>
+</div>
 <div id="seller-orders">
   <p>Oda za wateja zitaonekana hapa.</p>
 </div>
