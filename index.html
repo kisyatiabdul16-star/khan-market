@@ -890,15 +890,17 @@ async function loadSellerProducts() {
   }).join("");
 }
 async function updateOrderStatus(orderId, newStatus) {
-  if (!["accepted", "rejected"].includes(newStatus)) {
+ if (!["accepted", "rejected", "completed"].includes(newStatus)) { 
     return;
   }
 
   const confirmed = confirm(
-    newStatus === "accepted"
-      ? t("acceptOrder") + "?"
-      : t("rejectOrder") + "?"
-  );
+  newStatus === "accepted"
+    ? t("acceptOrder") + "?"
+    : newStatus === "rejected"
+      ? t("rejectOrder") + "?"
+      : t("orderCompleted") + "?"
+);
 
   if (!confirmed) return;
 
@@ -996,7 +998,6 @@ async function loadSellerOrders() {
   order.status === "completed" ? t("orderCompleted") :
   order.status
 }</p>
-
 ${order.status === "pending" ? `
   <button onclick="updateOrderStatus(${order.id}, 'accepted')">
     ✅ ${t("acceptOrder")}
@@ -1004,6 +1005,12 @@ ${order.status === "pending" ? `
 
   <button onclick="updateOrderStatus(${order.id}, 'rejected')">
     ❌ ${t("rejectOrder")}
+  </button>
+` : ""}
+
+${order.status === "accepted" ? `
+  <button onclick="updateOrderStatus(${order.id}, 'completed')">
+    ✔️ ${t("orderCompleted")}
   </button>
 ` : ""}
       </div>
