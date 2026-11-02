@@ -1419,6 +1419,15 @@ sellerNoStore: "Hujasajili duka bado.",
 sellerNoOrders: "Bado hakuna oda za duka lako.",
 sellerOrderTitle: "Oda",
  sellerNotificationsTitle: "Arifa za Oda",
+   storeStatusLabel: "Hali ya duka",
+storeOpen: "Limefunguliwa",
+storeClosed: "Limefungwa",
+saveStoreStatus: "Hifadhi hali",
+selectStoreFirst: "Tafadhali chagua duka kwanza.",
+savingStoreStatus: "Inahifadhi hali ya duka...",
+storeStatusError: "Imeshindikana kuhifadhi hali: ",
+storeStatusOpenSuccess: "Duka limefunguliwa kikamilifu.",
+storeStatusClosedSuccess: "Duka limefungwa kikamilifu.", 
 pendingOrdersCount: "Oda zinazosubiri:",
 noNewNotifications: "Hakuna arifa mpya kwa sasa.",   
 sellerCustomer: "Mteja",
@@ -1568,6 +1577,15 @@ sellerNoStore: "You have not registered a store yet.",
 sellerNoOrders: "There are no orders for your store yet.",
 sellerOrderTitle: "Order",
    sellerNotificationsTitle: "Order Notifications",
+    storeStatusLabel: "Store status",
+storeOpen: "Open",
+storeClosed: "Closed",
+saveStoreStatus: "Save status",
+selectStoreFirst: "Please select a store first.",
+savingStoreStatus: "Saving store status...",
+storeStatusError: "Failed to save store status: ",
+storeStatusOpenSuccess: "Store is now open.",
+storeStatusClosedSuccess: "Store is now closed.",
 pendingOrdersCount: "Pending orders:",
 noNewNotifications: "No new notifications.", 
 sellerCustomer: "Customer",
@@ -1716,6 +1734,15 @@ sellerNoStore: "Vous n'avez pas encore enregistré de boutique.",
 sellerNoOrders: "Votre boutique n'a pas encore reçu de commandes.",
 sellerOrderTitle: "Commande",
     sellerNotificationsTitle: "Notifications des commandes",
+    storeStatusLabel: "Statut du magasin",
+storeOpen: "Ouvert",
+storeClosed: "Fermé",
+saveStoreStatus: "Enregistrer le statut",
+selectStoreFirst: "Veuillez d’abord choisir un magasin.",
+savingStoreStatus: "Enregistrement du statut...",
+storeStatusError: "Échec de l’enregistrement : ",
+storeStatusOpenSuccess: "Le magasin est maintenant ouvert.",
+storeStatusClosedSuccess: "Le magasin est maintenant fermé.",
 pendingOrdersCount: "Commandes en attente :",
 noNewNotifications: "Aucune nouvelle notification.",
 sellerCustomer: "Client",
@@ -1864,6 +1891,15 @@ sellerNoStore: "لم تقم بتسجيل متجر بعد.",
 sellerNoOrders: "لا توجد طلبات لمتجرك حتى الآن.",
 sellerOrderTitle: "الطلب",
     sellerNotificationsTitle: "إشعارات الطلبات",
+    storeStatusLabel: "حالة المتجر",
+storeOpen: "مفتوح",
+storeClosed: "مغلق",
+saveStoreStatus: "حفظ الحالة",
+selectStoreFirst: "يرجى اختيار متجر أولاً.",
+savingStoreStatus: "جارٍ حفظ حالة المتجر...",
+storeStatusError: "تعذر حفظ حالة المتجر: ",
+storeStatusOpenSuccess: "المتجر مفتوح الآن.",
+storeStatusClosedSuccess: "المتجر مغلق الآن.",
 pendingOrdersCount: "الطلبات قيد الانتظار:",
 noNewNotifications: "لا توجد إشعارات جديدة.",
 sellerCustomer: "العميل",
@@ -2118,6 +2154,22 @@ loadProducts();
       <select id="seller-store-select">
         <option value="">Chagua duka lako</option>
       </select>
+      <div id="seller-store-status" style="margin-top:12px;">
+  <label for="seller-store-status-select" data-i18n="storeStatusLabel">
+    Hali ya duka
+  </label>
+
+  <select id="seller-store-status-select">
+    <option value="true" data-i18n="storeOpen">Limefunguliwa</option>
+    <option value="false" data-i18n="storeClosed">Limefungwa</option>
+  </select>
+
+  <button type="button" id="save-store-status" data-i18n="saveStoreStatus">
+    Hifadhi hali
+  </button>
+
+  <p id="store-status-message" role="status"></p>
+</div>
 
       <p id="seller-store-message" role="status"></p>
     </div>
@@ -2366,7 +2418,7 @@ document.getElementById("seller-store-select").addEventListener("change", async 
 
   const { data: store, error } = await supabaseClient
     .from("stores")
-    .select("id, store_name, phone, location")
+    .select("id, store_name, phone, location, is_open")
     .eq("id", storeId)
     .eq("owner_id", userData.user.id)
     .single();
@@ -2381,8 +2433,11 @@ document.getElementById("seller-store-select").addEventListener("change", async 
   document.getElementById("edit-store-phone").value = store.phone || "";
   document.getElementById("edit-store-location").value = store.location || "";
 
-  message.textContent = "";
-  editCard.hidden = false;
+document.getElementById("seller-store-status-select").value =
+  store.is_open === false ? "false" : "true";
+
+message.textContent = "";
+editCard.hidden = false;
 }); 
   document.getElementById("save-store-profile").addEventListener("click", async () => {
   const storeId = document.getElementById("seller-store-select").value;
@@ -2478,7 +2533,50 @@ document.getElementById("seller-store-select").addEventListener("change", async 
   await loadSellerStores();
 
   document.getElementById("seller-store-select").value = storeId;
-}); 
+});
+  // FEATURE 8: UPDATE STORE STATUS
+
+document.getElementById("save-store-status").addEventListener("click", async () => {
+  const storeId = document.getElementById("seller-store-select").value;
+  const statusSelect = document.getElementById("seller-store-status-select");
+  const message = document.getElementById("store-status-message");
+
+  if (!storeId) {
+    message.textContent = t("selectStoreFirst");
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    return;
+  }
+
+  const isOpen = statusSelect.value === "true";
+
+  message.textContent = t("savingStoreStatus");
+
+  const { data, error } = await supabaseClient
+    .from("stores")
+    .update({ is_open: isOpen })
+    .eq("id", storeId)
+    .eq("owner_id", userData.user.id)
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    console.error("STORE STATUS ERROR:", error);
+    message.textContent =
+      t("storeStatusError") + (error?.message || "");
+    return;
+  }
+
+  message.textContent = isOpen
+    ? t("storeStatusOpenSuccess")
+    : t("storeStatusClosedSuccess");
+});
 document.getElementById("register-store").addEventListener("click", async () => {
   const storeName = document.getElementById("store-name").value.trim();
   const phone = document.getElementById("store-phone").value.trim();
