@@ -762,13 +762,19 @@ async function order(){
       ordersByStore[storeId] = [];
     }
 
-    ordersByStore[storeId].push({
-      product_id: p.id,
-      product_name: currentLanguage === "en" ? p.en : p.sw,
-      quantity: qty,
-      unit_price: p.price,
-      subtotal: p.price * qty
-    });
+const finalPrice = Math.round(
+  p.price * (1 - (p.discount || 0) / 100)
+);
+
+ordersByStore[storeId].push({
+  product_id: p.id,
+  product_name: currentLanguage === "en" ? p.en : p.sw,
+  quantity: qty,
+  unit_price: finalPrice,
+  subtotal: finalPrice * qty
+});
+
+  
   }
 
   const orderRows = Object.entries(ordersByStore).map(([storeId, items]) => {
@@ -841,6 +847,7 @@ async function loadProducts() {
     sw: p.product_name || "Bidhaa",
     en: p.product_name || "Product",
     price: Number(p.price || 0),
+    discount: Number(p.discount_percentage || 0),
     emoji: "🛍️",
     storeName: p.store_name || "Duka halijatajwa",
     storeId: p.store_id,
@@ -1418,6 +1425,10 @@ sellerStoreError: "Hitilafu: ",
 sellerNoStore: "Hujasajili duka bado.",
 sellerNoOrders: "Bado hakuna oda za duka lako.",
 sellerOrderTitle: "Oda",
+    productDiscount: "Punguzo (%)",
+productDiscountPlaceholder: "Mfano: 10",
+discountedPrice: "Bei baada ya punguzo",
+originalPrice: "Bei ya awali",
  sellerNotificationsTitle: "Arifa za Oda",
    storeStatusLabel: "Hali ya duka",
 storeOpen: "Limefunguliwa",
@@ -1576,6 +1587,10 @@ sellerStoreError: "Error: ",
 sellerNoStore: "You have not registered a store yet.",
 sellerNoOrders: "There are no orders for your store yet.",
 sellerOrderTitle: "Order",
+ productDiscount: "Discount (%)",
+productDiscountPlaceholder: "Example: 10",
+discountedPrice: "Discounted price",
+originalPrice: "Original price",   
    sellerNotificationsTitle: "Order Notifications",
     storeStatusLabel: "Store status",
 storeOpen: "Open",
@@ -1733,6 +1748,10 @@ sellerStoreError: "Erreur : ",
 sellerNoStore: "Vous n'avez pas encore enregistré de boutique.",
 sellerNoOrders: "Votre boutique n'a pas encore reçu de commandes.",
 sellerOrderTitle: "Commande",
+    productDiscount: "Réduction (%)",
+productDiscountPlaceholder: "Exemple : 10",
+discountedPrice: "Prix après réduction",
+originalPrice: "Prix initial",
     sellerNotificationsTitle: "Notifications des commandes",
     storeStatusLabel: "Statut du magasin",
 storeOpen: "Ouvert",
@@ -1890,6 +1909,10 @@ sellerStoreError: "خطأ: ",
 sellerNoStore: "لم تقم بتسجيل متجر بعد.",
 sellerNoOrders: "لا توجد طلبات لمتجرك حتى الآن.",
 sellerOrderTitle: "الطلب",
+    productDiscount: "الخصم (%)",
+productDiscountPlaceholder: "مثال: 10",
+discountedPrice: "السعر بعد الخصم",
+originalPrice: "السعر الأصلي",
     sellerNotificationsTitle: "إشعارات الطلبات",
     storeStatusLabel: "حالة المتجر",
 storeOpen: "مفتوح",
@@ -1999,7 +2022,21 @@ const found = products.filter(p => {
     other: "Other"
   }[p.category] || "Other"))}
 </div>
-<div class="price">${money(p.price)}</div>
+<div class="price">
+  ${
+    p.discount > 0
+      ? `
+        <del>${money(p.price)}</del>
+        <br>
+        <strong>${t("discountedPrice")}: ${money(
+          Math.round(p.price * (1 - p.discount / 100))
+        )}</strong>
+        <br>
+        <span>${t("productDiscount")}: ${p.discount}%</span>
+      `
+      : money(p.price)
+  }
+</div>
 
 <div class="availability">
   ${p.stock > 0 ? t("inStock") : t("outOfStock")}
@@ -2027,16 +2064,48 @@ showCart();
 }
 
 function showCart(){
-const entries=Object.entries(cart);
-document.getElementById("items").innerHTML=entries.length?entries.map(([id,qty])=>{
-const p=products.find(x=>x.id===Number(id));
-return `<div class="item"><div><b>${english?p.en:p.sw}</b><br>${money(p.price)} × ${qty}</div>
-<div class="qty"><button onclick="change(${p.id},-1)">−</button> ${qty} <button onclick="change(${p.id},1)">+</button></div></div>`;
-}).join(""):t("emptyCart")
-const total=entries.reduce((sum,[id,qty])=>sum+products.find(p=>p.id===Number(id)).price*qty,0);
-document.getElementById("total").textContent=money(total);
-}
+  const entries = Object.entries(cart);
 
+  document.getElementById("items").innerHTML = entries.length
+    ? entries.map(([id, qty]) => {
+        const p = products.find(x => x.id === Number(id));
+
+        if (!p) return "";
+
+        const finalPrice = Math.round(
+          p.price * (1 - (p.discount || 0) / 100)
+        );
+
+        return `
+          <div class="item">
+            <div>
+              <b>${english ? p.en : p.sw}</b><br>
+              ${money(finalPrice)} × ${qty}
+            </div>
+            <div class="qty">
+              <button onclick="change(${p.id},-1)">−</button>
+              ${qty}
+              <button onclick="change(${p.id},1)">+</button>
+            </div>
+          </div>
+        `;
+      }).join("")
+    : t("emptyCart");
+
+  const total = entries.reduce((sum, [id, qty]) => {
+    const p = products.find(x => x.id === Number(id));
+
+    if (!p) return sum;
+
+    const finalPrice = Math.round(
+      p.price * (1 - (p.discount || 0) / 100)
+    );
+
+    return sum + finalPrice * qty;
+  }, 0);
+
+  document.getElementById("total").textContent = money(total);
+}
 function language() {
   const languages = ["sw", "en", "fr", "ar"];
 
@@ -2250,7 +2319,22 @@ loadProducts();
       <input id="product-price" type="number" min="1"
         data-i18n-placeholder="productPricePlaceholder"
         placeholder="Mfano: 3500" required>
+      
+<label for="product-discount" data-i18n="productDiscount">
+  Punguzo (%)
+</label>
 
+<input
+  id="product-discount"
+  type="number"
+  min="0"
+  max="100"
+  step="0.01"
+  value="0"
+  data-i18n-placeholder="productDiscountPlaceholder"
+  placeholder="Mfano: 10"
+  required
+>
       <label for="product-description" data-i18n="description">Maelezo ya bidhaa</label>
       <textarea id="product-description"
         data-i18n-placeholder="descriptionPlaceholder"
@@ -2621,6 +2705,9 @@ document.getElementById("add-product").addEventListener("click", async () => {
   const description = document.getElementById("product-description").value.trim();
   const stock = Number(document.getElementById("product-stock").value);
   const category = document.getElementById("product-category").value;
+  const discount = Number(
+  document.getElementById("product-discount").value
+);
   const message = document.getElementById("product-message");
 if (
   !name ||
@@ -2628,7 +2715,10 @@ if (
   !Number.isFinite(price) ||
   price <= 0 ||
   !Number.isInteger(stock) ||
-  stock < 0
+  stock < 0 ||
+  !Number.isFinite(discount) ||
+  discount < 0 ||
+  discount > 100
 ) {
   
     message.textContent = t("invalidProduct");
@@ -2664,14 +2754,15 @@ const store = stores[0];
   const { data: product, error: productError } = await supabaseClient
   .from("products")
   .insert({
-    Name: name,
-Price: price,
-Dicription: description,
-category: category,
-stock: stock,
-image_url: null,
-store_id: store.id
-  })
+  Name: name,
+  Price: price,
+  discount_percentage: discount,
+  Dicription: description,
+  category: category,
+  stock: stock,
+  image_url: null,
+  store_id: store.id
+})
   .select("id")
   .single();
 
@@ -2736,6 +2827,7 @@ if (savedImages.length > 0) {
   message.textContent = t("productSuccess");
   document.getElementById("product-name").value = "";
   document.getElementById("product-price").value = "";
+  document.getElementById("product-discount").value = "0";
   document.getElementById("product-description").value = "";
   document.getElementById("product-stock").value = "0";
   document.getElementById("product-category").value = "";
