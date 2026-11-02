@@ -889,6 +889,34 @@ async function loadSellerProducts() {
     `;
   }).join("");
 }
+async function updateOrderStatus(orderId, newStatus) {
+  if (!["accepted", "rejected"].includes(newStatus)) {
+    return;
+  }
+
+  const confirmed = confirm(
+    newStatus === "accepted"
+      ? t("acceptOrder") + "?"
+      : t("rejectOrder") + "?"
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({ status: newStatus })
+    .eq("id", orderId);
+
+  if (error) {
+    console.error("UPDATE ORDER ERROR:", error);
+    alert(t("updateOrderError") + error.message);
+    return;
+  }
+
+  alert(t("updateOrderSuccess"));
+
+  await loadSellerOrders();
+}    
     
 async function loadSellerOrders() {
   const container = document.getElementById("seller-orders");
@@ -968,6 +996,16 @@ async function loadSellerOrders() {
   order.status === "completed" ? t("orderCompleted") :
   order.status
 }</p>
+
+${order.status === "pending" ? `
+  <button onclick="updateOrderStatus(${order.id}, 'accepted')">
+    ✅ ${t("acceptOrder")}
+  </button>
+
+  <button onclick="updateOrderStatus(${order.id}, 'rejected')">
+    ❌ ${t("rejectOrder")}
+  </button>
+` : ""}
       </div>
     `;
   }).join("");
@@ -1224,6 +1262,10 @@ orderEnterAddress: "Andika eneo la kupeleka bidhaa:",
 orderProductMissing: "Bidhaa haijapatikana. Tafadhali jaribu tena.",
 orderNoStore: "haina taarifa ya duka. Oda haijatumwa.",
 orderSaveError: "Oda haijahifadhiwa: ",
+   acceptOrder: "Kubali Oda",
+rejectOrder: "Kataa Oda", 
+    updateOrderError: "Imeshindikana kubadilisha hali ya oda: ",
+    updateOrderSuccess: "Hali ya oda imebadilishwa kikamilifu.",
   sellerLoadingOrders: "Inapakia oda...",
 sellerStoreError: "Hitilafu: ",
 sellerNoStore: "Hujasajili duka bado.",
@@ -1351,6 +1393,10 @@ orderEnterAddress: "Enter delivery address:",
 orderProductMissing: "Product not found. Please try again.",
 orderNoStore: " has no store information. Order was not submitted.",
 orderSaveError: "Order could not be saved: ",
+    acceptOrder: "Accept Order",
+rejectOrder: "Reject Order",
+    updateOrderError: "Failed to update order status: ",
+    updateOrderSuccess: "Order status updated successfully.",
   sellerLoadingOrders: "Loading orders...",
 sellerStoreError: "Error: ",
 sellerNoStore: "You have not registered a store yet.",
@@ -1477,6 +1523,10 @@ orderEnterAddress: "Entrez l'adresse de livraison :",
 orderProductMissing: "Produit introuvable. Veuillez réessayer.",
 orderNoStore: " n'a pas d'informations sur le magasin. La commande n'a pas été envoyée.",
 orderSaveError: "Impossible d'enregistrer la commande : ",
+    acceptOrder: "Accepter la commande",
+rejectOrder: "Refuser la commande",
+    updateOrderError: "Échec de la mise à jour du statut de la commande : ",
+    updateOrderSuccess: "Le statut de la commande a été mis à jour.",
     sellerLoadingOrders: "Chargement des commandes...",
 sellerStoreError: "Erreur : ",
 sellerNoStore: "Vous n'avez pas encore enregistré de boutique.",
@@ -1603,6 +1653,10 @@ orderEnterAddress: "أدخل عنوان التوصيل:",
 orderProductMissing: "لم يتم العثور على المنتج. يرجى المحاولة مرة أخرى.",
 orderNoStore: " لا توجد معلومات عن المتجر. لم يتم إرسال الطلب.",
 orderSaveError: "تعذر حفظ الطلب: ",
+ acceptOrder: "قبول الطلب",
+rejectOrder: "رفض الطلب",  
+    updateOrderError: "تعذر تحديث حالة الطلب: ",
+    updateOrderSuccess: "تم تحديث حالة الطلب بنجاح.",
 sellerLoadingOrders: "جارٍ تحميل الطلبات...",
 sellerStoreError: "خطأ: ",
 sellerNoStore: "لم تقم بتسجيل متجر بعد.",
