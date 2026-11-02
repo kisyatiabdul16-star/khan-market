@@ -560,6 +560,16 @@ footer {
   font-weight: bold;
   color: #087f5b;
 } 
+  .product-category {
+  display: inline-block;
+  margin: 6px 0 10px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #eef6f2;
+  color: #087f5b;
+  font-size: 13px;
+  font-weight: bold;
+}
 </style>
 
 </head>
@@ -576,7 +586,19 @@ footer {
 <p id="intro">Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.</p>
 </section>
 
-<input id="search" placeholder="Tafuta bidhaa..." oninput="showProduct();">
+<input id="search" placeholder="Tafuta bidhaa..." oninput="showProducts();">
+
+  <select id="category-filter" onchange="showProducts();">
+  <option value="all" data-i18n="allCategories">Makundi yote</option>
+  <option value="food" data-i18n="catFood">Vyakula</option>
+  <option value="drinks" data-i18n="catDrinks">Vinywaji</option>
+  <option value="electronics" data-i18n="catElectronics">Elektroniki</option>
+  <option value="clothes" data-i18n="catClothes">Mavazi</option>
+  <option value="shoes" data-i18n="catShoes">Viatu</option>
+  <option value="furniture" data-i18n="catFurniture">Samani</option>
+  <option value="cosmetics" data-i18n="catCosmetics">Vipodozi</option>
+  <option value="other" data-i18n="catOther">Bidhaa nyingine</option>
+</select>
 
 <h2 id="heading">Bidhaa zinazopatikana</h2>
 <div class="products" id="products"></div>
@@ -824,6 +846,7 @@ async function loadProducts() {
     storeId: p.store_id,
     location: p.location || "Eneo halijatajwa",
     stock: Number(p.stock ?? 0),
+    category: p.category || "other",
     images: images
       .filter(img => Number(img.product_id) === Number(p.id))
       .map(img => img.image_url)
@@ -1327,6 +1350,17 @@ noStoreAvailable: "Hakuna duka linaloonekana.",
     description: "Maelezo ya bidhaa",
     productImages: "Picha za bidhaa (Chagua picha nyingi)",
     productStock: "Idadi ya bidhaa zilizopo dukani",
+    categoryLabel: "Kundi la bidhaa",
+    allCategories: "Makundi yote",
+chooseCategory: "Chagua kundi",
+catFood: "Vyakula",
+catDrinks: "Vinywaji",
+catElectronics: "Elektroniki",
+catClothes: "Mavazi",
+catShoes: "Viatu",
+catFurniture: "Samani",
+catCosmetics: "Vipodozi",
+catOther: "Bidhaa nyingine",
     newProductStock: "Ingiza idadi mpya ya bidhaa:",
 invalidStock: "Tafadhali ingiza idadi sahihi ya bidhaa (sifuri au zaidi).",
     inStock: "Ipo dukani",
@@ -1463,6 +1497,17 @@ noStoreAvailable: "No store is available.",
     description: "Product Description",
     productImages: "Product Images (Select multiple)",
     productStock: "Available Stock Quantity",
+    categoryLabel: "Product Category",
+    allCategories: "All Categories",
+chooseCategory: "Choose Category",
+catFood: "Food",
+catDrinks: "Drinks",
+catElectronics: "Electronics",
+catClothes: "Clothing",
+catShoes: "Shoes",
+catFurniture: "Furniture",
+catCosmetics: "Cosmetics",
+catOther: "Other Products",
     newProductStock: "Enter the new stock quantity:",
 invalidStock: "Please enter a valid stock quantity (zero or more).",
    inStock: "In Stock",
@@ -1597,6 +1642,17 @@ noStoreAvailable: "Aucune boutique n'est disponible.",
     description: "Description du produit",
     productImages: "Images du produit (sélection multiple)",
     productStock: "Quantité de produits en stock",
+    categoryLabel: "Catégorie du produit",
+    allCategories: "Toutes les catégories",
+chooseCategory: "Choisir une catégorie",
+catFood: "Aliments",
+catDrinks: "Boissons",
+catElectronics: "Électronique",
+catClothes: "Vêtements",
+catShoes: "Chaussures",
+catFurniture: "Meubles",
+catCosmetics: "Cosmétiques",
+catOther: "Autres produits",
  newProductStock: "Saisissez la nouvelle quantité en stock :",
 invalidStock: "Veuillez saisir une quantité valide (zéro ou plus).", 
   inStock: "En stock",
@@ -1731,6 +1787,17 @@ noStoreAvailable: "لا يوجد متجر متاح.",
     description: "وصف المنتج",
     productImages: "صور المنتج (يمكن اختيار عدة صور)",
    productStock: "كمية المنتجات المتوفرة في المخزون",
+    categoryLabel: "فئة المنتج",
+   allCategories: "جميع الفئات", 
+chooseCategory: "اختر الفئة",
+catFood: "الأطعمة",
+catDrinks: "المشروبات",
+catElectronics: "الإلكترونيات",
+catClothes: "الملابس",
+catShoes: "الأحذية",
+catFurniture: "الأثاث",
+catCosmetics: "مستحضرات التجميل",
+catOther: "منتجات أخرى",
     newProductStock: "أدخل كمية المخزون الجديدة:",
 invalidStock: "يرجى إدخال كمية مخزون صحيحة (صفر أو أكثر).",
     inStock: "متوفر في المخزون",
@@ -1818,10 +1885,18 @@ let english = currentLanguage === "en";
 const money = n => "TSh " + n.toLocaleString("en-US");
 function showProducts(){
   const q = document.getElementById("search").value.toLowerCase();
+const selectedCategory = document.getElementById("category-filter").value;
 
-  const found = products.filter(p =>
-    (p.sw + " " + p.en).toLowerCase().includes(q)
-  );
+const found = products.filter(p => {
+  const matchesSearch =
+    (p.sw + " " + p.en).toLowerCase().includes(q);
+
+  const matchesCategory =
+    selectedCategory === "all" ||
+    p.category === selectedCategory;
+
+  return matchesSearch && matchesCategory;
+});
 
   document.getElementById("products").innerHTML = found.map(p => `
     <div class="card">
@@ -1839,6 +1914,18 @@ function showProducts(){
         }
       </div>
 <h3>${english ? p.en : p.sw}</h3>
+<div class="product-category">
+  🏷️ ${t("cat" + ({
+    food: "Food",
+    drinks: "Drinks",
+    electronics: "Electronics",
+    clothes: "Clothes",
+    shoes: "Shoes",
+    furniture: "Furniture",
+    cosmetics: "Cosmetics",
+    other: "Other"
+  }[p.category] || "Other"))}
+</div>
 <div class="price">${money(p.price)}</div>
 
 <div class="availability">
@@ -2053,6 +2140,22 @@ loadProducts();
       <input id="product-name" type="text"
         data-i18n-placeholder="productNamePlaceholder"
         placeholder="Mfano: Mchele" required>
+      <label for="product-category">Kundi la bidhaa</label>
+<label for="product-category" data-i18n="categoryLabel">
+  Kundi la bidhaa
+</label>
+
+<select id="product-category" required>
+  <option value="" data-i18n="chooseCategory">Chagua kundi</option>
+  <option value="food" data-i18n="catFood">🍚 Vyakula</option>
+  <option value="drinks" data-i18n="catDrinks">🥤 Vinywaji</option>
+  <option value="electronics" data-i18n="catElectronics">📱 Elektroniki</option>
+  <option value="clothes" data-i18n="catClothes">👕 Mavazi</option>
+  <option value="shoes" data-i18n="catShoes">👟 Viatu</option>
+  <option value="furniture" data-i18n="catFurniture">🪑 Samani</option>
+  <option value="cosmetics" data-i18n="catCosmetics">🧴 Vipodozi</option>
+  <option value="other" data-i18n="catOther">📦 Bidhaa nyingine</option>
+</select>
 
       <label for="product-price" data-i18n="productPrice">Bei (TSh)</label>
       <input id="product-price" type="number" min="1"
@@ -2368,9 +2471,11 @@ document.getElementById("add-product").addEventListener("click", async () => {
   const price = Number(document.getElementById("product-price").value);
   const description = document.getElementById("product-description").value.trim();
   const stock = Number(document.getElementById("product-stock").value);
+  const category = document.getElementById("product-category").value;
   const message = document.getElementById("product-message");
 if (
   !name ||
+  !category ||
   !Number.isFinite(price) ||
   price <= 0 ||
   !Number.isInteger(stock) ||
@@ -2411,11 +2516,12 @@ const store = stores[0];
   .from("products")
   .insert({
     Name: name,
-    Price: price,
-    Dicription: description,
-    stock: stock,
-    image_url: null,
-    store_id: store.id
+Price: price,
+Dicription: description,
+category: category,
+stock: stock,
+image_url: null,
+store_id: store.id
   })
   .select("id")
   .single();
@@ -2483,6 +2589,7 @@ if (savedImages.length > 0) {
   document.getElementById("product-price").value = "";
   document.getElementById("product-description").value = "";
   document.getElementById("product-stock").value = "0";
+  document.getElementById("product-category").value = "";
   document.getElementById("product-images").value = "";
 
   await loadProducts();
