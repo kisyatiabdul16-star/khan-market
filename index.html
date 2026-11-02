@@ -528,7 +528,38 @@ footer {
   .seller-password-row button {
     width: 100%;
   }
-}  
+}
+ /* SELLER SALES DASHBOARD */
+#seller-sales-dashboard {
+  margin: 20px 0;
+}
+
+.sales-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.sales-card {
+  background: white;
+  padding: 18px;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  border: 1px solid #e5e7eb;
+}
+
+.sales-card h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #555;
+}
+
+.sales-card p {
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+  color: #087f5b;
+} 
 </style>
 
 </head>
@@ -1017,6 +1048,56 @@ ${order.status === "accepted" ? `
     `;
   }).join("");
 }
+    async function loadSellerSalesDashboard() {
+  const salesElement = document.getElementById("seller-total-sales");
+  const ordersElement = document.getElementById("seller-total-orders");
+  const completedElement = document.getElementById("seller-completed-orders");
+
+  if (!salesElement || !ordersElement || !completedElement) return;
+
+  salesElement.textContent = "TSh 0";
+  ordersElement.textContent = "0";
+  completedElement.textContent = "0";
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) return;
+
+  const { data: stores, error: storeError } = await supabaseClient
+    .from("stores")
+    .select("id")
+    .eq("owner_id", userData.user.id);
+
+  if (storeError || !stores || stores.length === 0) return;
+
+  const storeIds = stores.map(store => store.id);
+
+  const { data: orders, error: orderError } = await supabaseClient
+    .from("orders")
+    .select("total_amount, status")
+    .in("store_id", storeIds);
+
+  if (orderError) {
+    console.error("SALES DASHBOARD ERROR:", orderError);
+    return;
+  }
+
+  const allOrders = orders || [];
+
+  const completedOrders = allOrders.filter(
+    order => order.status === "completed"
+  );
+
+  const totalSales = completedOrders.reduce(
+    (sum, order) => sum + Number(order.total_amount || 0),
+    0
+  );
+
+  salesElement.textContent = money(totalSales);
+  ordersElement.textContent = allOrders.length;
+  completedElement.textContent = completedOrders.length;
+}
 async function editProduct(productId) {
   const { data: userData } = await supabaseClient.auth.getUser();
 
@@ -1286,6 +1367,10 @@ sellerQuantity: "Idadi",
 sellerSubtotal: "Jumla",
 sellerOrderTotal: "Jumla ya oda",
 sellerOrderStatus: "Hali ya oda",  
+   salesDashboardTitle: "Muhtasari wa Mauzo",
+totalSales: "Jumla ya Mauzo",
+totalOrders: "Jumla ya Oda",
+completedOrders: "Oda Zilizokamilika", 
    orderPending: "Inasubiri",
 orderAccepted: "Imekubaliwa",
 orderRejected: "Imekataliwa",
@@ -1417,6 +1502,10 @@ sellerQuantity: "Quantity",
 sellerSubtotal: "Subtotal",
 sellerOrderTotal: "Order Total",
 sellerOrderStatus: "Order Status",
+    salesDashboardTitle: "Sales Overview",
+totalSales: "Total Sales",
+totalOrders: "Total Orders",
+completedOrders: "Completed Orders",
     orderPending: "Pending",
 orderAccepted: "Accepted",
 orderRejected: "Rejected",
@@ -1547,6 +1636,10 @@ sellerQuantity: "Quantité",
 sellerSubtotal: "Sous-total",
 sellerOrderTotal: "Total de la commande",
 sellerOrderStatus: "Statut de la commande",
+    salesDashboardTitle: "Aperçu des ventes",
+totalSales: "Ventes totales",
+totalOrders: "Commandes totales",
+completedOrders: "Commandes terminées",
    orderPending: "En attente",
 orderAccepted: "Acceptée",
 orderRejected: "Rejetée",
@@ -1677,6 +1770,10 @@ sellerQuantity: "الكمية",
 sellerSubtotal: "المجموع الفرعي",
 sellerOrderTotal: "إجمالي الطلب",
 sellerOrderStatus: "حالة الطلب", 
+    salesDashboardTitle: "ملخص المبيعات",
+totalSales: "إجمالي المبيعات",
+totalOrders: "إجمالي الطلبات",
+completedOrders: "الطلبات المكتملة",
   orderPending: "قيد الانتظار",
 orderAccepted: "مقبول",
 orderRejected: "مرفوض",
@@ -2010,6 +2107,33 @@ loadProducts();
     <div class="seller-card">
       <h3 data-i18n="myProducts">📦 Bidhaa Zangu</h3>
       <p data-i18n="myProductsIntro">Bidhaa ulizoweka kwenye maduka yako.</p>
+      <!-- SELLER SALES DASHBOARD -->
+<div id="seller-sales-dashboard">
+
+  <h3 data-i18n="salesDashboardTitle">
+    Muhtasari wa Mauzo
+  </h3>
+
+  <div class="sales-summary">
+
+    <div class="sales-card">
+      <h4 data-i18n="totalSales">Jumla ya Mauzo</h4>
+      <p id="seller-total-sales">TSh 0</p>
+    </div>
+
+    <div class="sales-card">
+      <h4 data-i18n="totalOrders">Jumla ya Oda</h4>
+      <p id="seller-total-orders">0</p>
+    </div>
+
+    <div class="sales-card">
+      <h4 data-i18n="completedOrders">Oda Zilizokamilika</h4>
+      <p id="seller-completed-orders">0</p>
+    </div>
+
+  </div>
+
+</div>
 
       <div id="seller-products">
   <p data-i18n="emptySellerProducts">Bidhaa zako zitaonekana hapa.</p>
@@ -2391,6 +2515,7 @@ document.getElementById("seller-toggle").addEventListener("click", async () => {
 
     await loadSellerProducts();
     await loadSellerOrders();
+    await loadSellerSalesDashboard();
     await loadSellerStores();
 
   } else {
