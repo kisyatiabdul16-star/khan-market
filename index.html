@@ -889,10 +889,11 @@ async function loadSellerProducts() {
     `;
   }).join("");
 }
-    async function loadSellerOrders() {
+    
+async function loadSellerOrders() {
   const container = document.getElementById("seller-orders");
 
-  container.innerHTML = "<p>Inapakia oda...</p>";
+  container.innerHTML = `<p>${t("sellerLoadingOrders")}</p>`;
 
   const { data: userData, error: userError } =
     await supabaseClient.auth.getUser();
@@ -908,12 +909,12 @@ async function loadSellerProducts() {
     .eq("owner_id", userData.user.id);
 
   if (storeError) {
-    container.textContent = "Hitilafu: " + storeError.message;
+    container.textContent = t("sellerStoreError") + storeError.message;
     return;
   }
 
   if (!stores || stores.length === 0) {
-    container.textContent = "Hujasajili duka bado.";
+    container.textContent = t("sellerNoStore");
     return;
   }
 
@@ -927,12 +928,12 @@ async function loadSellerProducts() {
 
   if (orderError) {
     console.error("SELLER ORDERS ERROR:", orderError);
-    container.textContent = "Hitilafu: " + orderError.message;
+    container.textContent = t("sellerStoreError") + orderError.message;
     return;
   }
 
   if (!orders || orders.length === 0) {
-    container.textContent = "Bado hakuna oda za duka lako.";
+    container.textContent = t("sellerNoOrders");
     return;
   }
 
@@ -943,29 +944,34 @@ async function loadSellerProducts() {
 
     return `
       <div style="border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:8px;">
-        <h4>Oda #${order.id}</h4>
+        <h4>${t("sellerOrderTitle")} #${order.id}</h4>
 
-        <p>👤 Mteja: ${order.customer_name}</p>
-        <p>📞 Simu: ${order.customer_phone}</p>
-        <p>📍 Eneo: ${order.delivery_address}</p>
+        <p>👤 ${t("sellerCustomer")}: ${order.customer_name}</p>
+        <p>📞 ${t("sellerPhone")}: ${order.customer_phone}</p>
+        <p>📍 ${t("sellerAddress")}: ${order.delivery_address}</p>
 
-        <h4>Bidhaa zilizoagizwa:</h4>
+        <h4>${t("sellerOrderedProducts")}:</h4>
 
         ${items.map(item => `
           <p>
             ${item.product_name} —
-            Idadi: ${item.quantity} —
-            Jumla: ${money(item.subtotal)}
+            ${t("sellerQuantity")}: ${item.quantity} —
+            ${t("sellerSubtotal")}: ${money(item.subtotal)}
           </p>
         `).join("")}
 
-        <p><strong>Jumla ya oda: ${money(order.total_amount)}</strong></p>
-        <p>Hali ya oda: ${order.status}</p>
+        <p><strong>${t("sellerOrderTotal")}: ${money(order.total_amount)}</strong></p>
+        <p>${t("sellerOrderStatus")}: ${
+  order.status === "pending" ? t("orderPending") :
+  order.status === "accepted" ? t("orderAccepted") :
+  order.status === "rejected" ? t("orderRejected") :
+  order.status === "completed" ? t("orderCompleted") :
+  order.status
+}</p>
       </div>
     `;
   }).join("");
 }
-
 async function editProduct(productId) {
   const { data: userData } = await supabaseClient.auth.getUser();
 
@@ -1218,6 +1224,23 @@ orderEnterAddress: "Andika eneo la kupeleka bidhaa:",
 orderProductMissing: "Bidhaa haijapatikana. Tafadhali jaribu tena.",
 orderNoStore: "haina taarifa ya duka. Oda haijatumwa.",
 orderSaveError: "Oda haijahifadhiwa: ",
+  sellerLoadingOrders: "Inapakia oda...",
+sellerStoreError: "Hitilafu: ",
+sellerNoStore: "Hujasajili duka bado.",
+sellerNoOrders: "Bado hakuna oda za duka lako.",
+sellerOrderTitle: "Oda",
+sellerCustomer: "Mteja",
+sellerPhone: "Simu",
+sellerAddress: "Eneo",
+sellerOrderedProducts: "Bidhaa zilizoagizwa",
+sellerQuantity: "Idadi",
+sellerSubtotal: "Jumla",
+sellerOrderTotal: "Jumla ya oda",
+sellerOrderStatus: "Hali ya oda",  
+   orderPending: "Inasubiri",
+orderAccepted: "Imekubaliwa",
+orderRejected: "Imekataliwa",
+orderCompleted: "Imekamilika", 
 orderSuccess: "Hongera! Oda zako zimepokelewa. Jumla: ",
   signupError: "Usajili umeshindikana: ",  
 invalidDetails: "Ingiza barua pepe na nenosiri lenye angalau herufi 8.",
@@ -1328,6 +1351,23 @@ orderEnterAddress: "Enter delivery address:",
 orderProductMissing: "Product not found. Please try again.",
 orderNoStore: " has no store information. Order was not submitted.",
 orderSaveError: "Order could not be saved: ",
+  sellerLoadingOrders: "Loading orders...",
+sellerStoreError: "Error: ",
+sellerNoStore: "You have not registered a store yet.",
+sellerNoOrders: "There are no orders for your store yet.",
+sellerOrderTitle: "Order",
+sellerCustomer: "Customer",
+sellerPhone: "Phone",
+sellerAddress: "Address",
+sellerOrderedProducts: "Ordered Products",
+sellerQuantity: "Quantity",
+sellerSubtotal: "Subtotal",
+sellerOrderTotal: "Order Total",
+sellerOrderStatus: "Order Status",
+    orderPending: "Pending",
+orderAccepted: "Accepted",
+orderRejected: "Rejected",
+orderCompleted: "Completed",
 orderSuccess: "Your orders have been received successfully! Total: ",
     signupError: "Registration failed: ",
 invalidDetails: "Enter an email and a password of at least 8 characters.",
@@ -1437,6 +1477,23 @@ orderEnterAddress: "Entrez l'adresse de livraison :",
 orderProductMissing: "Produit introuvable. Veuillez réessayer.",
 orderNoStore: " n'a pas d'informations sur le magasin. La commande n'a pas été envoyée.",
 orderSaveError: "Impossible d'enregistrer la commande : ",
+    sellerLoadingOrders: "Chargement des commandes...",
+sellerStoreError: "Erreur : ",
+sellerNoStore: "Vous n'avez pas encore enregistré de boutique.",
+sellerNoOrders: "Votre boutique n'a pas encore reçu de commandes.",
+sellerOrderTitle: "Commande",
+sellerCustomer: "Client",
+sellerPhone: "Téléphone",
+sellerAddress: "Adresse",
+sellerOrderedProducts: "Produits commandés",
+sellerQuantity: "Quantité",
+sellerSubtotal: "Sous-total",
+sellerOrderTotal: "Total de la commande",
+sellerOrderStatus: "Statut de la commande",
+   orderPending: "En attente",
+orderAccepted: "Acceptée",
+orderRejected: "Rejetée",
+orderCompleted: "Terminée", 
 orderSuccess: "Vos commandes ont été reçues avec succès ! Total : ",
     signupError: "Échec de l'inscription : ",
 invalidDetails: "Saisissez un e-mail et un mot de passe d'au moins 8 caractères.",
@@ -1546,6 +1603,23 @@ orderEnterAddress: "أدخل عنوان التوصيل:",
 orderProductMissing: "لم يتم العثور على المنتج. يرجى المحاولة مرة أخرى.",
 orderNoStore: " لا توجد معلومات عن المتجر. لم يتم إرسال الطلب.",
 orderSaveError: "تعذر حفظ الطلب: ",
+sellerLoadingOrders: "جارٍ تحميل الطلبات...",
+sellerStoreError: "خطأ: ",
+sellerNoStore: "لم تقم بتسجيل متجر بعد.",
+sellerNoOrders: "لا توجد طلبات لمتجرك حتى الآن.",
+sellerOrderTitle: "الطلب",
+sellerCustomer: "العميل",
+sellerPhone: "الهاتف",
+sellerAddress: "العنوان",
+sellerOrderedProducts: "المنتجات المطلوبة",
+sellerQuantity: "الكمية",
+sellerSubtotal: "المجموع الفرعي",
+sellerOrderTotal: "إجمالي الطلب",
+sellerOrderStatus: "حالة الطلب", 
+  orderPending: "قيد الانتظار",
+orderAccepted: "مقبول",
+orderRejected: "مرفوض",
+orderCompleted: "مكتمل",  
 orderSuccess: "تم استلام طلباتك بنجاح! الإجمالي: ",
     signupError: "فشل التسجيل: ",
 invalidDetails: "أدخل بريدك الإلكتروني وكلمة مرور من 8 أحرف على الأقل.",
