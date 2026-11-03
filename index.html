@@ -1103,16 +1103,24 @@ ${order.status === "accepted" ? `
     `;
   }).join("");
 }
-    async function loadSellerSalesDashboard() {
+  
+async function loadSellerSalesDashboard() {
   const salesElement = document.getElementById("seller-total-sales");
   const ordersElement = document.getElementById("seller-total-orders");
   const completedElement = document.getElementById("seller-completed-orders");
+  const todayElement = document.getElementById("seller-today-sales");
+  const weeklyElement = document.getElementById("seller-weekly-sales");
+  const monthlyElement = document.getElementById("seller-monthly-sales");
 
-  if (!salesElement || !ordersElement || !completedElement) return;
+  if (!salesElement || !ordersElement || !completedElement ||
+      !todayElement || !weeklyElement || !monthlyElement) return;
 
   salesElement.textContent = "TSh 0";
   ordersElement.textContent = "0";
   completedElement.textContent = "0";
+  todayElement.textContent = "TSh 0";
+  weeklyElement.textContent = "TSh 0";
+  monthlyElement.textContent = "TSh 0";
 
   const { data: userData, error: userError } =
     await supabaseClient.auth.getUser();
@@ -1130,7 +1138,7 @@ ${order.status === "accepted" ? `
 
   const { data: orders, error: orderError } = await supabaseClient
     .from("orders")
-    .select("total_amount, status")
+    .select("total_amount, status, created_at")
     .in("store_id", storeIds);
 
   if (orderError) {
@@ -1149,10 +1157,86 @@ ${order.status === "accepted" ? `
     0
   );
 
+  const tz = "Africa/Dar_es_Salaam";
+
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+
+  const todaySales = completedOrders
+    .filter(order => {
+      const orderDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date(order.created_at));
+
+      return orderDate === today;
+    })
+    .reduce((sum, order) =>
+      sum + Number(order.total_amount || 0), 0);
+
+  const nowParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const year = Number(nowParts.find(p => p.type === "year").value);
+  const month = Number(nowParts.find(p => p.type === "month").value);
+  const day = Number(nowParts.find(p => p.type === "day").value);
+
+  const todayDate = new Date(Date.UTC(year, month - 1, day));
+  const mondayOffset = (todayDate.getUTCDay() + 6) % 7;
+
+  const monday = new Date(todayDate);
+  monday.setUTCDate(todayDate.getUTCDate() - mondayOffset);
+
+  const weekStart = monday.toISOString().slice(0, 10);
+  const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
+
+  const weeklySales = completedOrders
+    .filter(order => {
+      const orderDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date(order.created_at));
+
+      return orderDate >= weekStart && orderDate <= today;
+    })
+    .reduce((sum, order) =>
+      sum + Number(order.total_amount || 0), 0);
+
+  const monthlySales = completedOrders
+    .filter(order => {
+      const orderDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: tz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date(order.created_at));
+
+      return orderDate >= monthStart && orderDate <= today;
+    })
+    .reduce((sum, order) =>
+      sum + Number(order.total_amount || 0), 0);
+
   salesElement.textContent = money(totalSales);
   ordersElement.textContent = allOrders.length;
   completedElement.textContent = completedOrders.length;
+
+  todayElement.textContent = money(todaySales);
+  weeklyElement.textContent = money(weeklySales);
+  monthlyElement.textContent = money(monthlySales);
 }
+
 async function editProduct(productId) {
   const { data: userData } = await supabaseClient.auth.getUser();
 
@@ -1453,6 +1537,9 @@ sellerOrderStatus: "Hali ya oda",
 totalSales: "Jumla ya Mauzo",
 totalOrders: "Jumla ya Oda",
 completedOrders: "Oda Zilizokamilika", 
+    todaySales: "Mauzo ya Leo",
+weeklySales: "Mauzo ya Wiki Hii",
+monthlySales: "Mauzo ya Mwezi Huu",
    orderPending: "Inasubiri",
 orderAccepted: "Imekubaliwa",
 orderRejected: "Imekataliwa",
@@ -1631,6 +1718,9 @@ sellerOrderStatus: "Order Status",
 totalSales: "Total Sales",
 totalOrders: "Total Orders",
 completedOrders: "Completed Orders",
+   todaySales: "Today's Sales",
+weeklySales: "This Week's Sales",
+monthlySales: "This Month's Sales", 
     orderPending: "Pending",
 orderAccepted: "Accepted",
 orderRejected: "Rejected",
@@ -1808,6 +1898,9 @@ sellerOrderStatus: "Statut de la commande",
 totalSales: "Ventes totales",
 totalOrders: "Commandes totales",
 completedOrders: "Commandes terminées",
+    todaySales: "Ventes du jour",
+weeklySales: "Ventes de cette semaine",
+monthlySales: "Ventes de ce mois",
    orderPending: "En attente",
 orderAccepted: "Acceptée",
 orderRejected: "Rejetée",
@@ -1985,6 +2078,9 @@ sellerOrderStatus: "حالة الطلب",
 totalSales: "إجمالي المبيعات",
 totalOrders: "إجمالي الطلبات",
 completedOrders: "الطلبات المكتملة",
+    todaySales: "مبيعات اليوم",
+weeklySales: "مبيعات هذا الأسبوع",
+monthlySales: "مبيعات هذا الشهر",
   orderPending: "قيد الانتظار",
 orderAccepted: "مقبول",
 orderRejected: "مرفوض",
@@ -2572,11 +2668,31 @@ loadProducts();
     </div>
 
     <div class="sales-card">
-      <h4 data-i18n="completedOrders">Oda Zilizokamilika</h4>
-      <p id="seller-completed-orders">0</p>
-    </div>
+  <h4 data-i18n="completedOrders">Oda Zilizokamilika</h4>
+  <p id="seller-completed-orders">0</p>
+</div>
 
-  </div>
+<!-- Mauzo ya leo -->
+<div class="sales-card">
+  <h4 data-i18n="todaySales">Mauzo ya Leo</h4>
+  <p id="seller-today-sales">TSh 0</p>
+</div>
+
+<!-- Mauzo ya wiki -->
+<div class="sales-card">
+  <h4 data-i18n="weeklySales">Mauzo ya Wiki Hii</h4>
+  <p id="seller-weekly-sales">TSh 0</p>
+</div>
+
+<!-- Mauzo ya mwezi -->
+<div class="sales-card">
+  <h4 data-i18n="monthlySales">Mauzo ya Mwezi Huu</h4>
+  <p id="seller-monthly-sales">TSh 0</p>
+</div>
+
+</div>
+
+</div>
 
 </div>
 
