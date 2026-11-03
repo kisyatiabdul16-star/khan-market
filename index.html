@@ -1236,7 +1236,160 @@ async function loadSellerSalesDashboard() {
   weeklyElement.textContent = money(weeklySales);
   monthlyElement.textContent = money(monthlySales);
 }
+// ADVANCED SELLER ANALYTICS
+async function loadSellerAdvancedAnalytics() {
+  const trendElement = document.getElementById("seller-sales-trend");
+  const topElement = document.getElementById("seller-top-products");
+  const recentElement = document.getElementById("seller-recent-orders");
+  const periodElement = document.getElementById("analytics-period");
 
+  if (!trendElement || !topElement || !recentElement || !periodElement) return;
+
+  trendElement.textContent = "Inapakia...";
+  topElement.textContent = "Inapakia...";
+  recentElement.textContent = "Inapakia...";
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    trendElement.textContent = "Tafadhali ingia kwenye akaunti yako.";
+    return;
+  }
+
+  const { data: stores, error: storeError } = await supabaseClient
+    .from("stores")
+    .select("id")
+    .eq("owner_id", userData.user.id);
+
+  if (storeError || !stores || stores.length === 0) {
+    trendElement.textContent = "Hakuna duka lililopatikana.";
+    topElement.textContent = "Hakuna data.";
+    recentElement.textContent = "Hakuna oda.";
+    return;
+  }
+
+  const storeIds = stores.map(store => store.id);
+
+  const { data: orders, error: orderError } = await supabaseClient
+    .from("orders")
+    .select("id, customer_name, total_amount, status, created_at, order_items")
+    .in("store_id", storeIds)
+    .order("created_at", { ascending: false });
+
+  if (orderError) {
+    console.error("ADVANCED ANALYTICS ERROR:", orderError);
+    trendElement.textContent = "Imeshindikana kupakia ripoti.";
+    return;
+  }
+
+  const allOrders = orders || [];
+  const completedOrders = allOrders.filter(
+    order => order.status === "completed"
+  );
+
+  const now = new Date();
+  const period = periodElement.value;
+
+  let startDate = new Date(now);
+
+  if (period === "day") {
+    startDate.setHours(0, 0, 0, 0);
+  } else if (period === "week") {
+    startDate.setHours(0, 0, 0, 0);
+    const offset = (startDate.getDay() + 6) % 7;
+    startDate.setDate(startDate.getDate() - offset);
+  } else if (period === "month") {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (period === "year") {
+    startDate = new Date(now.getFullYear(), 0, 1);
+  }
+
+  const periodOrders = completedOrders.filter(order =>
+    new Date(order.created_at) >= startDate &&
+    new Date(order.created_at) <= now
+  );
+
+  // SALES SUMMARY FOR SELECTED PERIOD
+  const totalSales = periodOrders.reduce(
+    (sum, order) => sum + Number(order.total_amount || 0), 0
+  );
+
+  // SALES TREND
+  const dailySales = {};
+
+  periodOrders.forEach(order => {
+    const date = new Date(order.created_at);
+    const key = date.toLocaleDateString("en-CA");
+    dailySales[key] = (dailySales[key] || 0) +
+      Number(order.total_amount || 0);
+  });
+
+  const trendEntries = Object.entries(dailySales)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  if (trendEntries.length === 0) {
+    trendElement.textContent = "Hakuna mauzo yaliyokamilika katika kipindi hiki.";
+  } else {
+    const maxSales = Math.max(...trendEntries.map(item => item[1]), 1);
+
+    trendElement.innerHTML = `
+      <p><strong>Jumla ya mauzo: ${money(totalSales)}</strong></p>
+      ${trendEntries.map(([date, amount]) => `
+        <div style="margin:12px 0;">
+          <div style="display:flex;justify-content:space-between;gap:10px;">
+            <span>${date}</span>
+            <strong>${money(amount)}</strong>
+          </div>
+          <div style="background:#e5e7eb;height:10px;border-radius:8px;">
+            <div style="background:#16a34a;height:10px;border-radius:8px;width:${(amount / maxSales) * 100}%;"></div>
+          </div>
+        </div>
+      `).join("")}
+    `;
+  }
+
+  // TOP SELLING PRODUCTS
+  const productSales = {};
+
+  periodOrders.forEach(order => {
+    let items = order.order_items || [];
+
+    if (!Array.isArray(items)) items = [items];
+
+    items.forEach(item => {
+      const name = item.product_name || "Bidhaa isiyojulikana";
+      const quantity = Number(item.quantity || 0);
+
+      productSales[name] = (productSales[name] || 0) + quantity;
+    });
+  });
+
+  const topProducts = Object.entries(productSales)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  topElement.innerHTML = topProducts.length
+    ? topProducts.map(([name, quantity], index) => `
+        <p>${index + 1}. ${name} — <strong>${quantity}</strong></p>
+      `).join("")
+    : "Hakuna bidhaa zilizouzwa katika kipindi hiki.";
+
+  // RECENT ORDERS
+  const recentOrders = allOrders.slice(0, 5);
+
+  recentElement.innerHTML = recentOrders.length
+    ? recentOrders.map(order => `
+        <div style="padding:10px 0;border-bottom:1px solid #ddd;">
+          <strong>Oda #${order.id}</strong><br>
+          Mteja: ${String(order.customer_name || "Hajatajwa")}<br>
+          Kiasi: ${money(Number(order.total_amount || 0))}<br>
+          Hali: ${String(order.status || "Haijulikani")}<br>
+          Tarehe: ${new Date(order.created_at).toLocaleString()}
+        </div>
+      `).join("")
+    : "Hakuna oda zilizopatikana.";
+}
 async function editProduct(productId) {
   const { data: userData } = await supabaseClient.auth.getUser();
 
@@ -1585,7 +1738,19 @@ chooseProfilePhoto: "Chagua picha ya wasifu",
    logout: "Toka kwenye akaunti",
 loggingOut: "Tunakuondoa kwenye akaunti...",
 logoutError: "Imeshindikana kutoka: ",
-logoutSuccess: "Umetoka kwenye akaunti kwa mafanikio.", 
+logoutSuccess: "Umetoka kwenye akaunti kwa mafanikio.",
+  advancedAnalyticsTitle: "📊 Ripoti za Kina za Biashara",
+analyticsIntro: "Fuatilia mwenendo wa mauzo na bidhaa zinazofanya vizuri.",
+reportPeriod: "Chagua Kipindi cha Ripoti",
+periodDay: "Leo",
+periodWeek: "Wiki Hii",
+periodMonth: "Mwezi Huu",
+periodYear: "Mwaka Huu",
+salesTrendTitle: "📈 Mwenendo wa Mauzo",
+topProductsTitle: "🏆 Bidhaa Zinazouzwa Zaidi",
+recentOrdersTitle: "🧾 Oda za Hivi Karibuni",
+downloadSalesReport: "⬇️ Pakua Ripoti ya Mauzo",
+analyticsLoading: "Taarifa zitaonekana hapa."  
 },
 
   en: {
@@ -1766,7 +1931,19 @@ chooseProfilePhoto: "Choose profile picture",
 logout: "Log out",
 loggingOut: "Logging out...",
 logoutError: "Failed to log out: ",
-logoutSuccess: "Logged out successfully.",    
+logoutSuccess: "Logged out successfully.",
+    advancedAnalyticsTitle: "📊 Advanced Business Analytics",
+analyticsIntro: "Track sales trends and best-selling products.",
+reportPeriod: "Select Report Period",
+periodDay: "Today",
+periodWeek: "This Week",
+periodMonth: "This Month",
+periodYear: "This Year",
+salesTrendTitle: "📈 Sales Trend",
+topProductsTitle: "🏆 Top-Selling Products",
+recentOrdersTitle: "🧾 Recent Orders",
+downloadSalesReport: "⬇️ Download Sales Report",
+analyticsLoading: "Information will appear here."
   },
 
   fr: {
@@ -1946,7 +2123,19 @@ chooseProfilePhoto: "Choisir une photo de profil",
    logout: "Se déconnecter",
 loggingOut: "Déconnexion en cours...",
 logoutError: "Échec de la déconnexion : ",
-logoutSuccess: "Déconnexion réussie.", 
+logoutSuccess: "Déconnexion réussie.",
+    advancedAnalyticsTitle: "📊 Analyses commerciales avancées",
+analyticsIntro: "Suivez les tendances des ventes et les produits les plus vendus.",
+reportPeriod: "Choisir la période du rapport",
+periodDay: "Aujourd'hui",
+periodWeek: "Cette semaine",
+periodMonth: "Ce mois",
+periodYear: "Cette année",
+salesTrendTitle: "📈 Évolution des ventes",
+topProductsTitle: "🏆 Produits les plus vendus",
+recentOrdersTitle: "🧾 Commandes récentes",
+downloadSalesReport: "⬇️ Télécharger le rapport des ventes",
+analyticsLoading: "Les informations apparaîtront ici."
   },
 
   ar: {
@@ -2127,6 +2316,18 @@ chooseProfilePhoto: "اختر صورة الملف الشخصي",
 loggingOut: "جارٍ تسجيل الخروج...",
 logoutError: "تعذر تسجيل الخروج: ",
 logoutSuccess: "تم تسجيل الخروج بنجاح.", 
+    advancedAnalyticsTitle: "📊 تحليلات الأعمال المتقدمة",
+analyticsIntro: "تابع اتجاهات المبيعات والمنتجات الأكثر مبيعًا.",
+reportPeriod: "اختر فترة التقرير",
+periodDay: "اليوم",
+periodWeek: "هذا الأسبوع",
+periodMonth: "هذا الشهر",
+periodYear: "هذه السنة",
+salesTrendTitle: "📈 اتجاهات المبيعات",
+topProductsTitle: "🏆 المنتجات الأكثر مبيعًا",
+recentOrdersTitle: "🧾 الطلبات الأخيرة",
+downloadSalesReport: "⬇️ تحميل تقرير المبيعات",
+analyticsLoading: "ستظهر المعلومات هنا."
   }
 };
 
@@ -2694,7 +2895,59 @@ loadProducts();
 </div>
 
 </div>
+<!-- ADVANCED SELLER ANALYTICS -->
+<div class="seller-card" id="seller-advanced-analytics">
 
+  <h3 data-i18n="advancedAnalyticsTitle">
+    📊 Ripoti za Kina za Biashara
+  </h3>
+
+  <p data-i18n="analyticsIntro">
+    Fuatilia mwenendo wa mauzo na bidhaa zinazofanya vizuri.
+  </p>
+
+  <!-- REPORT FILTER -->
+  <label data-i18n="reportPeriod">Chagua Kipindi cha Ripoti</label>
+
+  <select id="analytics-period">
+    <option value="day" data-i18n="periodDay">Leo</option>
+    <option value="week" data-i18n="periodWeek">Wiki Hii</option>
+    <option value="month" data-i18n="periodMonth">Mwezi Huu</option>
+    <option value="year" data-i18n="periodYear">Mwaka Huu</option>
+  </select>
+
+  <!-- SALES TREND -->
+  <div class="analytics-section">
+    <h4 data-i18n="salesTrendTitle">📈 Mwenendo wa Mauzo</h4>
+    <div id="seller-sales-trend">
+      <p data-i18n="analyticsLoading">Taarifa zitaonekana hapa.</p>
+    </div>
+  </div>
+
+  <!-- TOP SELLING PRODUCTS -->
+  <div class="analytics-section">
+    <h4 data-i18n="topProductsTitle">🏆 Bidhaa Zinazouzwa Zaidi</h4>
+    <div id="seller-top-products">
+      <p data-i18n="analyticsLoading">Taarifa zitaonekana hapa.</p>
+    </div>
+  </div>
+
+  <!-- RECENT ORDERS -->
+  <div class="analytics-section">
+    <h4 data-i18n="recentOrdersTitle">🧾 Oda za Hivi Karibuni</h4>
+    <div id="seller-recent-orders">
+      <p data-i18n="analyticsLoading">Taarifa zitaonekana hapa.</p>
+    </div>
+  </div>
+
+  <!-- DOWNLOAD REPORT -->
+  <button id="download-sales-report" type="button"
+    data-i18n="downloadSalesReport">
+    ⬇️ Pakua Ripoti ya Mauzo
+  </button>
+
+</div>
+<!-- END ADVANCED SELLER ANALYTICS -->
       <div id="seller-products">
   <p data-i18n="emptySellerProducts">Bidhaa zako zitaonekana hapa.</p>
 </div>
@@ -3253,6 +3506,192 @@ if (savedImages.length > 0) {
 
   message.textContent = t("logoutSuccess");
 }); 
+function analyticsEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+async function loadSellerAdvancedAnalytics() {
+  const trendBox = document.getElementById("seller-sales-trend");
+  const topBox = document.getElementById("seller-top-products");
+  const recentBox = document.getElementById("seller-recent-orders");
+
+  if (!trendBox || !topBox || !recentBox) return;
+
+  trendBox.textContent = t("analyticsLoading");
+  topBox.textContent = t("analyticsLoading");
+  recentBox.textContent = t("analyticsLoading");
+
+  try {
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser();
+
+    if (userError) throw userError;
+    if (!userData.user) throw new Error("User not logged in");
+
+    const { data: stores, error: storeError } =
+      await supabaseClient
+        .from("stores")
+        .select("id")
+        .eq("owner_id", userData.user.id);
+
+    if (storeError) throw storeError;
+
+    if (!stores || stores.length === 0) {
+      trendBox.textContent = t("analyticsNoSales");
+      topBox.textContent = t("analyticsNoProducts");
+      recentBox.textContent = t("analyticsNoOrders");
+      return;
+    }
+
+    const storeIds = stores.map(store => store.id);
+
+    const { data: orders, error: ordersError } =
+      await supabaseClient
+        .from("orders")
+        .select("id, customer_name, total_amount, status, created_at, order_items")
+        .in("store_id", storeIds)
+        .order("created_at", { ascending: false });
+
+    if (ordersError) throw ordersError;
+
+    const allOrders = orders || [];
+    const completedOrders = allOrders.filter(
+      order => order.status === "completed"
+    );
+
+    const dateKey = date => new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Dar_es_Salaam",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(new Date(date));
+
+    const today = dateKey(new Date());
+    const todayDate = new Date(today + "T12:00:00Z");
+
+    const periodElement = document.getElementById("analytics-period");
+    const period = periodElement ? periodElement.value : "week";
+
+    const startDate = new Date(todayDate);
+
+    if (period === "week") {
+      startDate.setUTCDate(startDate.getUTCDate() - 6);
+    } else if (period === "month") {
+      startDate.setUTCDate(1);
+    } else if (period === "year") {
+      startDate.setUTCMonth(0, 1);
+    }
+
+    const startKey = dateKey(startDate);
+
+    const filteredOrders = completedOrders.filter(order => {
+      const key = dateKey(order.created_at);
+      return key >= startKey && key <= today;
+    });
+
+    // SALES TREND: LAST 7 DAYS
+    const dailySales = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const day = new Date(todayDate);
+      day.setUTCDate(day.getUTCDate() - i);
+
+      const key = day.toISOString().slice(0, 10);
+
+      const total = completedOrders
+        .filter(order => dateKey(order.created_at) === key)
+        .reduce(
+          (sum, order) => sum + Number(order.total_amount || 0),
+          0
+        );
+
+      dailySales.push({ date: key, total });
+    }
+
+    const maxSales = Math.max(
+      ...dailySales.map(day => day.total),
+      1
+    );
+
+    trendBox.innerHTML = dailySales.map(day => {
+      const height = Math.max((day.total / maxSales) * 100, 3);
+
+      return `
+        <div style="display:inline-block;width:13%;text-align:center;vertical-align:bottom;">
+          <div style="height:120px;display:flex;align-items:flex-end;justify-content:center;">
+            <div style="width:65%;height:${height}%;background:#2563eb;border-radius:5px 5px 0 0;"></div>
+          </div>
+          <small>${day.date.slice(5)}</small>
+          <div><small>${Math.round(day.total).toLocaleString()}</small></div>
+        </div>
+      `;
+    }).join("");
+
+    // TOP-SELLING PRODUCTS
+    const productSales = {};
+
+    filteredOrders.forEach(order => {
+      const items = Array.isArray(order.order_items)
+        ? order.order_items
+        : [];
+
+      items.forEach(item => {
+        const name = item.product_name || t("analyticsUnknownProduct");
+        const quantity = Number(item.quantity || 0);
+        const subtotal = Number(
+          item.subtotal ||
+          (Number(item.unit_price || 0) * quantity)
+        );
+
+        if (!productSales[name]) {
+          productSales[name] = { quantity: 0, revenue: 0 };
+        }
+
+        productSales[name].quantity += quantity;
+        productSales[name].revenue += subtotal;
+      });
+    });
+
+    const topProducts = Object.entries(productSales)
+      .sort((a, b) => b[1].quantity - a[1].quantity)
+      .slice(0, 5);
+
+    topBox.innerHTML = topProducts.length
+      ? topProducts.map(([name, data], index) => `
+          <div style="padding:10px;border-bottom:1px solid #ddd;">
+            <strong>${index + 1}. ${analyticsEscape(name)}</strong>
+            <p>${t("analyticsQuantitySold")}: ${data.quantity}</p>
+            <p>${t("analyticsSales")}: TSh ${data.revenue.toLocaleString()}</p>
+          </div>
+        `).join("")
+      : t("analyticsNoProducts");
+
+    // RECENT ORDERS
+    recentBox.innerHTML = allOrders.length
+      ? allOrders.slice(0, 5).map(order => `
+          <div style="padding:10px;border-bottom:1px solid #ddd;">
+            <strong>Order #${analyticsEscape(order.id)}</strong>
+            <p>${t("analyticsCustomer")}: ${analyticsEscape(order.customer_name || "N/A")}</p>
+            <p>${t("analyticsAmount")}: TSh ${Number(order.total_amount || 0).toLocaleString()}</p>
+            <p>${t("analyticsStatus")}: ${analyticsEscape(order.status || "N/A")}</p>
+          </div>
+        `).join("")
+      : t("analyticsNoOrders");
+
+  } catch (error) {
+    console.error("Advanced analytics error:", error);
+
+    trendBox.textContent = t("analyticsUnableTrend");
+    topBox.textContent = t("analyticsUnableProducts");
+    recentBox.textContent = t("analyticsUnableOrders");
+  }
+}  
 document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
   const sellerToggle = document.getElementById("seller-toggle");
@@ -3260,13 +3699,12 @@ document.getElementById("seller-toggle").addEventListener("click", async () => {
   if (sellerInfo.hidden) {
   sellerInfo.hidden = false;
   sellerToggle.textContent = t("closeSeller");
-
-  await loadSellerProfile();
-  await loadSellerProducts();
-  await loadSellerOrders();
-  await loadSellerSalesDashboard();
-  await loadSellerStores();
-
+await loadSellerProfile();
+await loadSellerProducts();
+await loadSellerOrders();
+await loadSellerSalesDashboard();
+await loadSellerAdvancedAnalytics();
+await loadSellerStores();
 } else {
   sellerInfo.hidden = true;
   sellerToggle.textContent = t("openSeller");
