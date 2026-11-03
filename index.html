@@ -1490,6 +1490,10 @@ saveSellerProfile: "Hifadhi Wasifu",
 profileLoadError: "Imeshindikana kupakia wasifu: ",
 profileSaveSuccess: "Wasifu umehifadhiwa kikamilifu!",
 profileSaveError: "Imeshindikana kuhifadhi wasifu: ",
+   profilePhoto: "Picha ya Wasifu",
+profilePhotoAlt: "Picha ya muuzaji",
+chooseProfilePhoto: "Chagua picha ya wasifu",
+    uploadProfilePhoto: "Pakia Picha",
    logout: "Toka kwenye akaunti",
 loggingOut: "Tunakuondoa kwenye akaunti...",
 logoutError: "Imeshindikana kutoka: ",
@@ -1663,6 +1667,10 @@ saveSellerProfile: "Save Profile",
 profileLoadError: "Failed to load profile: ",
 profileSaveSuccess: "Profile saved successfully!",
 profileSaveError: "Failed to save profile: ",
+    profilePhoto: "Profile Picture",
+profilePhotoAlt: "Seller profile picture",
+chooseProfilePhoto: "Choose profile picture",
+  uploadProfilePhoto: "Upload Photo",  
 logout: "Log out",
 loggingOut: "Logging out...",
 logoutError: "Failed to log out: ",
@@ -1835,6 +1843,10 @@ profileLoading: "Chargement du profil...",
 profileLoadError: "Échec du chargement du profil : ",
 profileSaveSuccess: "Profil enregistré avec succès !",
 profileSaveError: "Échec de l'enregistrement du profil : ",
+   profilePhoto: "Photo de profil",
+profilePhotoAlt: "Photo de profil du vendeur",
+chooseProfilePhoto: "Choisir une photo de profil",
+   uploadProfilePhoto: "Téléverser une photo", 
    logout: "Se déconnecter",
 loggingOut: "Déconnexion en cours...",
 logoutError: "Échec de la déconnexion : ",
@@ -2007,6 +2019,10 @@ saveSellerProfile: "حفظ الملف الشخصي",
 profileLoadError: "تعذر تحميل الملف الشخصي: ",
 profileSaveSuccess: "تم حفظ الملف الشخصي بنجاح!",
 profileSaveError: "تعذر حفظ الملف الشخصي: ",
+    profilePhoto: "الصورة الشخصية",
+profilePhotoAlt: "الصورة الشخصية للبائع",
+chooseProfilePhoto: "اختر صورة الملف الشخصي",
+    uploadProfilePhoto: "تحميل الصورة",
    logout: "تسجيل الخروج",
 loggingOut: "جارٍ تسجيل الخروج...",
 logoutError: "تعذر تسجيل الخروج: ",
@@ -2180,15 +2196,27 @@ function setLanguage(lang) {
 
   document.getElementById("lang").textContent =
     languageNames[lang];
-  
-document.querySelectorAll("[data-i18n]").forEach(element => {
-  const key = element.getAttribute("data-i18n");
-  element.textContent = t(key);
-});
+
+  document.querySelectorAll("[data-i18n]").forEach(element => {
+    const key = element.getAttribute("data-i18n");
+    element.textContent = t(key);
+  });
+
   document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
-  const key = element.getAttribute("data-i18n-placeholder");
-  element.placeholder = t(key);
-});
+    const key = element.getAttribute("data-i18n-placeholder");
+    element.placeholder = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-alt]").forEach(element => {
+    const key = element.getAttribute("data-i18n-alt");
+    element.alt = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(element => {
+    const key = element.getAttribute("data-i18n-aria-label");
+    element.setAttribute("aria-label", t(key));
+  });
+
   document.getElementById("tag").textContent = t("tag");
   document.getElementById("welcome").textContent = t("welcome");
   document.getElementById("intro").textContent = t("intro");
@@ -2262,6 +2290,35 @@ loadProducts();
   <p data-i18n="sellerProfileIntro">
     Simamia taarifa zako binafsi za Khan Market.
   </p>
+  <div class="profile-photo-section">
+  <img
+    id="seller-profile-avatar"
+    src=""
+    alt="Picha ya muuzaji"
+    data-i18n-alt="profilePhotoAlt"
+    style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #ddd;display:none;"
+  >
+
+  <label for="profile-avatar-file" data-i18n="profilePhoto">
+    Picha ya Wasifu
+  </label>
+
+  <input
+    type="file"
+    id="profile-avatar-file"
+    accept="image/jpeg,image/png,image/webp"
+    data-i18n-aria-label="chooseProfilePhoto"
+  >
+
+  <p id="profile-avatar-message" role="status"></p>
+</div>
+  <button
+  type="button"
+  id="upload-profile-avatar"
+  data-i18n="uploadProfilePhoto"
+>
+  Pakia Picha
+</button>
 
   <label for="profile-full-name" data-i18n="profileFullName">
     Jina kamili
@@ -2598,7 +2655,7 @@ async function loadSellerProfile() {
 
   const { data: profile, error } = await supabaseClient
     .from("profiles")
-    .select("full_name, phone")
+    .select("full_name, phone, avatar_url")
     .eq("id", userData.user.id)
     .maybeSingle();
 
@@ -2611,7 +2668,18 @@ async function loadSellerProfile() {
     userData.user.user_metadata?.full_name || "";
 
   phoneInput.value = profile?.phone || "";
-  message.textContent = "";
+
+const avatar = document.getElementById("seller-profile-avatar");
+
+if (avatar && profile?.avatar_url) {
+  avatar.src = profile.avatar_url;
+  avatar.style.display = "block";
+} else if (avatar) {
+  avatar.removeAttribute("src");
+  avatar.style.display = "none";
+}
+
+message.textContent = "";
 } 
 document.getElementById("seller-store-select").addEventListener("change", async () => {
   const storeId = document.getElementById("seller-store-select").value;
@@ -2702,54 +2770,7 @@ editCard.hidden = false;
   await loadSellerStores();
   document.getElementById("seller-store-select").value = storeId;
 });
- document.getElementById("save-store-profile").addEventListener("click", async () => {
-  const storeId = document.getElementById("seller-store-select").value;
-  const storeName = document.getElementById("edit-store-name").value.trim();
-  const phone = document.getElementById("edit-store-phone").value.trim();
-  const location = document.getElementById("edit-store-location").value.trim();
-  const message = document.getElementById("edit-store-message");
-
-  if (!storeId) {
-    message.textContent = t("selectStore");
-    return;
-  }
-
-  if (!storeName || !phone || !location) {
-    message.textContent = t("fillAllFields");
-    return;
-  }
-
-  const { data: userData, error: userError } =
-    await supabaseClient.auth.getUser();
-
-  if (userError || !userData.user) {
-    message.textContent = t("loginRequired");
-    return;
-  }
-
-  message.textContent = t("savingStoreChanges");
-
-  const { error } = await supabaseClient
-    .from("stores")
-    .update({
-      store_name: storeName,
-      phone: phone,
-      location: location
-    })
-    .eq("id", storeId)
-    .eq("owner_id", userData.user.id);
-
-  if (error) {
-    message.textContent = t("storeUpdateError") + error.message;
-    return;
-  }
-
-  message.textContent = t("storeUpdateSuccess");
-
-  await loadSellerStores();
-
-  document.getElementById("seller-store-select").value = storeId;
-});
+ 
   // FEATURE 8: UPDATE STORE STATUS
 
 document.getElementById("save-store-status").addEventListener("click", async () => {
@@ -3002,6 +3023,78 @@ if (savedImages.length > 0) {
   }
 
   message.textContent = t("profileSaveSuccess");
+});
+  document.getElementById("upload-profile-avatar").addEventListener("click", async () => {
+  const message = document.getElementById("profile-avatar-message");
+  const fileInput = document.getElementById("profile-avatar-file");
+  const avatar = document.getElementById("seller-profile-avatar");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    message.textContent = t("chooseProfilePhoto");
+    return;
+  }
+
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    message.textContent = t("profileSaveError") + "Invalid image format.";
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    message.textContent = t("profileSaveError") + "Image must not exceed 2 MB.";
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    return;
+  }
+
+  message.textContent = t("profileLoading");
+
+  const user = userData.user;
+  const extension = file.type.split("/")[1];
+  const filePath = `${user.id}/${Date.now()}.${extension}`;
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from("profile-photos")
+    .upload(filePath, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (uploadError) {
+    message.textContent = t("profileSaveError") + uploadError.message;
+    return;
+  }
+
+  const { data: publicData } = supabaseClient.storage
+    .from("profile-photos")
+    .getPublicUrl(filePath);
+
+  const avatarUrl = publicData.publicUrl;
+
+  const { error: updateError } = await supabaseClient
+    .from("profiles")
+    .update({
+      avatar_url: avatarUrl,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", user.id);
+
+  if (updateError) {
+    message.textContent = t("profileSaveError") + updateError.message;
+    return;
+  }
+
+  avatar.src = avatarUrl;
+  avatar.style.display = "block";
+
+  message.textContent = t("profileSaveSuccess");
+  fileInput.value = "";
 });
  document.getElementById("seller-logout").addEventListener("click", async () => {
   const message = document.getElementById("seller-message");
