@@ -1479,6 +1479,17 @@ editError: "Imeshindikana kuhariri bidhaa: ",
     deleteConfirm: "Una uhakika unataka kufuta bidhaa hii?",
 deleteError: "Imeshindikana kufuta bidhaa: ",
 deleteSuccess: "Bidhaa imefutwa kikamilifu!",
+    sellerProfileTitle: "Wasifu Wangu",
+sellerProfileIntro: "Simamia taarifa zako binafsi za Khan Market.",
+profileFullName: "Jina kamili",
+profileFullNamePlaceholder: "Ingiza jina lako kamili",
+profilePhone: "Namba ya simu",
+profilePhonePlaceholder: "Mfano: 07XXXXXXXX",
+saveSellerProfile: "Hifadhi Wasifu",
+    profileLoading: "Inapakia taarifa za wasifu...",
+profileLoadError: "Imeshindikana kupakia wasifu: ",
+profileSaveSuccess: "Wasifu umehifadhiwa kikamilifu!",
+profileSaveError: "Imeshindikana kuhifadhi wasifu: ",
    logout: "Toka kwenye akaunti",
 loggingOut: "Tunakuondoa kwenye akaunti...",
 logoutError: "Imeshindikana kutoka: ",
@@ -1641,6 +1652,17 @@ editError: "Failed to update product: ",
     deleteConfirm: "Are you sure you want to delete this product?",
 deleteError: "Failed to delete product: ",
 deleteSuccess: "Product deleted successfully!",
+sellerProfileTitle: "My Profile",
+sellerProfileIntro: "Manage your Khan Market personal information.",
+profileFullName: "Full Name",
+profileFullNamePlaceholder: "Enter your full name",
+profilePhone: "Phone Number",
+profilePhonePlaceholder: "Example: 07XXXXXXXX",
+saveSellerProfile: "Save Profile", 
+    profileLoading: "Loading profile...",
+profileLoadError: "Failed to load profile: ",
+profileSaveSuccess: "Profile saved successfully!",
+profileSaveError: "Failed to save profile: ",
 logout: "Log out",
 loggingOut: "Logging out...",
 logoutError: "Failed to log out: ",
@@ -1802,6 +1824,17 @@ editError: "Échec de la modification du produit : ",
     deleteConfirm: "Voulez-vous vraiment supprimer ce produit ?",
 deleteError: "Échec de la suppression du produit : ",
 deleteSuccess: "Produit supprimé avec succès !",
+    sellerProfileTitle: "Mon profil",
+sellerProfileIntro: "Gérez vos informations personnelles Khan Market.",
+profileFullName: "Nom complet",
+profileFullNamePlaceholder: "Entrez votre nom complet",
+profilePhone: "Numéro de téléphone",
+profilePhonePlaceholder: "Exemple : 07XXXXXXXX",
+saveSellerProfile: "Enregistrer le profil",
+profileLoading: "Chargement du profil...",
+profileLoadError: "Échec du chargement du profil : ",
+profileSaveSuccess: "Profil enregistré avec succès !",
+profileSaveError: "Échec de l'enregistrement du profil : ",
    logout: "Se déconnecter",
 loggingOut: "Déconnexion en cours...",
 logoutError: "Échec de la déconnexion : ",
@@ -1963,6 +1996,17 @@ editError: "تعذر تعديل المنتج: ",
     deleteConfirm: "هل أنت متأكد أنك تريد حذف هذا المنتج؟",
 deleteError: "تعذر حذف المنتج: ",
 deleteSuccess: "تم حذف المنتج بنجاح!",
+  sellerProfileTitle: "ملفي الشخصي",
+sellerProfileIntro: "أدر معلوماتك الشخصية في خان ماركت.",
+profileFullName: "الاسم الكامل",
+profileFullNamePlaceholder: "أدخل اسمك الكامل",
+profilePhone: "رقم الهاتف",
+profilePhonePlaceholder: "مثال: 07XXXXXXXX",
+saveSellerProfile: "حفظ الملف الشخصي",  
+    profileLoading: "جارٍ تحميل الملف الشخصي...",
+profileLoadError: "تعذر تحميل الملف الشخصي: ",
+profileSaveSuccess: "تم حفظ الملف الشخصي بنجاح!",
+profileSaveError: "تعذر حفظ الملف الشخصي: ",
    logout: "تسجيل الخروج",
 loggingOut: "جارٍ تسجيل الخروج...",
 logoutError: "تعذر تسجيل الخروج: ",
@@ -2210,6 +2254,57 @@ loadProducts();
 
   <!-- SELLER MANAGEMENT -->
   <div id="seller-info" hidden>
+    
+<!-- SELLER PERSONAL PROFILE -->
+<div id="seller-profile-card" class="seller-card">
+  <h3 data-i18n="sellerProfileTitle">👤 Wasifu Wangu</h3>
+
+  <p data-i18n="sellerProfileIntro">
+    Simamia taarifa zako binafsi za Khan Market.
+  </p>
+
+  <label for="profile-full-name" data-i18n="profileFullName">
+    Jina kamili
+  </label>
+  <input
+    id="profile-full-name"
+    type="text"
+    data-i18n-placeholder="profileFullNamePlaceholder"
+    placeholder="Ingiza jina lako kamili"
+    autocomplete="name"
+    required
+  >
+
+  <label for="profile-phone" data-i18n="profilePhone">
+    Namba ya simu
+  </label>
+  <input
+    id="profile-phone"
+    type="tel"
+    data-i18n-placeholder="profilePhonePlaceholder"
+    placeholder="Mfano: 07XXXXXXXX"
+    autocomplete="tel"
+  >
+
+  <label for="profile-email" data-i18n="email">
+    Barua pepe
+  </label>
+  <input
+    id="profile-email"
+    type="email"
+    readonly
+  >
+
+  <button
+    type="button"
+    id="save-seller-profile"
+    data-i18n="saveSellerProfile"
+  >
+    Hifadhi Wasifu
+  </button>
+
+  <p id="seller-profile-message" role="status"></p>
+</div>
 
     <!-- MY STORES -->
     <div id="seller-store-management" class="seller-card">
@@ -2481,6 +2576,43 @@ loadProducts();
 
   message.textContent = "";
 }
+async function loadSellerProfile() {
+  const message = document.getElementById("seller-profile-message");
+  const nameInput = document.getElementById("profile-full-name");
+  const phoneInput = document.getElementById("profile-phone");
+  const emailInput = document.getElementById("profile-email");
+
+  if (!message || !nameInput || !phoneInput || !emailInput) return;
+
+  message.textContent = t("profileLoading");
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    return;
+  }
+
+  emailInput.value = userData.user.email || "";
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("full_name, phone")
+    .eq("id", userData.user.id)
+    .maybeSingle();
+
+  if (error) {
+    message.textContent = t("profileLoadError") + error.message;
+    return;
+  }
+
+  nameInput.value = profile?.full_name ||
+    userData.user.user_metadata?.full_name || "";
+
+  phoneInput.value = profile?.phone || "";
+  message.textContent = "";
+} 
 document.getElementById("seller-store-select").addEventListener("change", async () => {
   const storeId = document.getElementById("seller-store-select").value;
   const editCard = document.getElementById("edit-store-card");
@@ -2835,6 +2967,42 @@ if (savedImages.length > 0) {
 
   await loadProducts();
 });
+  document.getElementById("save-seller-profile").addEventListener("click", async () => {
+  const message = document.getElementById("seller-profile-message");
+  const fullName = document.getElementById("profile-full-name").value.trim();
+  const phone = document.getElementById("profile-phone").value.trim();
+
+  if (!fullName) {
+    message.textContent = t("fillAllFields");
+    return;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    message.textContent = t("loginRequired");
+    return;
+  }
+
+  message.textContent = t("profileLoading");
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .upsert({
+      id: userData.user.id,
+      full_name: fullName,
+      phone: phone,
+      updated_at: new Date().toISOString()
+    }, { onConflict: "id" });
+
+  if (error) {
+    message.textContent = t("profileSaveError") + error.message;
+    return;
+  }
+
+  message.textContent = t("profileSaveSuccess");
+});
  document.getElementById("seller-logout").addEventListener("click", async () => {
   const message = document.getElementById("seller-message");
 
@@ -2858,18 +3026,19 @@ document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerToggle = document.getElementById("seller-toggle");
 
   if (sellerInfo.hidden) {
-    sellerInfo.hidden = false;
-    sellerToggle.textContent = t("closeSeller");
+  sellerInfo.hidden = false;
+  sellerToggle.textContent = t("closeSeller");
 
-    await loadSellerProducts();
-    await loadSellerOrders();
-    await loadSellerSalesDashboard();
-    await loadSellerStores();
+  await loadSellerProfile();
+  await loadSellerProducts();
+  await loadSellerOrders();
+  await loadSellerSalesDashboard();
+  await loadSellerStores();
 
-  } else {
-    sellerInfo.hidden = true;
-    sellerToggle.textContent = t("openSeller");
-  }
+} else {
+  sellerInfo.hidden = true;
+  sellerToggle.textContent = t("openSeller");
+}
 });
  const productImagesInput = document.getElementById("product-images");
 const selectedImagesLabel = document.getElementById("selected-images-label");
