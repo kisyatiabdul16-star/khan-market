@@ -1493,6 +1493,7 @@ profileSaveError: "Imeshindikana kuhifadhi wasifu: ",
    profilePhoto: "Picha ya Wasifu",
 profilePhotoAlt: "Picha ya muuzaji",
 chooseProfilePhoto: "Chagua picha ya wasifu",
+    noFileChosen: "Hakuna picha iliyochaguliwa",
     uploadProfilePhoto: "Pakia Picha",
    logout: "Toka kwenye akaunti",
 loggingOut: "Tunakuondoa kwenye akaunti...",
@@ -1670,6 +1671,7 @@ profileSaveError: "Failed to save profile: ",
     profilePhoto: "Profile Picture",
 profilePhotoAlt: "Seller profile picture",
 chooseProfilePhoto: "Choose profile picture",
+    noFileChosen: "No file chosen",
   uploadProfilePhoto: "Upload Photo",  
 logout: "Log out",
 loggingOut: "Logging out...",
@@ -1846,6 +1848,7 @@ profileSaveError: "Échec de l'enregistrement du profil : ",
    profilePhoto: "Photo de profil",
 profilePhotoAlt: "Photo de profil du vendeur",
 chooseProfilePhoto: "Choisir une photo de profil",
+    noFileChosen: "Aucune image sélectionnée",
    uploadProfilePhoto: "Téléverser une photo", 
    logout: "Se déconnecter",
 loggingOut: "Déconnexion en cours...",
@@ -2022,6 +2025,7 @@ profileSaveError: "تعذر حفظ الملف الشخصي: ",
     profilePhoto: "الصورة الشخصية",
 profilePhotoAlt: "الصورة الشخصية للبائع",
 chooseProfilePhoto: "اختر صورة الملف الشخصي",
+   noFileChosen: "لم يتم اختيار صورة", 
     uploadProfilePhoto: "تحميل الصورة",
    logout: "تسجيل الخروج",
 loggingOut: "جارٍ تسجيل الخروج...",
@@ -2304,11 +2308,24 @@ loadProducts();
   </label>
 
   <input
-    type="file"
-    id="profile-avatar-file"
-    accept="image/jpeg,image/png,image/webp"
-    data-i18n-aria-label="chooseProfilePhoto"
-  >
+  type="file"
+  id="profile-avatar-file"
+  accept="image/jpeg,image/png,image/webp"
+  data-i18n-aria-label="chooseProfilePhoto"
+  style="position:absolute;left:-9999px;"
+>
+
+<label
+  for="profile-avatar-file"
+  data-i18n="chooseProfilePhoto"
+  style="display:inline-block;padding:10px 15px;background:#eee;border-radius:8px;cursor:pointer;"
+>
+  Chagua picha ya wasifu
+</label>
+
+<span id="profile-avatar-file-name" data-i18n="noFileChosen">
+  Hakuna picha iliyochaguliwa
+</span>
 
   <p id="profile-avatar-message" role="status"></p>
 </div>
@@ -3096,6 +3113,13 @@ if (savedImages.length > 0) {
   message.textContent = t("profileSaveSuccess");
   fileInput.value = "";
 });
+ document.getElementById("profile-avatar-file").addEventListener("change", function () {
+  const nameDisplay = document.getElementById("profile-avatar-file-name");
+
+  nameDisplay.textContent = this.files.length
+    ? this.files[0].name
+    : t("noFileChosen");
+}); 
  document.getElementById("seller-logout").addEventListener("click", async () => {
   const message = document.getElementById("seller-message");
 
