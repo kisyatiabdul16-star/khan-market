@@ -1237,268 +1237,6 @@ async function loadSellerSalesDashboard() {
   monthlyElement.textContent = money(monthlySales);
 }
 
-// ADVANCED SELLER ANALYTICS
-async function loadSellerAdvancedAnalytics() {
-  const trendElement = document.getElementById("seller-sales-trend");
-  const topElement = document.getElementById("seller-top-products");
-  const recentElement = document.getElementById("seller-recent-orders");
-  const periodElement = document.getElementById("analytics-period");
-
-  if (!trendElement || !topElement || !recentElement || !periodElement) return;
-
-  // Tumia mfumo wa lugha uliopo kwenye Khan Market
-  const lang = translations[currentLanguage] || translations.sw;
-
-  // Tafsiri zilizopo pamoja na fallback
-  const tr = (key, fallback) =>
-    lang[key] || translations.en[key] || fallback;
-
-  const loading = tr("analyticsLoading", "Loading...");
-  const loginMessage = tr("loginRequired", "Please log in first.");
-  const noStore = tr("sellerNoStore", "No store found.");
-  const noOrders = tr("analyticsNoOrders", "No recent orders.");
-  const noSales = tr("analyticsNoSales", "No sales in this period.");
-  const noProducts = tr("analyticsNoProducts", "No products sold.");
-  const salesLabel = tr("analyticsSales", tr("totalSales", "Total Sales"));
-  const topTitle = tr("topProductsTitle", "Top-Selling Products");
-  const recentTitle = tr("recentOrdersTitle", "Recent Orders");
-  const unknownProduct = tr("analyticsUnknownProduct", "Unknown product");
-  const unknownCustomer = tr("analyticsCustomer", "Customer");
-  const amountLabel = tr("analyticsAmount", "Amount");
-  const dateLabel = tr("analyticsDate", "Date");
-
-  trendElement.textContent = loading;
-  topElement.textContent = loading;
-  recentElement.textContent = loading;
-
-  try {
-    const { data: userData, error: userError } =
-      await supabaseClient.auth.getUser();
-
-    if (userError || !userData.user) {
-      trendElement.textContent = loginMessage;
-      topElement.textContent = loginMessage;
-      recentElement.textContent = loginMessage;
-      return;
-    }
-
-    const { data: stores, error: storeError } = await supabaseClient
-      .from("stores")
-      .select("id")
-      .eq("owner_id", userData.user.id);
-
-    if (storeError || !stores || stores.length === 0) {
-      trendElement.textContent = noStore;
-      topElement.textContent = noStore;
-      recentElement.textContent = noStore;
-      return;
-    }
-
-    const storeIds = stores.map(store => store.id);
-
-    const { data: orders, error: orderError } = await supabaseClient
-      .from("orders")
-      .select("id, customer_name, total_amount, status, created_at, order_items")
-      .in("store_id", storeIds)
-      .order("created_at", { ascending: false });
-
-    if (orderError) {
-      console.error("ADVANCED ANALYTICS ERROR:", orderError);
-
-      trendElement.textContent = tr(
-        "analyticsUnableTrend",
-        "Unable to load sales trend."
-      );
-
-      topElement.textContent = tr(
-        "analyticsUnableProducts",
-        "Unable to load top products."
-      );
-
-      recentElement.textContent = tr(
-        "analyticsUnableOrders",
-        "Unable to load recent orders."
-      );
-
-      return;
-    }
-
-    const allOrders = orders || [];
-
-    const completedOrders = allOrders.filter(
-      order => order.status === "completed"
-    );
-
-    const now = new Date();
-    const period = periodElement.value;
-    let startDate = new Date(now);
-
-    if (period === "day") {
-      startDate.setHours(0, 0, 0, 0);
-
-    } else if (period === "week") {
-      startDate.setHours(0, 0, 0, 0);
-      const offset = (startDate.getDay() + 6) % 7;
-      startDate.setDate(startDate.getDate() - offset);
-
-    } else if (period === "month") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    } else if (period === "year") {
-      startDate = new Date(now.getFullYear(), 0, 1);
-    }
-
-    const periodOrders = completedOrders.filter(order =>
-      new Date(order.created_at) >= startDate &&
-      new Date(order.created_at) <= now
-    );
-
-    const totalSales = periodOrders.reduce(
-      (sum, order) => sum + Number(order.total_amount || 0),
-      0
-    );
-
-    // SALES TREND
-    const dailySales = {};
-
-    periodOrders.forEach(order => {
-      const date = new Date(order.created_at);
-      const key = date.toLocaleDateString("en-CA");
-
-      dailySales[key] = (dailySales[key] || 0) +
-        Number(order.total_amount || 0);
-    });
-
-    const trendEntries = Object.entries(dailySales)
-      .sort((a, b) => a[0].localeCompare(b[0]));
-
-    if (trendEntries.length === 0) {
-      trendElement.innerHTML = `
-        <p><strong>${salesLabel}: ${money(totalSales)}</strong></p>
-        <p>${noSales}</p>
-      `;
-    } else {
-      const maxSales = Math.max(
-        ...trendEntries.map(item => item[1]),
-        1
-      );
-
-      trendElement.innerHTML = `
-        <p><strong>${salesLabel}: ${money(totalSales)}</strong></p>
-
-        ${trendEntries.map(([date, amount]) => `
-          <div style="margin:12px 0;">
-            <div style="display:flex;justify-content:space-between;gap:10px;">
-              <span>${date}</span>
-              <strong>${money(amount)}</strong>
-            </div>
-
-            <div style="background:#e5e7eb;height:10px;border-radius:8px;">
-              <div style="background:#16a34a;height:10px;border-radius:8px;width:${(amount / maxSales) * 100}%;"></div>
-            </div>
-          </div>
-        `).join("")}
-      `;
-    }
-
-    // TOP SELLING PRODUCTS
-    const productSales = {};
-
-    periodOrders.forEach(order => {
-      let items = order.order_items || [];
-
-      if (!Array.isArray(items)) {
-        items = [items];
-      }
-
-      items.forEach(item => {
-        const name = item.product_name || unknownProduct;
-        const quantity = Number(item.quantity || 0);
-
-        productSales[name] = (productSales[name] || 0) + quantity;
-      });
-    });
-
-    const topProducts = Object.entries(productSales)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-
-    topElement.innerHTML = topProducts.length
-      ? `
-        <h4>${topTitle}</h4>
-        ${topProducts.map(([name, quantity], index) => `
-          <p>
-            ${index + 1}. ${analyticsEscape(name)}
-            — <strong>${quantity}</strong>
-          </p>
-        `).join("")}
-      `
-      : noProducts;
-
-    // RECENT ORDERS
-    const recentOrders = allOrders.slice(0, 5);
-
-    const statusLabels = {
-      pending: tr("orderPending", "Pending"),
-      accepted: tr("orderAccepted", "Accepted"),
-      completed: tr("orderCompleted", "Completed"),
-      rejected: tr("orderRejected", "Rejected"),
-      cancelled: lang.orderCancelled || "Cancelled"
-    };
-
-    recentElement.innerHTML = recentOrders.length
-      ? `
-        <h4>${recentTitle}</h4>
-
-        ${recentOrders.map(order => {
-          const status = statusLabels[order.status] || order.status;
-
-          return `
-            <div style="padding:10px 0;border-bottom:1px solid #ddd;">
-              <strong>${tr("sellerOrderTitle", "Order")} #${order.id}</strong><br>
-
-              ${unknownCustomer}:
-              ${analyticsEscape(order.customer_name || tr("analyticsUnknownCustomer", "Not specified"))}<br>
-
-              ${amountLabel}:
-              ${money(Number(order.total_amount || 0))}<br>
-
-              ${tr("sellerOrderStatus", "Status")}:
-              ${status}<br>
-
-              ${dateLabel}:
-              ${new Date(order.created_at).toLocaleString(
-                currentLanguage === "sw" ? "sw-TZ" :
-                currentLanguage === "fr" ? "fr-FR" :
-                currentLanguage === "ar" ? "ar" : "en-TZ"
-              )}
-            </div>
-          `;
-        }).join("")}
-      `
-      : noOrders;
-
-  } catch (error) {
-    console.error("ADVANCED ANALYTICS ERROR:", error);
-
-    trendElement.textContent = tr(
-      "analyticsUnableTrend",
-      "Unable to load analytics."
-    );
-
-    topElement.textContent = tr(
-      "analyticsUnableProducts",
-      "Unable to load products."
-    );
-
-    recentElement.textContent = tr(
-      "analyticsUnableOrders",
-      "Unable to load orders."
-    );
-  }
-}
-
-
 async function editProduct(productId) {
   const { data: userData } = await supabaseClient.auth.getUser();
 
@@ -3701,24 +3439,58 @@ function analyticsEscape(value) {
   })[char]);
 }
 
+// ADVANCED SELLER ANALYTICS
 async function loadSellerAdvancedAnalytics() {
   const trendBox = document.getElementById("seller-sales-trend");
   const topBox = document.getElementById("seller-top-products");
   const recentBox = document.getElementById("seller-recent-orders");
+  const periodElement = document.getElementById("analytics-period");
 
   if (!trendBox || !topBox || !recentBox) return;
 
-  trendBox.textContent = t("analyticsLoading");
-  topBox.textContent = t("analyticsLoading");
-  recentBox.textContent = t("analyticsLoading");
+  // EXISTING FOUR-LANGUAGE SYSTEM
+  const lang = translations[currentLanguage] || translations.sw || {};
+  const english = translations.en || {};
+
+  const tr = (key, fallback) =>
+    lang[key] || english[key] || fallback;
+
+  const locale = {
+    sw: "sw-TZ",
+    en: "en-TZ",
+    fr: "fr-FR",
+    ar: "ar"
+  }[currentLanguage] || "en-TZ";
+
+  const formatMoney = amount =>
+    "TSh " + Number(amount || 0).toLocaleString(locale);
+
+  const formatDate = date =>
+    new Date(date).toLocaleDateString(locale);
+
+  const loading = tr("analyticsLoading", "Loading...");
+  const noOrders = tr("analyticsNoOrders", "No orders found.");
+  const noSales = tr("analyticsNoSales", "No sales in this period.");
+  const noProducts = tr("analyticsNoProducts", "No products sold.");
+
+  trendBox.textContent = loading;
+  topBox.textContent = loading;
+  recentBox.textContent = loading;
 
   try {
+    // GET LOGGED-IN SELLER
     const { data: userData, error: userError } =
       await supabaseClient.auth.getUser();
 
-    if (userError) throw userError;
-    if (!userData.user) throw new Error("User not logged in");
+    if (userError || !userData.user) {
+      const message = tr("loginRequired", "Please log in first.");
+      trendBox.textContent = message;
+      topBox.textContent = message;
+      recentBox.textContent = message;
+      return;
+    }
 
+    // GET SELLER STORES
     const { data: stores, error: storeError } =
       await supabaseClient
         .from("stores")
@@ -3728,14 +3500,16 @@ async function loadSellerAdvancedAnalytics() {
     if (storeError) throw storeError;
 
     if (!stores || stores.length === 0) {
-      trendBox.textContent = t("analyticsNoSales");
-      topBox.textContent = t("analyticsNoProducts");
-      recentBox.textContent = t("analyticsNoOrders");
+      const message = tr("sellerNoStore", "No store found.");
+      trendBox.textContent = message;
+      topBox.textContent = message;
+      recentBox.textContent = message;
       return;
     }
 
     const storeIds = stores.map(store => store.id);
 
+    // GET ORDERS
     const { data: orders, error: ordersError } =
       await supabaseClient
         .from("orders")
@@ -3746,10 +3520,12 @@ async function loadSellerAdvancedAnalytics() {
     if (ordersError) throw ordersError;
 
     const allOrders = orders || [];
+
     const completedOrders = allOrders.filter(
-      order => order.status === "completed"
+      order => String(order.status).toLowerCase() === "completed"
     );
 
+    // TANZANIA DATE
     const dateKey = date => new Intl.DateTimeFormat("en-CA", {
       timeZone: "Africa/Dar_es_Salaam",
       year: "numeric",
@@ -3760,15 +3536,19 @@ async function loadSellerAdvancedAnalytics() {
     const today = dateKey(new Date());
     const todayDate = new Date(today + "T12:00:00Z");
 
-    const periodElement = document.getElementById("analytics-period");
     const period = periodElement ? periodElement.value : "week";
+    let startDate = new Date(todayDate);
 
-    const startDate = new Date(todayDate);
+    if (period === "day") {
+      // Today
+      startDate = new Date(todayDate);
 
-    if (period === "week") {
+    } else if (period === "week") {
       startDate.setUTCDate(startDate.getUTCDate() - 6);
+
     } else if (period === "month") {
       startDate.setUTCDate(1);
+
     } else if (period === "year") {
       startDate.setUTCMonth(0, 1);
     }
@@ -3780,148 +3560,259 @@ async function loadSellerAdvancedAnalytics() {
       return key >= startKey && key <= today;
     });
 
-   
-// SALES TREND: BAR + LINE GRAPH
-const dailySales = [];
+    // SALES TREND
+    const buckets = [];
 
-for (let i = 6; i >= 0; i--) {
-  const day = new Date(todayDate);
-  day.setUTCDate(day.getUTCDate() - i);
+    if (period === "day") {
+      for (let hour = 0; hour < 24; hour++) {
+        buckets.push({
+          key: hour,
+          label: `${String(hour).padStart(2, "0")}:00`,
+          total: 0
+        });
+      }
 
-  const key = day.toISOString().slice(0, 10);
+    } else if (period === "year") {
+      for (let month = 0; month < 12; month++) {
+        buckets.push({
+          key: String(month + 1).padStart(2, "0"),
+          label: new Date(Date.UTC(2026, month, 1))
+            .toLocaleDateString(locale, { month: "short", timeZone: "UTC" }),
+          total: 0
+        });
+      }
 
-  const total = completedOrders
-    .filter(order => dateKey(order.created_at) === key)
-    .reduce(
-      (sum, order) => sum + Number(order.total_amount || 0),
-      0
+    } else {
+      const numberOfDays = period === "month"
+        ? new Date(
+            todayDate.getUTCFullYear(),
+            todayDate.getUTCMonth() + 1,
+            0
+          ).getDate()
+        : 7;
+
+      const firstDay = period === "month"
+        ? new Date(Date.UTC(
+            todayDate.getUTCFullYear(),
+            todayDate.getUTCMonth(),
+            1
+          ))
+        : new Date(todayDate);
+
+      if (period === "week") {
+        firstDay.setUTCDate(firstDay.getUTCDate() - 6);
+      }
+
+      for (let i = 0; i < numberOfDays; i++) {
+        const date = new Date(firstDay);
+        date.setUTCDate(date.getUTCDate() + i);
+
+        const key = date.toISOString().slice(0, 10);
+
+        buckets.push({
+          key,
+          label: date.toLocaleDateString(locale, {
+            day: "2-digit",
+            month: "short",
+            timeZone: "UTC"
+          }),
+          total: 0
+        });
+      }
+    }
+
+    filteredOrders.forEach(order => {
+      const date = new Date(order.created_at);
+      let key;
+
+      if (period === "day") {
+        const parts = new Intl.DateTimeFormat("en-GB", {
+          timeZone: "Africa/Dar_es_Salaam",
+          hour: "2-digit",
+          hourCycle: "h23"
+        }).formatToParts(date);
+
+        key = Number(parts.find(p => p.type === "hour").value);
+
+      } else if (period === "year") {
+        const parts = new Intl.DateTimeFormat("en-GB", {
+          timeZone: "Africa/Dar_es_Salaam",
+          month: "2-digit"
+        }).formatToParts(date);
+
+        key = parts.find(p => p.type === "month").value;
+
+      } else {
+        key = dateKey(date);
+      }
+
+      const bucket = buckets.find(item => item.key === key);
+
+      if (bucket) {
+        bucket.total += Number(order.total_amount || 0);
+      }
+    });
+
+    const maxSales = Math.max(
+      ...buckets.map(item => item.total),
+      1
     );
 
-  dailySales.push({ date: key, total });
-}
+    const chartWidth = 700;
+    const chartHeight = 260;
+    const left = 45;
+    const right = 20;
+    const top = 20;
+    const bottom = 45;
 
-const maxSales = Math.max(
-  ...dailySales.map(day => day.total),
-  1
-);
+    const plotWidth = chartWidth - left - right;
+    const plotHeight = chartHeight - top - bottom;
 
-const chartWidth = 700;
-const chartHeight = 260;
-const left = 45;
-const right = 20;
-const top = 20;
-const bottom = 45;
+    const points = buckets.map((item, index) => {
+      const x = left + (
+        index * plotWidth / Math.max(buckets.length - 1, 1)
+      );
 
-const plotWidth = chartWidth - left - right;
-const plotHeight = chartHeight - top - bottom;
+      const y = top + plotHeight -
+        (item.total / maxSales) * plotHeight;
 
-const points = dailySales.map((day, index) => {
-  const x = left + (index * plotWidth / 6);
-  const y = top + plotHeight -
-    (day.total / maxSales) * plotHeight;
+      return { ...item, x, y };
+    });
 
-  return { x, y, ...day };
-});
+    const linePoints = points
+      .map(point => `${point.x},${point.y}`)
+      .join(" ");
 
-const linePoints = points
-  .map(point => `${point.x},${point.y}`)
-  .join(" ");
+    trendBox.innerHTML = `
+      <p><strong>${tr("analyticsSales", "Sales")}:
+        ${formatMoney(filteredOrders.reduce(
+          (sum, order) =>
+            sum + Number(order.total_amount || 0), 0
+        ))}
+      </strong></p>
 
-trendBox.innerHTML = `
-  <div style="width:100%;overflow-x:auto;">
-    <svg viewBox="0 0 ${chartWidth} ${chartHeight}"
-         style="width:100%;min-width:320px;height:auto;"
-         role="img"
-         aria-label="Sales trend bar and line chart">
+      <div style="width:100%;overflow-x:auto;">
+        <svg viewBox="0 0 ${chartWidth} ${chartHeight}"
+             style="width:100%;min-width:320px;height:auto;"
+             role="img"
+             aria-label="${tr("salesTrendTitle", "Sales Trend")}">
 
-      ${points.map(point => `
-        <line
-          x1="${left}"
-          y1="${point.y}"
-          x2="${chartWidth - right}"
-          y2="${point.y}"
-          stroke="#dddddd"
-          stroke-dasharray="4 4"
-        />
-      `).join("")}
+          ${points.map(point => `
+            <line
+              x1="${left}"
+              y1="${point.y}"
+              x2="${chartWidth - right}"
+              y2="${point.y}"
+              stroke="#dddddd"
+              stroke-dasharray="4 4"
+            />
+          `).join("")}
 
-      ${points.map(point => {
-        const barHeight = Math.max(
-          (point.total / maxSales) * plotHeight,
-          2
-        );
+          ${points.map(point => {
+            const barHeight = Math.max(
+              (point.total / maxSales) * plotHeight,
+              2
+            );
 
-        return `
-          <rect
-            x="${point.x - 20}"
-            y="${top + plotHeight - barHeight}"
-            width="40"
-            height="${barHeight}"
-            rx="5"
-            fill="#2563eb"
-          >
-            <title>${point.date}: TSh ${point.total.toLocaleString()}</title>
-          </rect>
-        `;
-      }).join("")}
+            const barWidth = Math.max(
+              40 / Math.sqrt(points.length / 7),
+              8
+            );
 
-      <polyline
-        points="${linePoints}"
-        fill="none"
-        stroke="#f59e0b"
-        stroke-width="4"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
+            return `
+              <rect
+                x="${point.x - barWidth / 2}"
+                y="${top + plotHeight - barHeight}"
+                width="${barWidth}"
+                height="${barHeight}"
+                rx="4"
+                fill="#2563eb"
+              >
+                <title>${point.label}: ${formatMoney(point.total)}</title>
+              </rect>
+            `;
+          }).join("")}
 
-      ${points.map(point => `
-        <circle
-          cx="${point.x}"
-          cy="${point.y}"
-          r="5"
-          fill="#f59e0b"
-          stroke="white"
-          stroke-width="2"
-        >
-          <title>${point.date}: TSh ${point.total.toLocaleString()}</title>
-        </circle>
-      `).join("")}
+          <polyline
+            points="${linePoints}"
+            fill="none"
+            stroke="#f59e0b"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
 
-      ${points.map(point => `
-        <text
-          x="${point.x}"
-          y="${chartHeight - 12}"
-          text-anchor="middle"
-          font-size="12"
-          fill="currentColor"
-        >${point.date.slice(5)}</text>
-      `).join("")}
-    </svg>
-  </div>
+          ${points.map(point => `
+            <circle
+              cx="${point.x}"
+              cy="${point.y}"
+              r="4"
+              fill="#f59e0b"
+              stroke="white"
+              stroke-width="2"
+            >
+              <title>${point.label}: ${formatMoney(point.total)}</title>
+            </circle>
+          `).join("")}
 
-  <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
-    <span>🟦 ${t("analyticsSales")}</span>
-    <span>🟠 ${t("analyticsSales")} Trend</span>
-  </div>
-`;
+          ${points.filter((point, index) =>
+            points.length <= 12 || index % Math.ceil(points.length / 12) === 0
+          ).map(point => `
+            <text
+              x="${point.x}"
+              y="${chartHeight - 12}"
+              text-anchor="middle"
+              font-size="11"
+              fill="currentColor"
+            >${point.label}</text>
+          `).join("")}
+        </svg>
+      </div>
+
+      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+        <span>🟦 ${tr("analyticsSales", "Sales")}</span>
+        <span>🟠 ${tr("salesTrendTitle", "Sales Trend")}</span>
+      </div>
+
+      ${filteredOrders.length === 0
+        ? `<p>${noSales}</p>`
+        : ""}
+    `;
+
     // TOP-SELLING PRODUCTS
     const productSales = {};
 
     filteredOrders.forEach(order => {
-      const items = Array.isArray(order.order_items)
-        ? order.order_items
-        : [];
+      let items = order.order_items || [];
+
+      if (typeof items === "string") {
+        try {
+          items = JSON.parse(items);
+        } catch {
+          items = [];
+        }
+      }
+
+      if (!Array.isArray(items)) {
+        items = [items];
+      }
 
       items.forEach(item => {
-        const name = item.product_name || t("analyticsUnknownProduct");
+        const name = item.product_name ||
+          tr("analyticsUnknownProduct", "Unknown Product");
+
         const quantity = Number(item.quantity || 0);
+
         const subtotal = Number(
           item.subtotal ||
           (Number(item.unit_price || 0) * quantity)
         );
 
         if (!productSales[name]) {
-          productSales[name] = { quantity: 0, revenue: 0 };
+          productSales[name] = {
+            quantity: 0,
+            revenue: 0
+          };
         }
 
         productSales[name].quantity += quantity;
@@ -3934,35 +3825,88 @@ trendBox.innerHTML = `
       .slice(0, 5);
 
     topBox.innerHTML = topProducts.length
-      ? topProducts.map(([name, data], index) => `
+      ? `
+        <h4>${tr("topProductsTitle", "Top-Selling Products")}</h4>
+
+        ${topProducts.map(([name, data], index) => `
           <div style="padding:10px;border-bottom:1px solid #ddd;">
             <strong>${index + 1}. ${analyticsEscape(name)}</strong>
-            <p>${t("analyticsQuantitySold")}: ${data.quantity}</p>
-            <p>${t("analyticsSales")}: TSh ${data.revenue.toLocaleString()}</p>
+            <p>${tr("analyticsQuantitySold", "Quantity Sold")}: ${data.quantity}</p>
+            <p>${tr("analyticsSales", "Sales")}: ${formatMoney(data.revenue)}</p>
           </div>
-        `).join("")
-      : t("analyticsNoProducts");
+        `).join("")}
+      `
+      : noProducts;
 
     // RECENT ORDERS
+    const statusLabels = {
+      pending: tr("orderPending", "Pending"),
+      accepted: tr("orderAccepted", "Accepted"),
+      completed: tr("orderCompleted", "Completed"),
+      rejected: tr("orderRejected", "Rejected"),
+      cancelled: tr("orderCancelled", "Cancelled"),
+      canceled: tr("orderCancelled", "Cancelled")
+    };
+
     recentBox.innerHTML = allOrders.length
-      ? allOrders.slice(0, 5).map(order => `
-          <div style="padding:10px;border-bottom:1px solid #ddd;">
-            <strong>Order #${analyticsEscape(order.id)}</strong>
-            <p>${t("analyticsCustomer")}: ${analyticsEscape(order.customer_name || "N/A")}</p>
-            <p>${t("analyticsAmount")}: TSh ${Number(order.total_amount || 0).toLocaleString()}</p>
-            <p>${t("analyticsStatus")}: ${analyticsEscape(order.status || "N/A")}</p>
-          </div>
-        `).join("")
-      : t("analyticsNoOrders");
+      ? `
+        <h4>${tr("recentOrdersTitle", "Recent Orders")}</h4>
+
+        ${allOrders.slice(0, 5).map(order => {
+          const status = String(order.status || "").toLowerCase();
+
+          const translatedStatus =
+            statusLabels[status] ||
+            analyticsEscape(order.status || "N/A");
+
+          return `
+            <div style="padding:10px;border-bottom:1px solid #ddd;">
+              <strong>${tr("sellerOrderTitle", "Order")} #${analyticsEscape(order.id)}</strong>
+
+              <p>${tr("analyticsCustomer", "Customer")}:
+                ${analyticsEscape(
+                  order.customer_name ||
+                  tr("analyticsUnknownCustomer", "Unknown Customer")
+                )}
+              </p>
+
+              <p>${tr("analyticsAmount", "Amount")}:
+                ${formatMoney(order.total_amount)}
+              </p>
+
+              <p>${tr("sellerOrderStatus", "Status")}:
+                ${translatedStatus}
+              </p>
+
+              <p>${tr("analyticsDate", "Date")}:
+                ${new Date(order.created_at).toLocaleString(locale)}
+              </p>
+            </div>
+          `;
+        }).join("")}
+      `
+      : noOrders;
 
   } catch (error) {
-    console.error("Advanced analytics error:", error);
+    console.error("ADVANCED ANALYTICS ERROR:", error);
 
-    trendBox.textContent = t("analyticsUnableTrend");
-    topBox.textContent = t("analyticsUnableProducts");
-    recentBox.textContent = t("analyticsUnableOrders");
+    trendBox.textContent = tr(
+      "analyticsUnableTrend",
+      "Unable to load sales trend."
+    );
+
+    topBox.textContent = tr(
+      "analyticsUnableProducts",
+      "Unable to load top products."
+    );
+
+    recentBox.textContent = tr(
+      "analyticsUnableOrders",
+      "Unable to load recent orders."
+    );
   }
-}  
+}
+  
 document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
   const sellerToggle = document.getElementById("seller-toggle");
