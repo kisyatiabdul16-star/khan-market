@@ -4294,6 +4294,329 @@ async function loadSellerAdvancedAnalytics() {
     );
   }
 }
+
+// =============================================
+// KHAN MARKET - SELLER REPORTS (4 LANGUAGES)
+// =============================================
+async function loadSellerReports() {
+  const downloadButton = document.getElementById("download-sales-report");
+
+  if (!downloadButton) return;
+
+  const lang = translations[currentLanguage] || translations.sw || {};
+  const english = translations.en || {};
+
+  const tr = (key, fallback) =>
+    lang[key] || english[key] || fallback;
+
+  const messages = {
+    sw: {
+      preparing: "Inaandaa ripoti...",
+      success: "Ripoti imepakuliwa kikamilifu!",
+      login: "Tafadhali ingia kwanza.",
+      noStore: "Hakuna duka lililopatikana.",
+      noOrders: "Hakuna oda katika kipindi hiki.",
+      error: "Imeshindwa kupakua ripoti.",
+      title: "RIPOTI YA MAUZO - KHAN MARKET",
+      period: "Kipindi",
+      reportDate: "Tarehe ya ripoti",
+      totalOrders: "Jumla ya oda",
+      completedSales: "Mauzo ya oda zilizokamilika (TSh)",
+      orderId: "Namba ya oda",
+      date: "Tarehe",
+      customer: "Mteja",
+      status: "Hali ya oda",
+      product: "Bidhaa",
+      quantity: "Idadi",
+      unitPrice: "Bei kwa moja (TSh)",
+      subtotal: "Jumla ya bidhaa (TSh)",
+      orderTotal: "Jumla ya oda (TSh)",
+      unknownProduct: "Bidhaa isiyojulikana",
+      filename: "Khan_Market_Ripoti"
+    },
+    en: {
+      preparing: "Preparing report...",
+      success: "Report downloaded successfully!",
+      login: "Please log in first.",
+      noStore: "No store found.",
+      noOrders: "No orders in this period.",
+      error: "Unable to download report.",
+      title: "KHAN MARKET - SALES REPORT",
+      period: "Period",
+      reportDate: "Report date",
+      totalOrders: "Total orders",
+      completedSales: "Completed sales (TSh)",
+      orderId: "Order ID",
+      date: "Date",
+      customer: "Customer",
+      status: "Order status",
+      product: "Product",
+      quantity: "Quantity",
+      unitPrice: "Unit price (TSh)",
+      subtotal: "Item subtotal (TSh)",
+      orderTotal: "Order total (TSh)",
+      unknownProduct: "Unknown product",
+      filename: "Khan_Market_Report"
+    },
+    fr: {
+      preparing: "Préparation du rapport...",
+      success: "Rapport téléchargé avec succès !",
+      login: "Veuillez vous connecter.",
+      noStore: "Aucune boutique trouvée.",
+      noOrders: "Aucune commande pour cette période.",
+      error: "Impossible de télécharger le rapport.",
+      title: "KHAN MARKET - RAPPORT DES VENTES",
+      period: "Période",
+      reportDate: "Date du rapport",
+      totalOrders: "Nombre total de commandes",
+      completedSales: "Ventes terminées (TSh)",
+      orderId: "N° commande",
+      date: "Date",
+      customer: "Client",
+      status: "Statut",
+      product: "Produit",
+      quantity: "Quantité",
+      unitPrice: "Prix unitaire (TSh)",
+      subtotal: "Sous-total (TSh)",
+      orderTotal: "Total commande (TSh)",
+      unknownProduct: "Produit inconnu",
+      filename: "Khan_Market_Rapport"
+    },
+    ar: {
+      preparing: "جارٍ إعداد التقرير...",
+      success: "تم تنزيل التقرير بنجاح!",
+      login: "يرجى تسجيل الدخول أولاً.",
+      noStore: "لم يتم العثور على متجر.",
+      noOrders: "لا توجد طلبات في هذه الفترة.",
+      error: "تعذر تنزيل التقرير.",
+      title: "خان ماركت - تقرير المبيعات",
+      period: "الفترة",
+      reportDate: "تاريخ التقرير",
+      totalOrders: "إجمالي الطلبات",
+      completedSales: "المبيعات المكتملة (TSh)",
+      orderId: "رقم الطلب",
+      date: "التاريخ",
+      customer: "العميل",
+      status: "حالة الطلب",
+      product: "المنتج",
+      quantity: "الكمية",
+      unitPrice: "سعر الوحدة (TSh)",
+      subtotal: "إجمالي المنتج (TSh)",
+      orderTotal: "إجمالي الطلب (TSh)",
+      unknownProduct: "منتج غير معروف",
+      filename: "Khan_Market_Report"
+    }
+  };
+
+  const selectedLanguage = messages[currentLanguage] || messages.sw;
+
+  const periodNames = {
+    sw: {day:"Leo",week:"Wiki hii",month:"Mwezi huu",year:"Mwaka huu"},
+    en: {day:"Today",week:"This week",month:"This month",year:"This year"},
+    fr: {day:"Aujourd'hui",week:"Cette semaine",month:"Ce mois",year:"Cette année"},
+    ar: {day:"اليوم",week:"هذا الأسبوع",month:"هذا الشهر",year:"هذه السنة"}
+  };
+
+  const periodLabels =
+    periodNames[currentLanguage] || periodNames.sw;
+
+  downloadButton.onclick = async function () {
+    const originalText = downloadButton.textContent;
+
+    downloadButton.disabled = true;
+    downloadButton.textContent = selectedLanguage.preparing;
+
+    try {
+      // GET LOGGED-IN SELLER
+      const { data: userData, error: userError } =
+        await supabaseClient.auth.getUser();
+
+      if (userError || !userData.user) {
+        throw new Error(selectedLanguage.login);
+      }
+
+      // GET SELLER STORES
+      const { data: stores, error: storeError } =
+        await supabaseClient
+          .from("stores")
+          .select("id")
+          .eq("owner_id", userData.user.id);
+
+      if (storeError) throw storeError;
+
+      if (!stores || stores.length === 0) {
+        throw new Error(selectedLanguage.noStore);
+      }
+
+      const storeIds = stores.map(store => store.id);
+
+      // GET SELLER ORDERS
+      const { data: orders, error: ordersError } =
+        await supabaseClient
+          .from("orders")
+          .select("id, customer_name, total_amount, status, created_at, order_items")
+          .in("store_id", storeIds)
+          .order("created_at", { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      // TANZANIA DATE
+      const dateKey = date => new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Africa/Dar_es_Salaam",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date(date));
+
+      const today = dateKey(new Date());
+      const todayDate = new Date(today + "T12:00:00Z");
+
+      const periodElement =
+        document.getElementById("analytics-period");
+
+      const period = periodElement
+        ? periodElement.value
+        : "week";
+
+      let startDate = new Date(todayDate);
+
+      if (period === "week") {
+        startDate.setUTCDate(startDate.getUTCDate() - 6);
+      } else if (period === "month") {
+        startDate.setUTCDate(1);
+      } else if (period === "year") {
+        startDate.setUTCMonth(0, 1);
+      }
+
+      const startKey = dateKey(startDate);
+
+      const filteredOrders = (orders || []).filter(order => {
+        const key = dateKey(order.created_at);
+        return key >= startKey && key <= today;
+      });
+
+      if (filteredOrders.length === 0) {
+        throw new Error(selectedLanguage.noOrders);
+      }
+
+      // COMPLETED SALES
+      const completedSales = filteredOrders
+        .filter(order =>
+          String(order.status).toLowerCase() === "completed"
+        )
+        .reduce((sum, order) =>
+          sum + Number(order.total_amount || 0), 0);
+
+      // CSV ESCAPING
+      const csvCell = value =>
+        '"' + String(value ?? "").replace(/"/g, '""') + '"';
+
+      // REPORT HEADER
+      const rows = [
+        [selectedLanguage.title],
+        [selectedLanguage.period, periodLabels[period] || period],
+        [selectedLanguage.reportDate, today],
+        [selectedLanguage.totalOrders, filteredOrders.length],
+        [selectedLanguage.completedSales, completedSales],
+        [],
+        [
+          selectedLanguage.orderId,
+          selectedLanguage.date,
+          selectedLanguage.customer,
+          selectedLanguage.status,
+          selectedLanguage.product,
+          selectedLanguage.quantity,
+          selectedLanguage.unitPrice,
+          selectedLanguage.subtotal,
+          selectedLanguage.orderTotal
+        ]
+      ];
+
+      // ORDER ITEMS
+      filteredOrders.forEach(order => {
+        let items = order.order_items || [];
+
+        if (typeof items === "string") {
+          try {
+            items = JSON.parse(items);
+          } catch {
+            items = [];
+          }
+        }
+
+        if (!Array.isArray(items)) {
+          items = [items];
+        }
+
+        if (items.length === 0) {
+          rows.push([
+            order.id,
+            order.created_at,
+            order.customer_name,
+            order.status,
+            "",
+            "",
+            "",
+            "",
+            order.total_amount
+          ]);
+          return;
+        }
+
+        items.forEach(item => {
+          rows.push([
+            order.id,
+            order.created_at,
+            order.customer_name,
+            order.status,
+            item.product_name || selectedLanguage.unknownProduct,
+            Number(item.quantity || 0),
+            Number(item.unit_price || 0),
+            Number(
+              item.subtotal ??
+              (Number(item.unit_price || 0) *
+               Number(item.quantity || 0))
+            ),
+            order.total_amount
+          ]);
+        });
+      });
+
+      // GENERATE CSV
+      const csvContent =
+        "\uFEFF" +
+        rows.map(row => row.map(csvCell).join(",")).join("\r\n");
+
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;"
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download =
+        selectedLanguage.filename + "_" + today + ".csv";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      alert(selectedLanguage.success);
+
+    } catch (error) {
+      console.error("SELLER REPORT ERROR:", error);
+      alert(error.message || selectedLanguage.error);
+
+    } finally {
+      downloadButton.disabled = false;
+      downloadButton.textContent = originalText;
+    }
+  };
+}
+  
   
 document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
@@ -4307,6 +4630,7 @@ await loadSellerProducts();
 await loadSellerOrders();
 await loadSellerSalesDashboard();
 await loadSellerAdvancedAnalytics();
+await loadSellerReports();
 await loadSellerStores();
 } else {
   sellerInfo.hidden = true;
