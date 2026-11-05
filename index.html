@@ -3966,7 +3966,7 @@ async function loadSellerAdvancedAnalytics() {
       for (let month = 0; month < 12; month++) {
         buckets.push({
           key: String(month + 1).padStart(2, "0"),
-          label: new Date(Date.UTC(2026, month, 1))
+          label:new Date(Date.UTC(todayDate.getUTCFullYear(), month, 1)) 
             .toLocaleDateString(locale, { month: "short", timeZone: "UTC" }),
           total: 0
         });
