@@ -4240,8 +4240,6 @@ async function loadSellerAdvancedAnalytics() {
 
     recentBox.innerHTML = allOrders.length
       ? `
-        <h4>${tr("recentOrdersTitle", "Recent Orders")}</h4>
-
         ${allOrders.slice(0, 5).map(order => {
           const status = String(order.status || "").toLowerCase();
 
