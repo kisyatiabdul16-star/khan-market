@@ -1757,6 +1757,20 @@ walletLoadError: "Imeshindwa kupakia miamala. Jaribu tena.",
 walletBalancePendingSetup: "Salio litaonekana baada ya mfumo wa settlement kukamilika.",
 walletReadOnlyNote: "Historia ya miamala inasomwa kutoka Supabase. Utoaji wa fedha bado haujawezeshwa.",
 
+sellerSettingsTitle: "⚙️ Mipangilio ya Muuzaji",
+sellerSettingsIntro: "Simamia mipangilio ya akaunti na biashara yako.",
+accountSecurity: "🔐 Usalama wa Akaunti",
+changePassword: "Badilisha Nenosiri",
+sellerNotificationSettings: "🔔 Mipangilio ya Arifa",
+orderNotifications: "Arifa za Oda",
+salesNotifications: "Arifa za Mauzo",
+saveSettings: "Hifadhi Mipangilio",
+settingsSaved: "Mipangilio imehifadhiwa kikamilifu.",
+settingsSaveError: "Imeshindikana kuhifadhi mipangilio.",
+passwordResetSent: "Kiungo cha kubadilisha nenosiri kimetumwa kwenye barua pepe yako.",
+passwordResetError: "Imeshindikana kutuma kiungo cha kubadilisha nenosiri.",
+passwordEmailMissing: "Barua pepe ya akaunti haijapatikana.",
+
 txSaleCredit: "Mapato ya mauzo",
 txCommissionDebit: "Kamisheni ya Khan Market",
 txRefundDebit: "Marejesho ya fedha",
@@ -1991,6 +2005,20 @@ walletLoadError: "Could not load transactions. Please try again.",
 walletBalancePendingSetup: "Balances will appear when the settlement system is implemented.",
 walletReadOnlyNote: "Transaction history is read from Supabase. Withdrawals are not yet enabled.",
 
+sellerSettingsTitle: "⚙️ Seller Settings",
+sellerSettingsIntro: "Manage your account and business settings.",
+accountSecurity: "🔐 Account Security",
+changePassword: "Change Password",
+sellerNotificationSettings: "🔔 Notification Settings",
+orderNotifications: "Order Notifications",
+salesNotifications: "Sales Notifications",
+saveSettings: "Save Settings",
+settingsSaved: "Settings saved successfully.",
+settingsSaveError: "Could not save settings.",
+passwordResetSent: "Password reset link sent to your email.",
+passwordResetError: "Could not send password reset link.",
+passwordEmailMissing: "Account email not found.",
+
 txSaleCredit: "Sales income",
 txCommissionDebit: "Khan Market commission",
 txRefundDebit: "Refund",
@@ -2224,6 +2252,20 @@ walletLoadError: "Impossible de charger les transactions. Réessayez.",
 walletBalancePendingSetup: "Les soldes seront disponibles après la mise en place du règlement.",
 walletReadOnlyNote: "L'historique est lu depuis Supabase. Les retraits ne sont pas encore activés.",
 
+sellerSettingsTitle: "⚙️ Paramètres du vendeur",
+sellerSettingsIntro: "Gérez les paramètres de votre compte et de votre activité.",
+accountSecurity: "🔐 Sécurité du compte",
+changePassword: "Changer le mot de passe",
+sellerNotificationSettings: "🔔 Paramètres des notifications",
+orderNotifications: "Notifications des commandes",
+salesNotifications: "Notifications des ventes",
+saveSettings: "Enregistrer les paramètres",
+settingsSaved: "Paramètres enregistrés avec succès.",
+settingsSaveError: "Impossible d'enregistrer les paramètres.",
+passwordResetSent: "Le lien de réinitialisation a été envoyé à votre adresse e-mail.",
+passwordResetError: "Impossible d'envoyer le lien de réinitialisation.",
+passwordEmailMissing: "Adresse e-mail du compte introuvable.",
+
 txSaleCredit: "Revenus des ventes",
 txCommissionDebit: "Commission Khan Market",
 txRefundDebit: "Remboursement",
@@ -2456,6 +2498,20 @@ walletSelectStore: "اختر متجراً لعرض المعاملات.",
 walletLoadError: "تعذر تحميل المعاملات. حاول مرة أخرى.",
 walletBalancePendingSetup: "ستظهر الأرصدة بعد إعداد نظام التسوية.",
 walletReadOnlyNote: "يتم عرض سجل المعاملات من Supabase. عمليات السحب غير مفعّلة بعد.",
+
+sellerSettingsTitle: "⚙️ إعدادات البائع",
+sellerSettingsIntro: "إدارة إعدادات حسابك ونشاطك التجاري.",
+accountSecurity: "🔐 أمان الحساب",
+changePassword: "تغيير كلمة المرور",
+sellerNotificationSettings: "🔔 إعدادات الإشعارات",
+orderNotifications: "إشعارات الطلبات",
+salesNotifications: "إشعارات المبيعات",
+saveSettings: "حفظ الإعدادات",
+settingsSaved: "تم حفظ الإعدادات بنجاح.",
+settingsSaveError: "تعذر حفظ الإعدادات.",
+passwordResetSent: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
+passwordResetError: "تعذر إرسال رابط إعادة تعيين كلمة المرور.",
+passwordEmailMissing: "لم يتم العثور على بريد الحساب الإلكتروني.",
 
 txSaleCredit: "إيرادات المبيعات",
 txCommissionDebit: "عمولة خان ماركت",
@@ -3136,7 +3192,64 @@ loadProducts();
   </p>
 
 </section>
-<!-- END SELLER WALLET -->
+<!-- END SELLER WALLET --
+    
+<!-- SELLER SETTINGS -->
+<div class="seller-card" id="seller-settings">
+
+  <h3 data-i18n="sellerSettingsTitle">
+    ⚙️ Seller Settings
+  </h3>
+
+  <p data-i18n="sellerSettingsIntro">
+    Simamia mipangilio ya akaunti na biashara yako.
+  </p>
+
+  <!-- ACCOUNT SECURITY -->
+  <div class="settings-section">
+    <h4 data-i18n="accountSecurity">
+      🔐 Usalama wa Akaunti
+    </h4>
+
+    <button type="button" id="seller-change-password"
+      data-i18n="changePassword">
+      Badilisha Nenosiri
+    </button>
+
+    <p id="seller-settings-security-message" role="status"></p>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="settings-section">
+    <h4 data-i18n="sellerNotificationSettings">
+      🔔 Mipangilio ya Arifa
+    </h4>
+
+    <label>
+      <input type="checkbox" id="seller-order-notifications" checked>
+      <span data-i18n="orderNotifications">
+        Arifa za Oda
+      </span>
+    </label>
+
+    <label>
+      <input type="checkbox" id="seller-sales-notifications" checked>
+      <span data-i18n="salesNotifications">
+        Arifa za Mauzo
+      </span>
+    </label>
+
+    <button type="button" id="save-seller-settings"
+      data-i18n="saveSettings">
+      Hifadhi Mipangilio
+    </button>
+
+    <p id="seller-settings-message" role="status"></p>
+  </div>
+
+</div>
+<!-- END SELLER SETTINGS -->
+
       <div id="seller-products">
   <p data-i18n="emptySellerProducts">Bidhaa zako zitaonekana hapa.</p>
 </div>
@@ -4617,6 +4730,126 @@ async function loadSellerReports() {
   };
 }
   
+ 
+// =============================================
+// KHAN MARKET - SELLER SETTINGS
+// =============================================
+async function loadSellerSettings() {
+  const orderNotifications = document.getElementById(
+    "seller-order-notifications"
+  );
+
+  const salesNotifications = document.getElementById(
+    "seller-sales-notifications"
+  );
+
+  const saveButton = document.getElementById(
+    "save-seller-settings"
+  );
+
+  const passwordButton = document.getElementById(
+    "seller-change-password"
+  );
+
+  const settingsMessage = document.getElementById(
+    "seller-settings-message"
+  );
+
+  const securityMessage = document.getElementById(
+    "seller-settings-security-message"
+  );
+
+  if (
+    !orderNotifications ||
+    !salesNotifications ||
+    !saveButton ||
+    !passwordButton
+  ) return;
+
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) return;
+
+  const storageKey = `khan_seller_settings_${data.user.id}`;
+
+  // LOAD SAVED SETTINGS
+  try {
+    const savedSettings = JSON.parse(
+      localStorage.getItem(storageKey) || "{}"
+    );
+
+    orderNotifications.checked =
+      savedSettings.orderNotifications !== false;
+
+    salesNotifications.checked =
+      savedSettings.salesNotifications !== false;
+
+  } catch (error) {
+    console.error("SELLER SETTINGS LOAD ERROR:", error);
+  }
+
+  // SAVE SETTINGS
+  saveButton.onclick = function () {
+    try {
+      const settings = {
+        orderNotifications: orderNotifications.checked,
+        salesNotifications: salesNotifications.checked
+      };
+
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(settings)
+      );
+
+      settingsMessage.textContent =
+        translations[currentLanguage]?.settingsSaved ||
+        "Settings saved successfully.";
+
+    } catch (error) {
+      console.error("SELLER SETTINGS SAVE ERROR:", error);
+
+      settingsMessage.textContent =
+        translations[currentLanguage]?.settingsSaveError ||
+        "Could not save settings.";
+    }
+  };
+
+  // PASSWORD RESET
+  passwordButton.onclick = async function () {
+    securityMessage.textContent = "";
+
+    const email = data.user.email;
+
+    if (!email) {
+      securityMessage.textContent =
+        translations[currentLanguage]?.passwordEmailMissing ||
+        "Account email not found.";
+      return;
+    }
+
+    passwordButton.disabled = true;
+
+    const { error: resetError } =
+      await supabaseClient.auth.resetPasswordForEmail(email);
+
+    passwordButton.disabled = false;
+
+    if (resetError) {
+      console.error("PASSWORD RESET ERROR:", resetError);
+
+      securityMessage.textContent =
+        translations[currentLanguage]?.passwordResetError ||
+        "Could not send password reset email.";
+
+      return;
+    }
+
+    securityMessage.textContent =
+      translations[currentLanguage]?.passwordResetSent ||
+      "Password reset link sent to your email.";
+  };
+}
+ 
   
 document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
@@ -4631,6 +4864,7 @@ await loadSellerOrders();
 await loadSellerSalesDashboard();
 await loadSellerAdvancedAnalytics();
 await loadSellerReports();
+ await loadSellerSettings();   
 await loadSellerStores();
 } else {
   sellerInfo.hidden = true;
