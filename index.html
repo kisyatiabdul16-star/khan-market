@@ -4839,7 +4839,9 @@ await supabaseClient.auth.resetPasswordForEmail(email, {
     if (resetError) {
       console.error("PASSWORD RESET ERROR:", resetError);
 
-      securityMessage.textContent = resetError.message;
+      securityMessage.textContent =
+  translations[currentLanguage]?.passwordResetError ||
+  "Could not send password reset email.";
 
       return;
     }
