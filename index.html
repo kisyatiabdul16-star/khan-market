@@ -767,8 +767,64 @@ if (togglePassword && passwordInput) {
 
   const sellerToggle = document.getElementById("seller-toggle");
   const sellerInfo = document.getElementById("seller-info");
+// PASSWORD RECOVERY
+const recoveryBox = document.getElementById("seller-password-recovery");
+const newPasswordInput = document.getElementById("seller-new-password");
+const confirmPasswordInput = document.getElementById("seller-confirm-password");
+const updatePasswordButton = document.getElementById("seller-update-password");
+const recoveryMessage = document.getElementById("seller-password-recovery-message");
 
+supabaseClient.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY" && recoveryBox) {
+    recoveryBox.style.display = "block";
 
+    if (recoveryMessage) {
+      recoveryMessage.textContent = "";
+    }
+  }
+});  
+if (
+  updatePasswordButton &&
+  newPasswordInput &&
+  confirmPasswordInput &&
+  recoveryMessage &&
+  recoveryBox
+) {
+  updatePasswordButton.addEventListener("click", async () => {
+    const newPassword = newPasswordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    if (newPassword.length < 8) {
+      recoveryMessage.textContent = t("passwordTooShort");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      recoveryMessage.textContent = t("passwordMismatch");
+      return;
+    }
+
+    updatePasswordButton.disabled = true;
+    recoveryMessage.textContent = t("passwordSaving");
+
+    const { error } = await supabaseClient.auth.updateUser({
+      password: newPassword
+    });
+
+    updatePasswordButton.disabled = false;
+
+    if (error) {
+      recoveryMessage.textContent =
+        t("passwordUpdateError") + error.message;
+      return;
+    }
+
+    recoveryMessage.textContent = t("passwordUpdateSuccess");
+    newPasswordInput.value = "";
+    confirmPasswordInput.value = "";
+    recoveryBox.style.display = "none";
+  });
+}
   signupButton.addEventListener("click", async () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
@@ -1789,6 +1845,16 @@ supportResolved: "Limetatuliwa",
 supportSent: "Ombi lako limetumwa kikamilifu.",
 supportError: "Imeshindwa kutuma ombi. Jaribu tena.",
 supportLoginRequired: "Ingia kwenye akaunti yako kwanza.",
+// PASSWORD RECOVERY
+newPasswordTitle: "Weka Nenosiri Jipya",
+newPasswordPlaceholder: "Nenosiri jipya (angalau herufi 8)",
+confirmNewPasswordPlaceholder: "Rudia nenosiri jipya",
+saveNewPassword: "Hifadhi Nenosiri Jipya",
+passwordTooShort: "Nenosiri lazima liwe na herufi 8 au zaidi.",
+passwordMismatch: "Nenosiri halifanani.",
+passwordSaving: "Inahifadhi nenosiri...",
+passwordUpdateSuccess: "Nenosiri limebadilishwa kwa mafanikio!",
+passwordUpdateError: "Imeshindikana kubadilisha nenosiri: ",  
 txSaleCredit: "Mapato ya mauzo",
 txCommissionDebit: "Kamisheni ya Khan Market",
 txRefundDebit: "Marejesho ya fedha",
@@ -2054,7 +2120,16 @@ supportResolved: "Resolved",
 supportSent: "Your request was submitted successfully.",
 supportError: "Failed to submit request. Please try again.",
 supportLoginRequired: "Please log in to your account first.",
-
+   // PASSWORD RECOVERY
+newPasswordTitle: "Set a New Password",
+newPasswordPlaceholder: "New password (at least 8 characters)",
+confirmNewPasswordPlaceholder: "Confirm your new password",
+saveNewPassword: "Save New Password",
+passwordTooShort: "Password must be at least 8 characters long.",
+passwordMismatch: "Passwords do not match.",
+passwordSaving: "Saving password...",
+passwordUpdateSuccess: "Password changed successfully!",
+passwordUpdateError: "Could not change password: ", 
 txSaleCredit: "Sales income",
 txCommissionDebit: "Khan Market commission",
 txRefundDebit: "Refund",
@@ -2319,6 +2394,16 @@ supportResolved: "Résolu",
 supportSent: "Votre demande a été envoyée avec succès.",
 supportError: "Échec de l'envoi. Veuillez réessayer.",
 supportLoginRequired: "Veuillez d'abord vous connecter.",
+    // PASSWORD RECOVERY
+newPasswordTitle: "Définir un nouveau mot de passe",
+newPasswordPlaceholder: "Nouveau mot de passe (8 caractères minimum)",
+confirmNewPasswordPlaceholder: "Confirmez le nouveau mot de passe",
+saveNewPassword: "Enregistrer le nouveau mot de passe",
+passwordTooShort: "Le mot de passe doit contenir au moins 8 caractères.",
+passwordMismatch: "Les mots de passe ne correspondent pas.",
+passwordSaving: "Enregistrement du mot de passe...",
+passwordUpdateSuccess: "Le mot de passe a été modifié avec succès !",
+passwordUpdateError: "Impossible de modifier le mot de passe : ",
 txSaleCredit: "Revenus des ventes",
 txCommissionDebit: "Commission Khan Market",
 txRefundDebit: "Remboursement",
@@ -2583,7 +2668,16 @@ supportResolved: "تم الحل",
 supportSent: "تم إرسال طلبك بنجاح.",
 supportError: "تعذر إرسال الطلب. حاول مرة أخرى.",
 supportLoginRequired: "يرجى تسجيل الدخول أولاً.",
-
+// PASSWORD RECOVERY
+newPasswordTitle: "تعيين كلمة مرور جديدة",
+newPasswordPlaceholder: "كلمة المرور الجديدة (8 أحرف على الأقل)",
+confirmNewPasswordPlaceholder: "أكد كلمة المرور الجديدة",
+saveNewPassword: "حفظ كلمة المرور الجديدة",
+passwordTooShort: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+passwordMismatch: "كلمتا المرور غير متطابقتين.",
+passwordSaving: "جارٍ حفظ كلمة المرور...",
+passwordUpdateSuccess: "تم تغيير كلمة المرور بنجاح!",
+passwordUpdateError: "تعذر تغيير كلمة المرور: ",
 txSaleCredit: "إيرادات المبيعات",
 txCommissionDebit: "عمولة خان ماركت",
 txRefundDebit: "استرداد الأموال",
@@ -2838,7 +2932,41 @@ loadProducts();
 
     <p id="seller-message" role="status"></p>
   </div>
+<div id="seller-password-recovery" style="display:none;">
 
+  <h3 data-i18n="newPasswordTitle">
+    Weka Nenosiri Jipya
+  </h3>
+
+  <input
+    type="password"
+    id="seller-new-password"
+    data-i18n-placeholder="newPasswordPlaceholder"
+    placeholder="Nenosiri jipya"
+    minlength="8"
+    autocomplete="new-password"
+    required
+  >
+
+  <input
+    type="password"
+    id="seller-confirm-password"
+    data-i18n-placeholder="confirmNewPasswordPlaceholder"
+    placeholder="Rudia nenosiri jipya"
+    minlength="8"
+    autocomplete="new-password"
+    required
+  >
+
+  <button type="button" id="seller-update-password"
+    data-i18n="saveNewPassword">
+    Hifadhi Nenosiri Jipya
+  </button>
+
+  <p id="seller-password-recovery-message" role="status"></p>
+
+</div>
+</div>
   <button type="button" id="seller-toggle" data-i18n="openSeller">
     Fungua sehemu ya muuzaji
   </button>
