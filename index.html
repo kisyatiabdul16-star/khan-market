@@ -1770,7 +1770,25 @@ settingsSaveError: "Imeshindikana kuhifadhi mipangilio.",
 passwordResetSent: "Kiungo cha kubadilisha nenosiri kimetumwa kwenye barua pepe yako.",
 passwordResetError: "Imeshindikana kutuma kiungo cha kubadilisha nenosiri.",
 passwordEmailMissing: "Barua pepe ya akaunti haijapatikana.",
-
+// SELLER SUPPORT CENTER
+sellerSupportTitle: "🎧 Kituo cha Msaada",
+sellerSupportIntro: "Tuma ombi la msaada kwa timu ya Khan Market.",
+supportCategory: "Aina ya Tatizo",
+supportSubject: "Kichwa cha Ombi",
+supportMessage: "Eleza Tatizo",
+submitSupport: "Tuma Ombi",
+mySupportTickets: "Maombi Yangu ya Msaada",
+supportProducts: "Bidhaa",
+supportOrders: "Oda",
+supportPayments: "Malipo",
+supportAccount: "Akaunti",
+supportOther: "Nyingine",
+supportPending: "Inasubiri",
+supportProgress: "Linafanyiwa kazi",
+supportResolved: "Limetatuliwa",
+supportSent: "Ombi lako limetumwa kikamilifu.",
+supportError: "Imeshindwa kutuma ombi. Jaribu tena.",
+supportLoginRequired: "Ingia kwenye akaunti yako kwanza.",
 txSaleCredit: "Mapato ya mauzo",
 txCommissionDebit: "Kamisheni ya Khan Market",
 txRefundDebit: "Marejesho ya fedha",
@@ -2018,7 +2036,24 @@ settingsSaveError: "Could not save settings.",
 passwordResetSent: "Password reset link sent to your email.",
 passwordResetError: "Could not send password reset link.",
 passwordEmailMissing: "Account email not found.",
-
+sellerSupportTitle: "🎧 Support Center",
+sellerSupportIntro: "Send a support request to the Khan Market team.",
+supportCategory: "Problem Category",
+supportSubject: "Request Subject",
+supportMessage: "Describe the Problem",
+submitSupport: "Submit Request",
+mySupportTickets: "My Support Requests",
+supportProducts: "Products",
+supportOrders: "Orders",
+supportPayments: "Payments",
+supportAccount: "Account",
+supportOther: "Other",
+supportPending: "Pending",
+supportProgress: "In Progress",
+supportResolved: "Resolved",
+supportSent: "Your request was submitted successfully.",
+supportError: "Failed to submit request. Please try again.",
+supportLoginRequired: "Please log in to your account first."
 txSaleCredit: "Sales income",
 txCommissionDebit: "Khan Market commission",
 txRefundDebit: "Refund",
@@ -2265,7 +2300,24 @@ settingsSaveError: "Impossible d'enregistrer les paramètres.",
 passwordResetSent: "Le lien de réinitialisation a été envoyé à votre adresse e-mail.",
 passwordResetError: "Impossible d'envoyer le lien de réinitialisation.",
 passwordEmailMissing: "Adresse e-mail du compte introuvable.",
-
+sellerSupportTitle: "🎧 Centre d'assistance",
+sellerSupportIntro: "Envoyez une demande d'assistance à l'équipe Khan Market.",
+supportCategory: "Catégorie du problème",
+supportSubject: "Objet de la demande",
+supportMessage: "Décrivez le problème",
+submitSupport: "Envoyer la demande",
+mySupportTickets: "Mes demandes d'assistance",
+supportProducts: "Produits",
+supportOrders: "Commandes",
+supportPayments: "Paiements",
+supportAccount: "Compte",
+supportOther: "Autre",
+supportPending: "En attente",
+supportProgress: "En cours",
+supportResolved: "Résolu",
+supportSent: "Votre demande a été envoyée avec succès.",
+supportError: "Échec de l'envoi. Veuillez réessayer.",
+supportLoginRequired: "Veuillez d'abord vous connecter."
 txSaleCredit: "Revenus des ventes",
 txCommissionDebit: "Commission Khan Market",
 txRefundDebit: "Remboursement",
@@ -2512,7 +2564,24 @@ settingsSaveError: "تعذر حفظ الإعدادات.",
 passwordResetSent: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
 passwordResetError: "تعذر إرسال رابط إعادة تعيين كلمة المرور.",
 passwordEmailMissing: "لم يتم العثور على بريد الحساب الإلكتروني.",
-
+sellerSupportTitle: "🎧 مركز الدعم",
+sellerSupportIntro: "أرسل طلب دعم إلى فريق خان ماركت.",
+supportCategory: "فئة المشكلة",
+supportSubject: "موضوع الطلب",
+supportMessage: "اشرح المشكلة",
+submitSupport: "إرسال الطلب",
+mySupportTickets: "طلبات الدعم الخاصة بي",
+supportProducts: "المنتجات",
+supportOrders: "الطلبات",
+supportPayments: "المدفوعات",
+supportAccount: "الحساب",
+supportOther: "أخرى",
+supportPending: "قيد الانتظار",
+supportProgress: "قيد المعالجة",
+supportResolved: "تم الحل",
+supportSent: "تم إرسال طلبك بنجاح.",
+supportError: "تعذر إرسال الطلب. حاول مرة أخرى.",
+supportLoginRequired: "يرجى تسجيل الدخول أولاً."
 txSaleCredit: "إيرادات المبيعات",
 txCommissionDebit: "عمولة خان ماركت",
 txRefundDebit: "استرداد الأموال",
@@ -3248,7 +3317,73 @@ loadProducts();
   </div>
 
 </div>
-<!-- END SELLER SETTINGS -->
+<!-- END SELLER SETTINGS --
+    <!-- SELLER SUPPORT CENTER -->
+<div class="seller-card" id="seller-support">
+
+  <h3 data-i18n="sellerSupportTitle">
+    🎧 Kituo cha Msaada
+  </h3>
+
+  <p data-i18n="sellerSupportIntro">
+    Tuma ombi la msaada kwa timu ya Khan Market.
+  </p>
+
+  <form id="seller-support-form">
+
+    <label data-i18n="supportCategory">
+      Aina ya Tatizo
+    </label>
+
+    <select id="support-category" required>
+      <option value="Products">Bidhaa</option>
+      <option value="Orders">Oda</option>
+      <option value="Payments">Malipo</option>
+      <option value="Account">Akaunti</option>
+      <option value="Other">Nyingine</option>
+    </select>
+
+    <label data-i18n="supportSubject">
+      Kichwa cha Ombi
+    </label>
+
+    <input
+      type="text"
+      id="support-subject"
+      required
+      maxlength="150"
+    >
+
+    <label data-i18n="supportMessage">
+      Eleza Tatizo
+    </label>
+
+    <textarea
+      id="support-message"
+      required
+      maxlength="2000"
+      rows="5"
+    ></textarea>
+
+    <button type="submit" id="submit-support-ticket"
+      data-i18n="submitSupport">
+      Tuma Ombi
+    </button>
+
+    <p id="support-submit-message" role="status"></p>
+
+  </form>
+
+  <hr>
+
+  <h4 data-i18n="mySupportTickets">
+    Maombi Yangu ya Msaada
+  </h4>
+
+  <div id="seller-support-tickets"></div>
+
+</div>
+<!-- END SELLER SUPPORT CENTER -->
 
       <div id="seller-products">
   <p data-i18n="emptySellerProducts">Bidhaa zako zitaonekana hapa.</p>
@@ -4851,6 +4986,201 @@ await supabaseClient.auth.resetPasswordForEmail(email, {
       "Password reset link sent to your email.";
   };
 }
+
+// =============================================
+// KHAN MARKET - SELLER SUPPORT CENTER
+// =============================================
+
+async function loadSellerSupportCenter() {
+  const form = document.getElementById("seller-support-form");
+  const categoryInput = document.getElementById("support-category");
+  const subjectInput = document.getElementById("support-subject");
+  const messageInput = document.getElementById("support-message");
+  const submitButton = document.getElementById("submit-support-ticket");
+  const submitMessage = document.getElementById("support-submit-message");
+  const ticketsContainer = document.getElementById("seller-support-tickets");
+
+  if (
+    !form ||
+    !categoryInput ||
+    !subjectInput ||
+    !messageInput ||
+    !submitButton ||
+    !submitMessage ||
+    !ticketsContainer
+  ) return;
+
+  const supportText = (key, fallback) =>
+    translations[currentLanguage]?.[key] || fallback;
+
+  const categoryKeys = {
+    Products: "supportProducts",
+    Orders: "supportOrders",
+    Payments: "supportPayments",
+    Account: "supportAccount",
+    Other: "supportOther"
+  };
+
+  const statusKeys = {
+    Pending: "supportPending",
+    "In Progress": "supportProgress",
+    Resolved: "supportResolved"
+  };
+
+  // TRANSLATE CATEGORY OPTIONS
+  Array.from(categoryInput.options).forEach(option => {
+    const key = categoryKeys[option.value];
+
+    if (key) {
+      option.textContent = supportText(key, option.value);
+    }
+  });
+
+  // LOAD SELLER SUPPORT TICKETS
+  async function loadMySupportTickets() {
+    ticketsContainer.textContent = supportText(
+      "analyticsLoading",
+      "Loading..."
+    );
+
+    const { data, error } = await supabaseClient
+      .from("seller_support_tickets")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("SUPPORT TICKETS LOAD ERROR:", error);
+
+      ticketsContainer.textContent = supportText(
+        "supportError",
+        "Failed to load support requests."
+      );
+
+      return;
+    }
+
+    ticketsContainer.replaceChildren();
+
+    if (!data || data.length === 0) {
+      ticketsContainer.textContent = supportText(
+        "analyticsNoOrders",
+        "No support requests yet."
+      );
+
+      return;
+    }
+
+    data.forEach(ticket => {
+      const card = document.createElement("div");
+      card.className = "seller-support-ticket";
+
+      const title = document.createElement("h4");
+      title.textContent = ticket.subject;
+
+      const category = document.createElement("p");
+      category.textContent =
+        supportText(
+          categoryKeys[ticket.category],
+          ticket.category
+        );
+
+      const description = document.createElement("p");
+      description.textContent = ticket.message;
+
+      const status = document.createElement("p");
+      status.textContent =
+        statusKeys[ticket.status]
+          ? supportText(
+              statusKeys[ticket.status],
+              ticket.status
+            )
+          : ticket.status;
+
+      const date = document.createElement("small");
+      date.textContent = new Date(
+        ticket.created_at
+      ).toLocaleString();
+
+      card.append(title, category, description, status, date);
+      ticketsContainer.appendChild(card);
+    });
+  }
+
+  // SUBMIT SUPPORT REQUEST
+  form.onsubmit = async function (event) {
+    event.preventDefault();
+
+    submitMessage.textContent = "";
+
+    const subject = subjectInput.value.trim();
+    const message = messageInput.value.trim();
+    const category = categoryInput.value;
+
+    if (!subject || !message) {
+      submitMessage.textContent = supportText(
+        "fillAllFields",
+        "Please fill in all fields."
+      );
+      return;
+    }
+
+    submitButton.disabled = true;
+
+    const originalButtonText = submitButton.textContent;
+
+    submitButton.textContent = supportText(
+      "analyticsLoading",
+      "Sending..."
+    );
+
+    try {
+      const { data: userData, error: userError } =
+        await supabaseClient.auth.getUser();
+
+      if (userError || !userData.user) {
+        submitMessage.textContent = supportText(
+          "supportLoginRequired",
+          "Please log in first."
+        );
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("seller_support_tickets")
+        .insert({
+          user_id: userData.user.id,
+          category: category,
+          subject: subject,
+          message: message
+        });
+
+      if (error) throw error;
+
+      submitMessage.textContent = supportText(
+        "supportSent",
+        "Your support request was submitted successfully."
+      );
+
+      form.reset();
+
+      await loadMySupportTickets();
+
+    } catch (error) {
+      console.error("SUPPORT REQUEST ERROR:", error);
+
+      submitMessage.textContent = supportText(
+        "supportError",
+        "Failed to submit request. Please try again."
+      );
+
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText;
+    }
+  };
+
+  await loadMySupportTickets();
+}
  
   
 document.getElementById("seller-toggle").addEventListener("click", async () => {
@@ -4866,7 +5196,8 @@ await loadSellerOrders();
 await loadSellerSalesDashboard();
 await loadSellerAdvancedAnalytics();
 await loadSellerReports();
- await loadSellerSettings();   
+ await loadSellerSettings();
+  await loadSellerSupportCenter();  
 await loadSellerStores();
 } else {
   sellerInfo.hidden = true;
