@@ -4830,7 +4830,9 @@ async function loadSellerSettings() {
     passwordButton.disabled = true;
 
     const { error: resetError } =
-      await supabaseClient.auth.resetPasswordForEmail(email);
+await supabaseClient.auth.resetPasswordForEmail(email, {
+  redirectTo: "https://kisyatiabdul16-star.github.io/khan-market/"
+});
 
     passwordButton.disabled = false;
 
