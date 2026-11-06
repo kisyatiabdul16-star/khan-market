@@ -1818,6 +1818,10 @@ sellerSettingsIntro: "Simamia mipangilio ya akaunti na biashara yako.",
 accountSecurity: "🔐 Usalama wa Akaunti",
 changePassword: "Badilisha Nenosiri",
 sellerNotificationSettings: "🔔 Mipangilio ya Arifa",
+    sellerNotificationsTitle: "🔔 Arifa Zangu",
+sellerNotificationsIntro: "Arifa za oda na shughuli za duka lako.",
+unreadNotifications: "Arifa ambazo hazijasomwa:",
+noNotifications: "Bado huna arifa mpya.",
 orderNotifications: "Arifa za Oda",
 salesNotifications: "Arifa za Mauzo",
 saveSettings: "Hifadhi Mipangilio",
@@ -2094,6 +2098,10 @@ sellerSettingsIntro: "Manage your account and business settings.",
 accountSecurity: "🔐 Account Security",
 changePassword: "Change Password",
 sellerNotificationSettings: "🔔 Notification Settings",
+  sellerNotificationsTitle: "🔔 My Notifications",
+sellerNotificationsIntro: "Notifications about your orders and store activity.",
+unreadNotifications: "Unread notifications:",
+noNotifications: "You have no new notifications.",  
 orderNotifications: "Order Notifications",
 salesNotifications: "Sales Notifications",
 saveSettings: "Save Settings",
@@ -2368,6 +2376,10 @@ sellerSettingsIntro: "Gérez les paramètres de votre compte et de votre activit
 accountSecurity: "🔐 Sécurité du compte",
 changePassword: "Changer le mot de passe",
 sellerNotificationSettings: "🔔 Paramètres des notifications",
+    sellerNotificationsTitle: "🔔 Mes notifications",
+sellerNotificationsIntro: "Notifications concernant vos commandes et l’activité de votre boutique.",
+unreadNotifications: "Notifications non lues :",
+noNotifications: "Vous n’avez aucune nouvelle notification.",
 orderNotifications: "Notifications des commandes",
 salesNotifications: "Notifications des ventes",
 saveSettings: "Enregistrer les paramètres",
@@ -2642,6 +2654,10 @@ sellerSettingsIntro: "إدارة إعدادات حسابك ونشاطك التج
 accountSecurity: "🔐 أمان الحساب",
 changePassword: "تغيير كلمة المرور",
 sellerNotificationSettings: "🔔 إعدادات الإشعارات",
+    sellerNotificationsTitle: "🔔 إشعاراتي",
+sellerNotificationsIntro: "إشعارات حول الطلبات وأنشطة متجرك.",
+unreadNotifications: "الإشعارات غير المقروءة:",
+noNotifications: "ليس لديك إشعارات جديدة.",
 orderNotifications: "إشعارات الطلبات",
 salesNotifications: "إشعارات المبيعات",
 saveSettings: "حفظ الإعدادات",
@@ -3283,6 +3299,33 @@ loadProducts();
 </div>
 
 </div>
+  <!-- SELLER NOTIFICATIONS -->
+<div class="seller-card" id="seller-notifications">
+
+  <h3 data-i18n="sellerNotificationsTitle">
+    🔔 Arifa Zangu
+  </h3>
+
+  <p data-i18n="sellerNotificationsIntro">
+    Arifa za oda na shughuli za duka lako.
+  </p>
+
+  <div class="notification-summary">
+    <strong data-i18n="unreadNotifications">
+      Arifa ambazo hazijasomwa:
+    </strong>
+
+    <span id="seller-unread-count">0</span>
+  </div>
+
+  <div id="seller-notifications-list">
+    <p data-i18n="noNotifications">
+      Bado huna arifa mpya.
+    </p>
+  </div>
+
+</div>
+<!-- END SELLER NOTIFICATIONS -->    
 
 </div>
 <!-- ADVANCED SELLER ANALYTICS -->
@@ -5311,7 +5354,117 @@ async function loadSellerSupportCenter() {
 
   await loadMySupportTickets();
 }
- 
+// ==================================
+// SELLER NOTIFICATIONS
+// ==================================
+
+async function loadSellerNotifications() {
+  const list = document.getElementById("seller-notifications-list");
+  const unreadCount = document.getElementById("seller-unread-count");
+
+  if (!list || !unreadCount) return;
+
+  const notificationText = (key, fallback) =>
+    translations[currentLanguage]?.[key] || fallback;
+
+  list.textContent = notificationText(
+    "analyticsLoading",
+    "Loading..."
+  );
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    list.textContent = notificationText(
+      "supportLoginRequired",
+      "Please log in first."
+    );
+    unreadCount.textContent = "0";
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("seller_notifications")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("SELLER NOTIFICATIONS ERROR:", error);
+
+    list.textContent = notificationText(
+      "supportError",
+      "Failed to load notifications."
+    );
+    return;
+  }
+
+  list.replaceChildren();
+
+  const notifications = data || [];
+  const unread = notifications.filter(item => !item.is_read);
+
+  unreadCount.textContent = unread.length;
+
+  if (notifications.length === 0) {
+    list.textContent = notificationText(
+      "noNotifications",
+      "You have no new notifications."
+    );
+    return;
+  }
+
+  notifications.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "seller-notification-card";
+
+    const title = document.createElement("h4");
+    title.textContent = item.title;
+
+    const message = document.createElement("p");
+    message.textContent = item.message;
+
+    const date = document.createElement("small");
+    date.textContent = new Date(
+      item.created_at
+    ).toLocaleString();
+
+    card.append(title, message, date);
+
+    if (!item.is_read) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = notificationText(
+        "markAsRead",
+        "Mark as read"
+      );
+
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+
+        const { error: updateError } = await supabaseClient
+          .from("seller_notifications")
+          .update({
+            is_read: true,
+            read_at: new Date().toISOString()
+          })
+          .eq("id", item.id);
+
+        if (updateError) {
+          console.error("MARK NOTIFICATION READ ERROR:", updateError);
+          button.disabled = false;
+          return;
+        }
+
+        await loadSellerNotifications();
+      });
+
+      card.appendChild(button);
+    }
+
+    list.appendChild(card);
+  });
+} 
   
 document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
@@ -5328,6 +5481,7 @@ await loadSellerAdvancedAnalytics();
 await loadSellerReports();
  await loadSellerSettings();
   await loadSellerSupportCenter();  
+    await loadSellerNotifications();
 await loadSellerStores();
 } else {
   sellerInfo.hidden = true;
