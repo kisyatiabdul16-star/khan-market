@@ -1158,9 +1158,12 @@ async function updateOrderStatus(orderId, newStatus) {
 
   await loadSellerOrders();
 }    
-    
+  
 async function loadSellerOrders() {
   const container = document.getElementById("seller-orders");
+  const filterSelect = document.getElementById("seller-order-status-filter");
+
+  if (!container) return;
 
   container.innerHTML = `<p>${t("sellerLoadingOrders")}</p>`;
 
@@ -1201,87 +1204,115 @@ async function loadSellerOrders() {
     return;
   }
 
-  // FEATURE 7: SELLER NOTIFICATIONS
+  // SELLER ORDER NOTIFICATIONS
+  const notificationBox = document.getElementById("seller-notification-list");
+  const pendingCount = document.getElementById("seller-pending-count");
 
-const notificationBox = document.getElementById("seller-notification-list");
-const pendingCount = document.getElementById("seller-pending-count");
+  const pendingOrders = (orders || []).filter(
+    order => order.status === "pending"
+  );
 
-const pendingOrders = (orders || []).filter(
-  order => order.status === "pending"
-);
-
-if (pendingCount) {
-  pendingCount.textContent = pendingOrders.length;
-}
-
-if (notificationBox) {
-  if (pendingOrders.length === 0) {
-    notificationBox.innerHTML = `<p>${t("noNewNotifications")}</p>`;
-  } else {
-    notificationBox.innerHTML = pendingOrders.map(order => `
-      <div style="background:white;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #b7dfcc;">
-        🔔 ${t("sellerOrderTitle")} #${order.id}
-      </div>
-    `).join("");
+  if (pendingCount) {
+    pendingCount.textContent = pendingOrders.length;
   }
-}
 
-if (!orders || orders.length === 0) {
-  container.textContent = t("sellerNoOrders");
-  return;
-}
+  if (notificationBox) {
+    if (pendingOrders.length === 0) {
+      notificationBox.innerHTML = `<p>${t("noNewNotifications")}</p>`;
+    } else {
+      notificationBox.innerHTML = pendingOrders.map(order => `
+        <div style="background:white;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #b7dfcc;">
+          🔔 ${t("sellerOrderTitle")} #${order.id}
+        </div>
+      `).join("");
+    }
+  }
 
-  container.innerHTML = orders.map(order => {
-    const items = Array.isArray(order.order_items)
-      ? order.order_items
-      : [];
+  if (!orders || orders.length === 0) {
+    container.textContent = t("sellerNoOrders");
+    return;
+  }
 
-    return `
-      <div style="border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:8px;">
-        <h4>${t("sellerOrderTitle")} #${order.id}</h4>
+  // DISPLAY AND FILTER SELLER ORDERS
+  function renderSellerOrders() {
+    const selectedStatus = filterSelect
+      ? filterSelect.value
+      : "all";
 
-        <p>👤 ${t("sellerCustomer")}: ${order.customer_name}</p>
-        <p>📞 ${t("sellerPhone")}: ${order.customer_phone}</p>
-        <p>📍 ${t("sellerAddress")}: ${order.delivery_address}</p>
+    const filteredOrders = selectedStatus === "all"
+      ? orders
+      : orders.filter(order => order.status === selectedStatus);
 
-        <h4>${t("sellerOrderedProducts")}:</h4>
+    if (filteredOrders.length === 0) {
+      container.textContent = t("sellerNoOrders");
+      return;
+    }
 
-        ${items.map(item => `
+    container.innerHTML = filteredOrders.map(order => {
+      const items = Array.isArray(order.order_items)
+        ? order.order_items
+        : [];
+
+      return `
+        <div style="border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:8px;">
+
+          <h4>${t("sellerOrderTitle")} #${order.id}</h4>
+
+          <p>👤 ${t("sellerCustomer")}: ${order.customer_name}</p>
+          <p>📞 ${t("sellerPhone")}: ${order.customer_phone}</p>
+          <p>📍 ${t("sellerAddress")}: ${order.delivery_address}</p>
+
+          <h4>${t("sellerOrderedProducts")}:</h4>
+
+          ${items.map(item => `
+            <p>
+              ${item.product_name} —
+              ${t("sellerQuantity")}: ${item.quantity} —
+              ${t("sellerSubtotal")}: ${money(item.subtotal)}
+            </p>
+          `).join("")}
+
           <p>
-            ${item.product_name} —
-            ${t("sellerQuantity")}: ${item.quantity} —
-            ${t("sellerSubtotal")}: ${money(item.subtotal)}
+            <strong>${t("sellerOrderTotal")}: ${money(order.total_amount)}</strong>
           </p>
-        `).join("")}
 
-        <p><strong>${t("sellerOrderTotal")}: ${money(order.total_amount)}</strong></p>
-        <p>${t("sellerOrderStatus")}: ${
-  order.status === "pending" ? t("orderPending") :
-  order.status === "accepted" ? t("orderAccepted") :
-  order.status === "rejected" ? t("orderRejected") :
-  order.status === "completed" ? t("orderCompleted") :
-  order.status
-}</p>
-${order.status === "pending" ? `
-  <button onclick="updateOrderStatus(${order.id}, 'accepted')">
-    ✅ ${t("acceptOrder")}
-  </button>
+          <p>${t("sellerOrderStatus")}: ${
+            order.status === "pending" ? t("orderPending") :
+            order.status === "accepted" ? t("orderAccepted") :
+            order.status === "rejected" ? t("orderRejected") :
+            order.status === "completed" ? t("orderCompleted") :
+            order.status
+          }</p>
 
-  <button onclick="updateOrderStatus(${order.id}, 'rejected')">
-    ❌ ${t("rejectOrder")}
-  </button>
-` : ""}
+          ${order.status === "pending" ? `
+            <button onclick="updateOrderStatus(${order.id}, 'accepted')">
+              ✅ ${t("acceptOrder")}
+            </button>
 
-${order.status === "accepted" ? `
-  <button onclick="updateOrderStatus(${order.id}, 'completed')">
-    ✔️ ${t("orderCompleted")}
-  </button>
-` : ""}
-      </div>
-    `;
-  }).join("");
+            <button onclick="updateOrderStatus(${order.id}, 'rejected')">
+              ❌ ${t("rejectOrder")}
+            </button>
+          ` : ""}
+
+          ${order.status === "accepted" ? `
+            <button onclick="updateOrderStatus(${order.id}, 'completed')">
+              ✔️ ${t("orderCompleted")}
+            </button>
+          ` : ""}
+
+        </div>
+      `;
+    }).join("");
+  }
+
+  // CONNECT FILTER
+  if (filterSelect) {
+    filterSelect.onchange = renderSellerOrders;
+  }
+
+  renderSellerOrders();
 }
-  
+    
 async function loadSellerSalesDashboard() {
   const salesElement = document.getElementById("seller-total-sales");
   const ordersElement = document.getElementById("seller-total-orders");
@@ -1588,6 +1619,8 @@ const translations = {
   sw: {
     tag: "Soko lako la kidijitali Tanzania",
     welcome: "Karibu Khan Market!",
+    filterOrders: "Chuja oda:",
+allOrders: "Oda Zote",
     intro: "Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.",
     search: "Tafuta bidhaa...",
     heading: "Bidhaa zinazopatikana",
@@ -1870,6 +1903,8 @@ txAdjustmentDebit: "Marekebisho ya kupunguza"
   en: {
     tag: "Your digital marketplace in Tanzania",
     welcome: "Welcome to Khan Market!",
+    filterOrders: "Filter orders:",
+allOrders: "All Orders",
     intro: "Find products and add what you need to your cart.",
     search: "Search products...",
     heading: "Available Products",
@@ -2149,6 +2184,8 @@ txAdjustmentDebit: "Debit adjustment"
   fr: {
     tag: "Votre marché numérique en Tanzanie",
     welcome: "Bienvenue sur Khan Market !",
+    filterOrders: "Filtrer les commandes :",
+allOrders: "Toutes les commandes",
     intro: "Trouvez des produits et ajoutez-les à votre panier.",
     search: "Rechercher des produits...",
     heading: "Produits disponibles",
@@ -2427,6 +2464,8 @@ txAdjustmentDebit: "Ajustement débiteur"
   ar: {
     tag: "سوقك الرقمي في تنزانيا",
     welcome: "مرحباً بك في خان ماركت!",
+    filterOrders: "تصفية الطلبات:",
+allOrders: "جميع الطلبات",
     intro: "ابحث عن المنتجات وأضف ما تحتاجه إلى سلتك.",
     search: "ابحث عن المنتجات...",
     heading: "المنتجات المتاحة",
@@ -3578,6 +3617,21 @@ loadProducts();
     </p>
   </div>
 </div>
+<div class="seller-order-filters">
+  <label for="seller-order-status-filter"
+         data-i18n="filterOrders">
+    Chuja oda:
+  </label>
+
+  <select id="seller-order-status-filter">
+    <option value="all" data-i18n="allOrders">Oda Zote</option>
+    <option value="pending" data-i18n="orderPending">Inasubiri</option>
+    <option value="accepted" data-i18n="orderAccepted">Imekubaliwa</option>
+    <option value="rejected" data-i18n="orderRejected">Imekataliwa</option>
+    <option value="completed" data-i18n="orderCompleted">Imekamilika</option>
+  </select>
+</div>
+
 <div id="seller-orders">
   <p>Oda za wateja zitaonekana hapa.</p>
 </div>
