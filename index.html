@@ -5362,22 +5362,43 @@ async function loadSellerNotifications() {
 
   if (!list || !unreadCount) return;
 
-  const notificationText = (key, fallback) =>
-    translations[currentLanguage]?.[key] || fallback;
+  const lang = currentLanguage || "sw";
 
-  list.textContent = notificationText(
-    "analyticsLoading",
-    "Loading..."
-  );
+  const notificationTranslations = {
+    sw: {
+      newOrder: "Oda Mpya",
+      receivedOrder: id => `Umepokea oda mpya #${id}`,
+      markAsRead: "Weka kuwa imesomwa"
+    },
+    en: {
+      newOrder: "New Order",
+      receivedOrder: id => `You received a new order #${id}`,
+      markAsRead: "Mark as read"
+    },
+    fr: {
+      newOrder: "Nouvelle commande",
+      receivedOrder: id => `Vous avez reçu une nouvelle commande #${id}`,
+      markAsRead: "Marquer comme lu"
+    },
+    ar: {
+      newOrder: "طلب جديد",
+      receivedOrder: id => `لقد استلمت طلبًا جديدًا رقم ${id}`,
+      markAsRead: "تحديد كمقروء"
+    }
+  };
+
+  const translationsForNotifications =
+    notificationTranslations[lang] || notificationTranslations.sw;
+
+  list.dir = lang === "ar" ? "rtl" : "ltr";
+
+  list.textContent = t("analyticsLoading");
 
   const { data: userData, error: userError } =
     await supabaseClient.auth.getUser();
 
   if (userError || !userData.user) {
-    list.textContent = notificationText(
-      "supportLoginRequired",
-      "Please log in first."
-    );
+    list.textContent = t("supportLoginRequired");
     unreadCount.textContent = "0";
     return;
   }
@@ -5389,11 +5410,7 @@ async function loadSellerNotifications() {
 
   if (error) {
     console.error("SELLER NOTIFICATIONS ERROR:", error);
-
-    list.textContent = notificationText(
-      "supportError",
-      "Failed to load notifications."
-    );
+    list.textContent = t("supportError");
     return;
   }
 
@@ -5405,37 +5422,48 @@ async function loadSellerNotifications() {
   unreadCount.textContent = unread.length;
 
   if (notifications.length === 0) {
-    list.textContent = notificationText(
-      "noNotifications",
-      "You have no new notifications."
-    );
+    list.textContent = t("noNotifications");
     return;
   }
 
   notifications.forEach(item => {
     const card = document.createElement("div");
     card.className = "seller-notification-card";
+    card.dir = lang === "ar" ? "rtl" : "ltr";
 
     const title = document.createElement("h4");
-    title.textContent = item.title;
-
     const message = document.createElement("p");
-    message.textContent = item.message;
+
+    if (item.notification_type === "new_order") {
+      const orderId = item.related_entity_id || "";
+
+      title.textContent = translationsForNotifications.newOrder;
+      message.textContent =
+        translationsForNotifications.receivedOrder(orderId);
+    } else {
+      title.textContent = item.title;
+      message.textContent = item.message;
+    }
 
     const date = document.createElement("small");
-    date.textContent = new Date(
-      item.created_at
-    ).toLocaleString();
+
+    const dateLocales = {
+      sw: "sw-TZ",
+      en: "en-TZ",
+      fr: "fr-FR",
+      ar: "ar"
+    };
+
+    date.textContent = new Date(item.created_at).toLocaleString(
+      dateLocales[lang] || "sw-TZ"
+    );
 
     card.append(title, message, date);
 
     if (!item.is_read) {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = notificationText(
-        "markAsRead",
-        "Mark as read"
-      );
+      button.textContent = translationsForNotifications.markAsRead;
 
       button.addEventListener("click", async () => {
         button.disabled = true;
@@ -5462,7 +5490,7 @@ async function loadSellerNotifications() {
 
     list.appendChild(card);
   });
-} 
+}
   
 document.getElementById("seller-toggle").addEventListener("click", async () => {
   const sellerInfo = document.getElementById("seller-info");
