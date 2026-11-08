@@ -1233,16 +1233,29 @@ async function loadSellerOrders() {
     return;
   }
 
-  // DISPLAY AND FILTER SELLER ORDERS
-  function renderSellerOrders() {
-    const selectedStatus = filterSelect
-      ? filterSelect.value
-      : "all";
+// DISPLAY AND FILTER SELLER ORDERS
+function renderSellerOrders() {
+  const selectedStatus = filterSelect
+    ? filterSelect.value
+    : "all";
 
-    const filteredOrders = selectedStatus === "all"
-      ? orders
-      : orders.filter(order => order.status === selectedStatus);
+  const searchInput = document.getElementById("seller-order-search");
 
+  const searchTerm = searchInput
+    ? searchInput.value.trim().toLowerCase()
+    : "";
+
+  const filteredOrders = orders.filter(order => {
+    const matchesStatus =
+      selectedStatus === "all" || order.status === selectedStatus;
+
+    const matchesSearch =
+      String(order.id).toLowerCase().includes(searchTerm) ||
+      String(order.customer_name || "").toLowerCase().includes(searchTerm) ||
+      String(order.customer_phone || "").toLowerCase().includes(searchTerm);
+
+    return matchesStatus && matchesSearch;
+  });
     if (filteredOrders.length === 0) {
       container.textContent = t("sellerNoOrders");
       return;
@@ -1304,13 +1317,18 @@ async function loadSellerOrders() {
       `;
     }).join("");
   }
+// CONNECT FILTER AND SEARCH
+if (filterSelect) {
+  filterSelect.onchange = renderSellerOrders;
+}
 
-  // CONNECT FILTER
-  if (filterSelect) {
-    filterSelect.onchange = renderSellerOrders;
-  }
+const searchInput = document.getElementById("seller-order-search");
 
-  renderSellerOrders();
+if (searchInput) {
+  searchInput.oninput = renderSellerOrders;
+}
+
+renderSellerOrders();
 }
     
 async function loadSellerSalesDashboard() {
@@ -1620,6 +1638,7 @@ const translations = {
     tag: "Soko lako la kidijitali Tanzania",
     welcome: "Karibu Khan Market!",
     filterOrders: "Chuja oda:",
+    searchOrders: "Tafuta oda...",
 allOrders: "Oda Zote",
     intro: "Tafuta bidhaa na ongeza unachohitaji kwenye kikapu chako.",
     search: "Tafuta bidhaa...",
@@ -1904,6 +1923,7 @@ txAdjustmentDebit: "Marekebisho ya kupunguza"
     tag: "Your digital marketplace in Tanzania",
     welcome: "Welcome to Khan Market!",
     filterOrders: "Filter orders:",
+    searchOrders: "Search orders...",
 allOrders: "All Orders",
     intro: "Find products and add what you need to your cart.",
     search: "Search products...",
@@ -2185,6 +2205,7 @@ txAdjustmentDebit: "Debit adjustment"
     tag: "Votre marché numérique en Tanzanie",
     welcome: "Bienvenue sur Khan Market !",
     filterOrders: "Filtrer les commandes :",
+    searchOrders: "Rechercher des commandes...",
 allOrders: "Toutes les commandes",
     intro: "Trouvez des produits et ajoutez-les à votre panier.",
     search: "Rechercher des produits...",
@@ -2465,6 +2486,7 @@ txAdjustmentDebit: "Ajustement débiteur"
     tag: "سوقك الرقمي في تنزانيا",
     welcome: "مرحباً بك في خان ماركت!",
     filterOrders: "تصفية الطلبات:",
+    searchOrders: "ابحث عن الطلبات...",
 allOrders: "جميع الطلبات",
     intro: "ابحث عن المنتجات وأضف ما تحتاجه إلى سلتك.",
     search: "ابحث عن المنتجات...",
@@ -3618,8 +3640,8 @@ loadProducts();
   </div>
 </div>
 <div class="seller-order-filters">
-  <label for="seller-order-status-filter"
-         data-i18n="filterOrders">
+
+  <label for="seller-order-status-filter" data-i18n="filterOrders">
     Chuja oda:
   </label>
 
@@ -3630,8 +3652,18 @@ loadProducts();
     <option value="rejected" data-i18n="orderRejected">Imekataliwa</option>
     <option value="completed" data-i18n="orderCompleted">Imekamilika</option>
   </select>
-</div>
 
+  <label for="seller-order-search" data-i18n="searchOrders">
+    Tafuta oda:
+  </label>
+
+  <input
+    type="search"
+    id="seller-order-search"
+    placeholder="Namba ya oda, jina la mteja au simu..."
+  >
+
+</div>
 <div id="seller-orders">
   <p>Oda za wateja zitaonekana hapa.</p>
 </div>
