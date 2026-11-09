@@ -904,6 +904,7 @@ message.textContent = t("resetSuccess");
   <script>
 
 let products = [];
+
 async function order(){
   if(!Object.keys(cart).length){
     alert(t("orderEmptyCart"));
@@ -919,76 +920,92 @@ async function order(){
   const address = prompt(t("orderEnterAddress"));
   if(!address || !address.trim()) return;
 
-  const ordersByStore = {};
-
-  for(const [id, qty] of Object.entries(cart)){
-    const p = products.find(x => String(x.id) === String(id));
-
-    if(!p){
-      alert(t("orderProductMissing"));
-      return;
+  // Four-language checkout messages
+  const checkoutMessages = {
+    sw: {
+      stockNotSet: "Muuzaji bado hajaweka idadi ya bidhaa hii kwenye stock.",
+      insufficientStock: "Samahani, idadi uliyoagiza haipatikani kwenye stock.",
+      productMissing: "Bidhaa hii haipatikani tena.",
+      generalError: "Oda haikuweza kuhifadhiwa. Tafadhali jaribu tena."
+    },
+    en: {
+      stockNotSet: "The seller has not set the stock quantity for this product yet.",
+      insufficientStock: "Sorry, the requested quantity is not available.",
+      productMissing: "This product is no longer available.",
+      generalError: "Your order could not be saved. Please try again."
+    },
+    fr: {
+      stockNotSet: "Le vendeur n'a pas encore défini le stock de ce produit.",
+      insufficientStock: "Désolé, la quantité demandée n'est pas disponible.",
+      productMissing: "Ce produit n'est plus disponible.",
+      generalError: "Votre commande n'a pas pu être enregistrée. Veuillez réessayer."
+    },
+    ar: {
+      stockNotSet: "لم يحدد البائع كمية مخزون هذا المنتج بعد.",
+      insufficientStock: "عذراً، الكمية المطلوبة غير متوفرة.",
+      productMissing: "هذا المنتج لم يعد متاحاً.",
+      generalError: "تعذر حفظ طلبك. يرجى المحاولة مرة أخرى."
     }
+  };
 
-    if(!p.storeId){
-      alert(p.sw + t("orderNoStore"));
-      return;
+  const language = checkoutMessages[currentLanguage]
+    ? currentLanguage
+    : "en";
+
+  const msg = checkoutMessages[language];
+
+  // Send only product IDs and quantities
+  const cartItems = Object.entries(cart).map(([id, qty]) => ({
+    product_id: Number(id),
+    quantity: Number(qty)
+  }));
+
+  // Secure server-side checkout
+  const { data, error } = await supabaseClient.rpc(
+    "create_market_orders",
+    {
+      p_customer_name: name.trim(),
+      p_customer_phone: phone.trim(),
+      p_delivery_address: address.trim(),
+      p_items: cartItems
     }
-
-    const storeId = p.storeId;
-
-    if(!ordersByStore[storeId]){
-      ordersByStore[storeId] = [];
-    }
-
-const finalPrice = Math.round(
-  p.price * (1 - (p.discount || 0) / 100)
-);
-
-ordersByStore[storeId].push({
-  product_id: p.id,
-  product_name: currentLanguage === "en" ? p.en : p.sw,
-  quantity: qty,
-  unit_price: finalPrice,
-  subtotal: finalPrice * qty
-});
-
-  
-  }
-
-  const orderRows = Object.entries(ordersByStore).map(([storeId, items]) => {
-    const total = items.reduce((sum, item) => sum + item.subtotal, 0);
-
-    return {
-      store_id: storeId,
-      customer_name: name.trim(),
-      customer_phone: phone.trim(),
-      delivery_address: address.trim(),
-      order_items: items,
-      total_amount: total,
-      status: "pending"
-    };
-  });
-
-  const { error } = await supabaseClient
-    .from("orders")
-    .insert(orderRows);
+  );
 
   if(error){
-    console.error("ORDER ERROR:", error);
-    alert(t("orderSaveError") + error.message);
+    console.error("SECURE CHECKOUT ERROR:", error);
+
+    if(error.message.includes("PRODUCT_STOCK_NOT_SET")){
+      alert(msg.stockNotSet);
+      return;
+    }
+
+    if(error.message.includes("INSUFFICIENT_STOCK")){
+      alert(msg.insufficientStock);
+      return;
+    }
+
+    if(error.message.includes("PRODUCT_NOT_FOUND")){
+      alert(msg.productMissing);
+      return;
+    }
+
+    alert(msg.generalError);
     return;
   }
 
-  const grandTotal = orderRows.reduce(
-    (sum, order) => sum + Number(order.total_amount),
-    0
-  );
+  if(!data || !data.success){
+    alert(msg.generalError);
+    return;
+  }
+
+  const grandTotal = Number(data.grand_total);
 
   alert(t("orderSuccess") + money(grandTotal));
 
   cart = {};
   showCart();
 }
+
 
 async function loadProducts() {
   const { data, error } = await supabaseClient
