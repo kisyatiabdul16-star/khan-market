@@ -1056,95 +1056,275 @@ async function loadProducts() {
 
   showProducts();
 }
+
+// ==========================================
+// KHAN MARKET — SELLER PRODUCTS & INVENTORY
+// ==========================================
+
+function inventoryEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function inventorySafeImage(url) {
+  const value = String(url ?? "").trim();
+
+  if (!value) return "";
+
+  try {
+    const parsed = new URL(value, window.location.origin);
+
+    if (!["https:", "http:"].includes(parsed.protocol)) {
+      return "";
+    }
+
+    return inventoryEscape(parsed.href);
+  } catch {
+    return "";
+  }
+}
+
 async function loadSellerProducts() {
   const container = document.getElementById("seller-products");
 
-  container.innerHTML = "<p>Inapakia bidhaa zako...</p>";
-
-  const { data: userData, error: userError } =
-    await supabaseClient.auth.getUser();
-
-  if (userError || !userData.user) {
-   container.textContent = t("loginRequired"); 
+  if (!container) {
+    console.error("SELLER PRODUCTS: Container #seller-products haipo.");
     return;
   }
 
-  const { data: stores, error: storeError } = await supabaseClient
-    .from("stores")
-    .select("id")
-    .eq("owner_id", userData.user.id);
+  container.innerHTML = `<p>Inapakia bidhaa zako...</p>`;
 
-  if (storeError) {
-    container.textContent = "Hitilafu: " + storeError.message;
-    return;
-  }
+  try {
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser();
 
-  if (!stores || stores.length === 0) {
-    container.textContent = "Hujasajili duka bado.";
-    return;
-  }
+    if (userError || !userData?.user) {
+      container.textContent = t("loginRequired");
+      return;
+    }
 
-  const storeIds = stores.map(store => store.id);
+    const { data: stores, error: storeError } = await supabaseClient
+      .from("stores")
+      .select("id")
+      .eq("owner_id", userData.user.id);
 
-  const { data: myProducts, error: productError } = await supabaseClient
-    .from("products")
-    .select("*")
-    .in("store_id", storeIds);
+    if (storeError) throw storeError;
 
-  if (productError) {
-    container.textContent = "Hitilafu: " + productError.message;
-    return;
-  }
+    if (!stores || stores.length === 0) {
+      container.textContent = "Hujasajili duka bado.";
+      return;
+    }
 
-  if (!myProducts || myProducts.length === 0) {
-    container.textContent = "Bado hujaongeza bidhaa.";
-    return;
-  }
+    const storeIds = stores.map(store => store.id);
 
-  const productIds = myProducts.map(product => product.id);
+    const { data: products, error: productError } = await supabaseClient
+      .from("products")
+      .select("*")
+      .in("store_id", storeIds)
+      .order("id", { ascending: false });
 
-  const { data: images, error: imageError } = await supabaseClient
-    .from("product_images")
-    .select("product_id, image_url")
-    .in("product_id", productIds);
+    if (productError) throw productError;
 
-  if (imageError) {
-    console.error("SELLER IMAGE ERROR:", imageError);
-  }
+    if (!products || products.length === 0) {
+      container.textContent = "Bado hujaongeza bidhaa.";
+      return;
+    }
 
-  container.innerHTML = myProducts.map(product => {
-    const productImages = (images || []).filter(
-      image => Number(image.product_id) === Number(product.id)
+    const productIds = products.map(product => product.id);
+
+    const { data: images, error: imageError } = await supabaseClient
+      .from("product_images")
+      .select("product_id, image_url")
+      .in("product_id", productIds);
+
+    if (imageError) {
+      console.error("SELLER IMAGE ERROR:", imageError);
+    }
+
+    const getStock = product => {
+      const stock = Number(product.stock ?? 0);
+      return Number.isFinite(stock) && stock > 0 ? stock : 0;
+    };
+
+    const totalProducts = products.length;
+
+    const totalUnits = products.reduce(
+      (total, product) => total + getStock(product),
+      0
     );
 
-    return `
-      <div style="border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:8px;">
-        <h4>${product.Name || "Bidhaa"}</h4>
-        
-<p>
-  📦 ${t("productStock")}: ${Number(product.stock ?? 0)}
-</p>
-        ${productImages.map(image => `
-          <img
-            src="${image.image_url}"
-            alt="Picha ya bidhaa"
-            style="width:120px; height:120px; object-fit:cover; border-radius:8px; margin:5px;"
-          >
-        `).join("")}
-<button
-  onclick="editProduct(${product.id})"
-  style="background:#1976d2; color:white; padding:8px 15px; border:0; border-radius:6px; cursor:pointer;">
-✏️ ${t("editButton")}
-</button>
-  <button
-  onclick="deleteProduct(${product.id})"
-  style="background:#d32f2f; color:white; padding:8px 15px; border:0; border-radius:6px; cursor:pointer;">
-  🗑️ ${t("deleteButton")}
-</button>      
-      </div>
+    const lowStock = products.filter(product => {
+      const stock = getStock(product);
+      return stock > 0 && stock <= 5;
+    }).length;
+
+    const outOfStock = products.filter(
+      product => getStock(product) === 0
+    ).length;
+
+    const rtl = currentLanguage === "ar";
+
+    container.dir = rtl ? "rtl" : "ltr";
+
+    container.innerHTML = `
+      <section style="margin-bottom:20px;">
+
+        <h3>${t("inventoryTitle")}</h3>
+
+        <div style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+          gap:12px;
+          margin:15px 0;
+        ">
+
+          <div style="background:#e3f2fd;padding:15px;border-radius:10px;">
+            <strong>${t("inventoryTotalProducts")}</strong>
+            <h2>${totalProducts}</h2>
+          </div>
+
+          <div style="background:#e8f5e9;padding:15px;border-radius:10px;">
+            <strong>${t("inventoryTotalUnits")}</strong>
+            <h2>${totalUnits}</h2>
+          </div>
+
+          <div style="background:#fff3e0;padding:15px;border-radius:10px;">
+            <strong>${t("inventoryLowStock")}</strong>
+            <h2>${lowStock}</h2>
+          </div>
+
+          <div style="background:#ffebee;padding:15px;border-radius:10px;">
+            <strong>${t("inventoryOutOfStock")}</strong>
+            <h2>${outOfStock}</h2>
+          </div>
+
+        </div>
+      </section>
+
+      <section>
+        ${products.map(product => {
+          const stock = getStock(product);
+
+          const productImages = (images || []).filter(
+            image => String(image.product_id) === String(product.id)
+          );
+
+          const productName = inventoryEscape(
+            product.Name || "Bidhaa"
+          );
+
+          const statusKey = stock === 0
+            ? "inventoryOutOfStock"
+            : stock <= 5
+              ? "inventoryLowStock"
+              : "inventoryInStock";
+
+          const statusColor = stock === 0
+            ? "#d32f2f"
+            : stock <= 5
+              ? "#ed6c02"
+              : "#2e7d32";
+
+          const imageHTML = productImages.map(image => {
+            const safeURL = inventorySafeImage(image.image_url);
+
+            return safeURL ? `
+              <img
+                src="${safeURL}"
+                alt="${t("inventoryImageAlt")}"
+                loading="lazy"
+                style="
+                  width:110px;
+                  height:110px;
+                  object-fit:cover;
+                  border-radius:8px;
+                  margin:5px;
+                "
+              >
+            ` : "";
+          }).join("");
+
+          return `
+            <article style="
+              border:1px solid #ddd;
+              padding:15px;
+              margin:12px 0;
+              border-radius:12px;
+              background:white;
+            ">
+
+              <h4>${productName}</h4>
+
+              <p>
+                📦 ${t("inventoryStock")}:
+                <strong>${stock}</strong>
+              </p>
+
+              <p style="
+                color:${statusColor};
+                font-weight:bold;
+              ">
+                ${t(statusKey)}
+              </p>
+
+              <div>${imageHTML}</div>
+
+              <div style="
+                display:flex;
+                flex-wrap:wrap;
+                gap:10px;
+                margin-top:12px;
+              ">
+
+                <button
+                  onclick="editProduct(${Number(product.id)})"
+                  style="
+                    background:#1976d2;
+                    color:white;
+                    padding:9px 15px;
+                    border:0;
+                    border-radius:6px;
+                    cursor:pointer;
+                  "
+                >
+                  ✏️ ${t("editButton")}
+                </button>
+
+                <button
+                  onclick="deleteProduct(${Number(product.id)})"
+                  style="
+                    background:#d32f2f;
+                    color:white;
+                    padding:9px 15px;
+                    border:0;
+                    border-radius:6px;
+                    cursor:pointer;
+                  "
+                >
+                  🗑️ ${t("deleteButton")}
+                </button>
+
+              </div>
+            </article>
+          `;
+        }).join("")}
+      </section>
     `;
-  }).join("");
+
+  } catch (error) {
+    console.error("SELLER INVENTORY ERROR:", error);
+
+    container.textContent =
+      "Hitilafu wakati wa kupakia bidhaa: " +
+      (error.message || "Unknown error");
+  }
 }
+
 async function updateOrderStatus(orderId, newStatus) {
  if (!["accepted", "rejected", "completed"].includes(newStatus)) { 
     return;
@@ -1918,6 +2098,20 @@ supportResolved: "Limetatuliwa",
 supportSent: "Ombi lako limetumwa kikamilifu.",
 supportError: "Imeshindwa kutuma ombi. Jaribu tena.",
 supportLoginRequired: "Ingia kwenye akaunti yako kwanza.",
+    
+    // INVENTORY & STOCK MANAGEMENT
+    inventoryTitle: "Usimamizi wa Bidhaa na Stock",
+    inventoryTotalProducts: "Jumla ya Bidhaa",
+    inventoryTotalUnits: "Jumla ya Stock",
+    inventoryLowStock: "Stock Inayokaribia Kuisha",
+    inventoryOutOfStock: "Stock Imeisha",
+    inventoryInStock: "Stock Inapatikana",
+    inventoryStock: "Idadi ya Stock",
+    inventoryLoading: "Inapakia bidhaa zako...",
+    inventoryNoProducts: "Bado hujaongeza bidhaa.",
+    inventoryNoStore: "Hujasajili duka bado.",
+    inventoryLoadError: "Hitilafu wakati wa kupakia bidhaa.",
+    inventoryImageAlt: "Picha ya bidhaa",
 // PASSWORD RECOVERY
 newPasswordTitle: "Weka Nenosiri Jipya",
 newPasswordPlaceholder: "Nenosiri jipya (angalau herufi 8)",
@@ -2200,6 +2394,21 @@ supportResolved: "Resolved",
 supportSent: "Your request was submitted successfully.",
 supportError: "Failed to submit request. Please try again.",
 supportLoginRequired: "Please log in to your account first.",
+   
+    // INVENTORY & STOCK MANAGEMENT
+    inventoryTitle: "Inventory & Stock Management",
+    inventoryTotalProducts: "Total Products",
+    inventoryTotalUnits: "Total Stock Units",
+    inventoryLowStock: "Low Stock",
+    inventoryOutOfStock: "Out of Stock",
+    inventoryInStock: "In Stock",
+    inventoryStock: "Stock Quantity",
+    inventoryLoading: "Loading your products...",
+    inventoryNoProducts: "You have not added any products yet.",
+    inventoryNoStore: "You have not registered a store yet.",
+    inventoryLoadError: "Error loading products.",
+    inventoryImageAlt: "Product image",
+ 
    // PASSWORD RECOVERY
 newPasswordTitle: "Set a New Password",
 newPasswordPlaceholder: "New password (at least 8 characters)",
@@ -2481,6 +2690,21 @@ supportResolved: "Résolu",
 supportSent: "Votre demande a été envoyée avec succès.",
 supportError: "Échec de l'envoi. Veuillez réessayer.",
 supportLoginRequired: "Veuillez d'abord vous connecter.",
+    
+    // INVENTORY & STOCK MANAGEMENT
+    inventoryTitle: "Gestion des produits et des stocks",
+    inventoryTotalProducts: "Total des produits",
+    inventoryTotalUnits: "Quantité totale en stock",
+    inventoryLowStock: "Stock faible",
+    inventoryOutOfStock: "Rupture de stock",
+    inventoryInStock: "En stock",
+    inventoryStock: "Quantité en stock",
+    inventoryLoading: "Chargement de vos produits...",
+    inventoryNoProducts: "Vous n'avez pas encore ajouté de produits.",
+    inventoryNoStore: "Vous n'avez pas encore enregistré de boutique.",
+    inventoryLoadError: "Erreur lors du chargement des produits.",
+    inventoryImageAlt: "Image du produit",
+
     // PASSWORD RECOVERY
 newPasswordTitle: "Définir un nouveau mot de passe",
 newPasswordPlaceholder: "Nouveau mot de passe (8 caractères minimum)",
@@ -2762,6 +2986,21 @@ supportResolved: "تم الحل",
 supportSent: "تم إرسال طلبك بنجاح.",
 supportError: "تعذر إرسال الطلب. حاول مرة أخرى.",
 supportLoginRequired: "يرجى تسجيل الدخول أولاً.",
+   
+    // INVENTORY & STOCK MANAGEMENT
+    inventoryTitle: "إدارة المنتجات والمخزون",
+    inventoryTotalProducts: "إجمالي المنتجات",
+    inventoryTotalUnits: "إجمالي وحدات المخزون",
+    inventoryLowStock: "مخزون منخفض",
+    inventoryOutOfStock: "نفد المخزون",
+    inventoryInStock: "متوفر في المخزون",
+    inventoryStock: "كمية المخزون",
+    inventoryLoading: "جارٍ تحميل منتجاتك...",
+    inventoryNoProducts: "لم تقم بإضافة أي منتجات بعد.",
+    inventoryNoStore: "لم تقم بتسجيل متجر بعد.",
+    inventoryLoadError: "حدث خطأ أثناء تحميل المنتجات.",
+    inventoryImageAlt: "صورة المنتج",
+ 
 // PASSWORD RECOVERY
 newPasswordTitle: "تعيين كلمة مرور جديدة",
 newPasswordPlaceholder: "كلمة المرور الجديدة (8 أحرف على الأقل)",
