@@ -1061,10 +1061,43 @@ async function loadProducts() {
 // KHAN MARKET — INVENTORY SEARCH & FILTERS
 // ==========================================
 
+// SECURITY HELPERS
+function inventoryEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function inventorySafeImage(url) {
+  if (!url) return "";
+
+  try {
+    const parsed = new URL(url, window.location.origin);
+
+    if (!["https:", "http:"].includes(parsed.protocol)) {
+      return "";
+    }
+
+    return parsed.href;
+  } catch {
+    return "";
+  }
+}
+
+// INVENTORY STATE
 let sellerInventoryProducts = [];
 let sellerInventoryImages = [];
 let sellerInventoryFilter = "all";
 let sellerInventorySearch = "";
+
+
+// ==========================================
+// RENDER SELLER INVENTORY
+// ==========================================
 
 function renderSellerInventory() {
   const container = document.getElementById("seller-products");
@@ -1076,11 +1109,16 @@ function renderSellerInventory() {
 
   const getStock = product => {
     const value = Number(product.stock ?? 0);
-    return Number.isFinite(value) && value > 0 ? value : 0;
+
+    return Number.isFinite(value) && value > 0
+      ? value
+      : 0;
   };
 
+  // SEARCH + FILTER
   const filteredProducts = sellerInventoryProducts.filter(product => {
     const name = String(product.Name || "").toLowerCase();
+
     const matchesSearch = name.includes(
       sellerInventorySearch.trim().toLowerCase()
     );
@@ -1100,6 +1138,7 @@ function renderSellerInventory() {
     return matchesSearch && matchesFilter;
   });
 
+  // INVENTORY STATISTICS
   const totalProducts = sellerInventoryProducts.length;
 
   const totalUnits = sellerInventoryProducts.reduce(
@@ -1116,6 +1155,8 @@ function renderSellerInventory() {
     product => getStock(product) === 0
   ).length;
 
+
+  // INVENTORY UI
   container.innerHTML = `
     <section style="margin-bottom:20px;">
 
@@ -1151,12 +1192,14 @@ function renderSellerInventory() {
       </div>
     </section>
 
+
+    <!-- SEARCH AND FILTERS -->
     <section style="margin-bottom:20px;">
 
       <input
         type="search"
         id="inventory-search"
-        placeholder="${t("inventorySearchPlaceholder")}"
+        placeholder="${inventoryEscape(t("inventorySearchPlaceholder"))}"
         value="${inventoryEscape(sellerInventorySearch)}"
         oninput="handleInventorySearch(this.value)"
         style="
@@ -1184,6 +1227,7 @@ function renderSellerInventory() {
           margin-top:6px;
         "
       >
+
         <option value="all" ${sellerInventoryFilter === "all" ? "selected" : ""}>
           ${t("inventoryFilterAll")}
         </option>
@@ -1199,19 +1243,25 @@ function renderSellerInventory() {
         <option value="out_of_stock" ${sellerInventoryFilter === "out_of_stock" ? "selected" : ""}>
           ${t("inventoryFilterOutOfStock")}
         </option>
+
       </select>
 
     </section>
 
+
+    <!-- PRODUCT LIST -->
     <section>
+
       ${
         filteredProducts.length === 0
           ? `<p>${t("inventoryNoResults")}</p>`
           : filteredProducts.map(product => {
+
               const stock = getStock(product);
 
               const productImages = sellerInventoryImages.filter(
-                image => String(image.product_id) === String(product.id)
+                image =>
+                  String(image.product_id) === String(product.id)
               );
 
               const statusKey = stock === 0
@@ -1227,12 +1277,15 @@ function renderSellerInventory() {
                   : "#2e7d32";
 
               const imageHTML = productImages.map(image => {
+
                 const safeURL = inventorySafeImage(image.image_url);
 
-                return safeURL ? `
+                if (!safeURL) return "";
+
+                return `
                   <img
-                    src="${safeURL}"
-                    alt="${t("inventoryImageAlt")}"
+                    src="${inventoryEscape(safeURL)}"
+                    alt="${inventoryEscape(t("inventoryImageAlt"))}"
                     loading="lazy"
                     style="
                       width:110px;
@@ -1242,8 +1295,11 @@ function renderSellerInventory() {
                       margin:5px;
                     "
                   >
-                ` : "";
+                `;
+
               }).join("");
+
+              const productId = Number(product.id);
 
               return `
                 <article style="
@@ -1254,52 +1310,88 @@ function renderSellerInventory() {
                   background:white;
                 ">
 
-                  <h4>${inventoryEscape(product.Name || "Bidhaa")}</h4>
+                  <h4>
+                    ${inventoryEscape(product.Name || "Bidhaa")}
+                  </h4>
 
                   <p>
                     📦 ${t("inventoryStock")}:
                     <strong>${stock}</strong>
                   </p>
 
-                  <p style="color:${statusColor};font-weight:bold;">
+                  <p style="
+                    color:${statusColor};
+                    font-weight:bold;
+                  ">
                     ${t(statusKey)}
                   </p>
 
-                  <div>${imageHTML}</div>
+                  <div>
+                    ${imageHTML}
+                  </div>
 
-                  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;">
+                  <div style="
+                    display:flex;
+                    flex-wrap:wrap;
+                    gap:10px;
+                    margin-top:12px;
+                  ">
 
                     <button
-                      onclick="editProduct(${Number(product.id)})"
-                      style="background:#1976d2;color:white;padding:9px 15px;border:0;border-radius:6px;cursor:pointer;"
+                      onclick="editProduct(${productId})"
+                      style="
+                        background:#1976d2;
+                        color:white;
+                        padding:9px 15px;
+                        border:0;
+                        border-radius:6px;
+                        cursor:pointer;
+                      "
                     >
                       ✏️ ${t("editButton")}
                     </button>
 
                     <button
-                      onclick="deleteProduct(${Number(product.id)})"
-                      style="background:#d32f2f;color:white;padding:9px 15px;border:0;border-radius:6px;cursor:pointer;"
+                      onclick="deleteProduct(${productId})"
+                      style="
+                        background:#d32f2f;
+                        color:white;
+                        padding:9px 15px;
+                        border:0;
+                        border-radius:6px;
+                        cursor:pointer;
+                      "
                     >
                       🗑️ ${t("deleteButton")}
                     </button>
 
                   </div>
+
                 </article>
               `;
+
             }).join("")
       }
+
     </section>
   `;
 }
 
+
+// ==========================================
+// INVENTORY SEARCH
+// ==========================================
+
 function handleInventorySearch(value) {
   sellerInventorySearch = value;
+
   renderSellerInventory();
 
   const searchInput = document.getElementById("inventory-search");
 
   if (searchInput) {
     searchInput.focus();
+
     searchInput.setSelectionRange(
       sellerInventorySearch.length,
       sellerInventorySearch.length
@@ -1307,7 +1399,13 @@ function handleInventorySearch(value) {
   }
 }
 
+
+// ==========================================
+// INVENTORY FILTER
+// ==========================================
+
 function handleInventoryFilter(value) {
+
   const allowedFilters = [
     "all",
     "in_stock",
