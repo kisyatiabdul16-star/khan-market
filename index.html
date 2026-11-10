@@ -1058,52 +1058,284 @@ async function loadProducts() {
 }
 
 // ==========================================
-// KHAN MARKET — SELLER PRODUCTS & INVENTORY
+// KHAN MARKET — INVENTORY SEARCH & FILTERS
 // ==========================================
 
-function inventoryEscape(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-}
+let sellerInventoryProducts = [];
+let sellerInventoryImages = [];
+let sellerInventoryFilter = "all";
+let sellerInventorySearch = "";
 
-function inventorySafeImage(url) {
-  const value = String(url ?? "").trim();
+function renderSellerInventory() {
+  const container = document.getElementById("seller-products");
 
-  if (!value) return "";
+  if (!container) return;
 
-  try {
-    const parsed = new URL(value, window.location.origin);
+  const rtl = currentLanguage === "ar";
+  container.dir = rtl ? "rtl" : "ltr";
 
-    if (!["https:", "http:"].includes(parsed.protocol)) {
-      return "";
+  const getStock = product => {
+    const value = Number(product.stock ?? 0);
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  };
+
+  const filteredProducts = sellerInventoryProducts.filter(product => {
+    const name = String(product.Name || "").toLowerCase();
+    const matchesSearch = name.includes(
+      sellerInventorySearch.trim().toLowerCase()
+    );
+
+    const stock = getStock(product);
+
+    let matchesFilter = true;
+
+    if (sellerInventoryFilter === "in_stock") {
+      matchesFilter = stock > 5;
+    } else if (sellerInventoryFilter === "low_stock") {
+      matchesFilter = stock > 0 && stock <= 5;
+    } else if (sellerInventoryFilter === "out_of_stock") {
+      matchesFilter = stock === 0;
     }
 
-    return inventoryEscape(parsed.href);
-  } catch {
-    return "";
+    return matchesSearch && matchesFilter;
+  });
+
+  const totalProducts = sellerInventoryProducts.length;
+
+  const totalUnits = sellerInventoryProducts.reduce(
+    (sum, product) => sum + getStock(product),
+    0
+  );
+
+  const lowStock = sellerInventoryProducts.filter(product => {
+    const stock = getStock(product);
+    return stock > 0 && stock <= 5;
+  }).length;
+
+  const outOfStock = sellerInventoryProducts.filter(
+    product => getStock(product) === 0
+  ).length;
+
+  container.innerHTML = `
+    <section style="margin-bottom:20px;">
+
+      <h3>${t("inventoryTitle")}</h3>
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+        gap:12px;
+        margin:15px 0;
+      ">
+
+        <div style="background:#e3f2fd;padding:15px;border-radius:10px;">
+          <strong>${t("inventoryTotalProducts")}</strong>
+          <h2>${totalProducts}</h2>
+        </div>
+
+        <div style="background:#e8f5e9;padding:15px;border-radius:10px;">
+          <strong>${t("inventoryTotalUnits")}</strong>
+          <h2>${totalUnits}</h2>
+        </div>
+
+        <div style="background:#fff3e0;padding:15px;border-radius:10px;">
+          <strong>${t("inventoryLowStock")}</strong>
+          <h2>${lowStock}</h2>
+        </div>
+
+        <div style="background:#ffebee;padding:15px;border-radius:10px;">
+          <strong>${t("inventoryOutOfStock")}</strong>
+          <h2>${outOfStock}</h2>
+        </div>
+
+      </div>
+    </section>
+
+    <section style="margin-bottom:20px;">
+
+      <input
+        type="search"
+        id="inventory-search"
+        placeholder="${t("inventorySearchPlaceholder")}"
+        value="${inventoryEscape(sellerInventorySearch)}"
+        oninput="handleInventorySearch(this.value)"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          padding:12px;
+          border:1px solid #ccc;
+          border-radius:8px;
+          margin-bottom:12px;
+        "
+      >
+
+      <label for="inventory-filter">
+        ${t("inventoryFilterLabel")}
+      </label>
+
+      <select
+        id="inventory-filter"
+        onchange="handleInventoryFilter(this.value)"
+        style="
+          width:100%;
+          padding:12px;
+          border:1px solid #ccc;
+          border-radius:8px;
+          margin-top:6px;
+        "
+      >
+        <option value="all" ${sellerInventoryFilter === "all" ? "selected" : ""}>
+          ${t("inventoryFilterAll")}
+        </option>
+
+        <option value="in_stock" ${sellerInventoryFilter === "in_stock" ? "selected" : ""}>
+          ${t("inventoryFilterInStock")}
+        </option>
+
+        <option value="low_stock" ${sellerInventoryFilter === "low_stock" ? "selected" : ""}>
+          ${t("inventoryFilterLowStock")}
+        </option>
+
+        <option value="out_of_stock" ${sellerInventoryFilter === "out_of_stock" ? "selected" : ""}>
+          ${t("inventoryFilterOutOfStock")}
+        </option>
+      </select>
+
+    </section>
+
+    <section>
+      ${
+        filteredProducts.length === 0
+          ? `<p>${t("inventoryNoResults")}</p>`
+          : filteredProducts.map(product => {
+              const stock = getStock(product);
+
+              const productImages = sellerInventoryImages.filter(
+                image => String(image.product_id) === String(product.id)
+              );
+
+              const statusKey = stock === 0
+                ? "inventoryOutOfStock"
+                : stock <= 5
+                  ? "inventoryLowStock"
+                  : "inventoryInStock";
+
+              const statusColor = stock === 0
+                ? "#d32f2f"
+                : stock <= 5
+                  ? "#ed6c02"
+                  : "#2e7d32";
+
+              const imageHTML = productImages.map(image => {
+                const safeURL = inventorySafeImage(image.image_url);
+
+                return safeURL ? `
+                  <img
+                    src="${safeURL}"
+                    alt="${t("inventoryImageAlt")}"
+                    loading="lazy"
+                    style="
+                      width:110px;
+                      height:110px;
+                      object-fit:cover;
+                      border-radius:8px;
+                      margin:5px;
+                    "
+                  >
+                ` : "";
+              }).join("");
+
+              return `
+                <article style="
+                  border:1px solid #ddd;
+                  padding:15px;
+                  margin:12px 0;
+                  border-radius:12px;
+                  background:white;
+                ">
+
+                  <h4>${inventoryEscape(product.Name || "Bidhaa")}</h4>
+
+                  <p>
+                    📦 ${t("inventoryStock")}:
+                    <strong>${stock}</strong>
+                  </p>
+
+                  <p style="color:${statusColor};font-weight:bold;">
+                    ${t(statusKey)}
+                  </p>
+
+                  <div>${imageHTML}</div>
+
+                  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;">
+
+                    <button
+                      onclick="editProduct(${Number(product.id)})"
+                      style="background:#1976d2;color:white;padding:9px 15px;border:0;border-radius:6px;cursor:pointer;"
+                    >
+                      ✏️ ${t("editButton")}
+                    </button>
+
+                    <button
+                      onclick="deleteProduct(${Number(product.id)})"
+                      style="background:#d32f2f;color:white;padding:9px 15px;border:0;border-radius:6px;cursor:pointer;"
+                    >
+                      🗑️ ${t("deleteButton")}
+                    </button>
+
+                  </div>
+                </article>
+              `;
+            }).join("")
+      }
+    </section>
+  `;
+}
+
+function handleInventorySearch(value) {
+  sellerInventorySearch = value;
+  renderSellerInventory();
+
+  const searchInput = document.getElementById("inventory-search");
+
+  if (searchInput) {
+    searchInput.focus();
+    searchInput.setSelectionRange(
+      sellerInventorySearch.length,
+      sellerInventorySearch.length
+    );
   }
+}
+
+function handleInventoryFilter(value) {
+  const allowedFilters = [
+    "all",
+    "in_stock",
+    "low_stock",
+    "out_of_stock"
+  ];
+
+  sellerInventoryFilter = allowedFilters.includes(value)
+    ? value
+    : "all";
+
+  renderSellerInventory();
 }
 
 async function loadSellerProducts() {
   const container = document.getElementById("seller-products");
 
-  if (!container) {
-    console.error("SELLER PRODUCTS: Container #seller-products haipo.");
-    return;
-  }
+  if (!container) return;
 
-  container.innerHTML = `<p>Inapakia bidhaa zako...</p>`;
+  container.textContent = t("inventoryLoading");
 
   try {
     const { data: userData, error: userError } =
       await supabaseClient.auth.getUser();
 
-    if (userError || !userData?.user) {
+    if (userError) throw userError;
+
+    if (!userData?.user) {
       container.textContent = t("loginRequired");
       return;
     }
@@ -1116,7 +1348,7 @@ async function loadSellerProducts() {
     if (storeError) throw storeError;
 
     if (!stores || stores.length === 0) {
-      container.textContent = "Hujasajili duka bado.";
+      container.textContent = t("inventoryNoStore");
       return;
     }
 
@@ -1130,12 +1362,15 @@ async function loadSellerProducts() {
 
     if (productError) throw productError;
 
-    if (!products || products.length === 0) {
-      container.textContent = "Bado hujaongeza bidhaa.";
+    sellerInventoryProducts = products || [];
+
+    if (sellerInventoryProducts.length === 0) {
+      sellerInventoryImages = [];
+      container.textContent = t("inventoryNoProducts");
       return;
     }
 
-    const productIds = products.map(product => product.id);
+    const productIds = sellerInventoryProducts.map(product => product.id);
 
     const { data: images, error: imageError } = await supabaseClient
       .from("product_images")
@@ -1146,182 +1381,15 @@ async function loadSellerProducts() {
       console.error("SELLER IMAGE ERROR:", imageError);
     }
 
-    const getStock = product => {
-      const stock = Number(product.stock ?? 0);
-      return Number.isFinite(stock) && stock > 0 ? stock : 0;
-    };
+    sellerInventoryImages = images || [];
 
-    const totalProducts = products.length;
-
-    const totalUnits = products.reduce(
-      (total, product) => total + getStock(product),
-      0
-    );
-
-    const lowStock = products.filter(product => {
-      const stock = getStock(product);
-      return stock > 0 && stock <= 5;
-    }).length;
-
-    const outOfStock = products.filter(
-      product => getStock(product) === 0
-    ).length;
-
-    const rtl = currentLanguage === "ar";
-
-    container.dir = rtl ? "rtl" : "ltr";
-
-    container.innerHTML = `
-      <section style="margin-bottom:20px;">
-
-        <h3>${t("inventoryTitle")}</h3>
-
-        <div style="
-          display:grid;
-          grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
-          gap:12px;
-          margin:15px 0;
-        ">
-
-          <div style="background:#e3f2fd;padding:15px;border-radius:10px;">
-            <strong>${t("inventoryTotalProducts")}</strong>
-            <h2>${totalProducts}</h2>
-          </div>
-
-          <div style="background:#e8f5e9;padding:15px;border-radius:10px;">
-            <strong>${t("inventoryTotalUnits")}</strong>
-            <h2>${totalUnits}</h2>
-          </div>
-
-          <div style="background:#fff3e0;padding:15px;border-radius:10px;">
-            <strong>${t("inventoryLowStock")}</strong>
-            <h2>${lowStock}</h2>
-          </div>
-
-          <div style="background:#ffebee;padding:15px;border-radius:10px;">
-            <strong>${t("inventoryOutOfStock")}</strong>
-            <h2>${outOfStock}</h2>
-          </div>
-
-        </div>
-      </section>
-
-      <section>
-        ${products.map(product => {
-          const stock = getStock(product);
-
-          const productImages = (images || []).filter(
-            image => String(image.product_id) === String(product.id)
-          );
-
-          const productName = inventoryEscape(
-            product.Name || "Bidhaa"
-          );
-
-          const statusKey = stock === 0
-            ? "inventoryOutOfStock"
-            : stock <= 5
-              ? "inventoryLowStock"
-              : "inventoryInStock";
-
-          const statusColor = stock === 0
-            ? "#d32f2f"
-            : stock <= 5
-              ? "#ed6c02"
-              : "#2e7d32";
-
-          const imageHTML = productImages.map(image => {
-            const safeURL = inventorySafeImage(image.image_url);
-
-            return safeURL ? `
-              <img
-                src="${safeURL}"
-                alt="${t("inventoryImageAlt")}"
-                loading="lazy"
-                style="
-                  width:110px;
-                  height:110px;
-                  object-fit:cover;
-                  border-radius:8px;
-                  margin:5px;
-                "
-              >
-            ` : "";
-          }).join("");
-
-          return `
-            <article style="
-              border:1px solid #ddd;
-              padding:15px;
-              margin:12px 0;
-              border-radius:12px;
-              background:white;
-            ">
-
-              <h4>${productName}</h4>
-
-              <p>
-                📦 ${t("inventoryStock")}:
-                <strong>${stock}</strong>
-              </p>
-
-              <p style="
-                color:${statusColor};
-                font-weight:bold;
-              ">
-                ${t(statusKey)}
-              </p>
-
-              <div>${imageHTML}</div>
-
-              <div style="
-                display:flex;
-                flex-wrap:wrap;
-                gap:10px;
-                margin-top:12px;
-              ">
-
-                <button
-                  onclick="editProduct(${Number(product.id)})"
-                  style="
-                    background:#1976d2;
-                    color:white;
-                    padding:9px 15px;
-                    border:0;
-                    border-radius:6px;
-                    cursor:pointer;
-                  "
-                >
-                  ✏️ ${t("editButton")}
-                </button>
-
-                <button
-                  onclick="deleteProduct(${Number(product.id)})"
-                  style="
-                    background:#d32f2f;
-                    color:white;
-                    padding:9px 15px;
-                    border:0;
-                    border-radius:6px;
-                    cursor:pointer;
-                  "
-                >
-                  🗑️ ${t("deleteButton")}
-                </button>
-
-              </div>
-            </article>
-          `;
-        }).join("")}
-      </section>
-    `;
+    renderSellerInventory();
 
   } catch (error) {
     console.error("SELLER INVENTORY ERROR:", error);
 
     container.textContent =
-      "Hitilafu wakati wa kupakia bidhaa: " +
-      (error.message || "Unknown error");
+      t("inventoryLoadError") + " " + (error.message || "");
   }
 }
 
@@ -2112,6 +2180,16 @@ supportLoginRequired: "Ingia kwenye akaunti yako kwanza.",
     inventoryNoStore: "Hujasajili duka bado.",
     inventoryLoadError: "Hitilafu wakati wa kupakia bidhaa.",
     inventoryImageAlt: "Picha ya bidhaa",
+    
+    // INVENTORY SEARCH & FILTERS
+    inventorySearchPlaceholder: "Tafuta bidhaa kwa jina...",
+    inventoryFilterLabel: "Chuja bidhaa",
+    inventoryFilterAll: "Bidhaa zote",
+    inventoryFilterInStock: "Zenye stock",
+    inventoryFilterLowStock: "Stock inayokaribia kuisha",
+    inventoryFilterOutOfStock: "Zilizoishiwa stock",
+    inventoryNoResults: "Hakuna bidhaa iliyopatikana.",
+
 // PASSWORD RECOVERY
 newPasswordTitle: "Weka Nenosiri Jipya",
 newPasswordPlaceholder: "Nenosiri jipya (angalau herufi 8)",
@@ -2408,7 +2486,16 @@ supportLoginRequired: "Please log in to your account first.",
     inventoryNoStore: "You have not registered a store yet.",
     inventoryLoadError: "Error loading products.",
     inventoryImageAlt: "Product image",
- 
+    
+    // INVENTORY SEARCH & FILTERS
+    inventorySearchPlaceholder: "Search products by name...",
+    inventoryFilterLabel: "Filter products",
+    inventoryFilterAll: "All products",
+    inventoryFilterInStock: "In stock",
+    inventoryFilterLowStock: "Low stock",
+    inventoryFilterOutOfStock: "Out of stock",
+    inventoryNoResults: "No products found.",
+
    // PASSWORD RECOVERY
 newPasswordTitle: "Set a New Password",
 newPasswordPlaceholder: "New password (at least 8 characters)",
@@ -2704,6 +2791,15 @@ supportLoginRequired: "Veuillez d'abord vous connecter.",
     inventoryNoStore: "Vous n'avez pas encore enregistré de boutique.",
     inventoryLoadError: "Erreur lors du chargement des produits.",
     inventoryImageAlt: "Image du produit",
+    
+    // INVENTORY SEARCH & FILTERS
+    inventorySearchPlaceholder: "Rechercher des produits par nom...",
+    inventoryFilterLabel: "Filtrer les produits",
+    inventoryFilterAll: "Tous les produits",
+    inventoryFilterInStock: "En stock",
+    inventoryFilterLowStock: "Stock faible",
+    inventoryFilterOutOfStock: "Rupture de stock",
+    inventoryNoResults: "Aucun produit trouvé.",
 
     // PASSWORD RECOVERY
 newPasswordTitle: "Définir un nouveau mot de passe",
@@ -3000,7 +3096,16 @@ supportLoginRequired: "يرجى تسجيل الدخول أولاً.",
     inventoryNoStore: "لم تقم بتسجيل متجر بعد.",
     inventoryLoadError: "حدث خطأ أثناء تحميل المنتجات.",
     inventoryImageAlt: "صورة المنتج",
- 
+   
+    // INVENTORY SEARCH & FILTERS
+    inventorySearchPlaceholder: "ابحث عن المنتجات بالاسم...",
+    inventoryFilterLabel: "تصفية المنتجات",
+    inventoryFilterAll: "جميع المنتجات",
+    inventoryFilterInStock: "متوفر في المخزون",
+    inventoryFilterLowStock: "مخزون منخفض",
+    inventoryFilterOutOfStock: "نفد المخزون",
+    inventoryNoResults: "لم يتم العثور على منتجات.",
+
 // PASSWORD RECOVERY
 newPasswordTitle: "تعيين كلمة مرور جديدة",
 newPasswordPlaceholder: "كلمة المرور الجديدة (8 أحرف على الأقل)",
