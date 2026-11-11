@@ -1137,7 +1137,44 @@ function renderSellerInventory() {
 
     return matchesSearch && matchesFilter;
   });
+  // INVENTORY SORTING
+  const stockSort = product => getStock(product);
 
+  const nameSort = product =>
+    String(product.Name || product.name || "").toLowerCase();
+
+  filteredProducts = [...filteredProducts].sort((a, b) => {
+
+    const stockA = stockSort(a);
+    const stockB = stockSort(b);
+
+    switch (sellerInventorySort) {
+
+      case "name_asc":
+        return nameSort(a).localeCompare(nameSort(b));
+
+      case "stock_asc":
+        return stockA - stockB;
+
+      case "stock_desc":
+        return stockB - stockA;
+
+      case "low_first": {
+        const rankA = stockA > 0 && stockA <= 5 ? 0 : stockA === 0 ? 2 : 1;
+        const rankB = stockB > 0 && stockB <= 5 ? 0 : stockB === 0 ? 2 : 1;
+        return rankA - rankB || stockA - stockB;
+      }
+
+      case "out_first": {
+        const rankA = stockA === 0 ? 0 : 1;
+        const rankB = stockB === 0 ? 0 : 1;
+        return rankA - rankB || stockA - stockB;
+      }
+
+      default:
+        return 0;
+    }
+  });
   // INVENTORY STATISTICS
   const totalProducts = sellerInventoryProducts.length;
 
