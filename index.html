@@ -1378,98 +1378,206 @@ function renderSellerInventory() {
 
               }).join("");
 
-              const productId = Number(product.id);
+       
+const productId = Number(product.id);
 
-              return `
-                <article style="
-                  border:1px solid #ddd;
-                  padding:15px;
-                  margin:12px 0;
-                  border-radius:12px;
-                  background:white;
-                ">
+const productName = inventoryEscape(
+  product.Name || "Bidhaa"
+);
 
-                  <h4>
-                    ${inventoryEscape(product.Name || "Bidhaa")}
-                  </h4>
+const category = inventoryEscape(
+  product.category || "Nyingine"
+);
 
-                  <p>
-                    📦 ${t("inventoryStock")}:
-                    <strong>${stock}</strong>
-                  </p>
+const description = inventoryEscape(
+  product.Dicription || "Hakuna maelezo ya bidhaa."
+);
 
-                  <p style="
-                    color:${statusColor};
-                    font-weight:bold;
-                  ">
-                    ${t(statusKey)}
-                  </p>
+const price = Number(product.Price || 0);
 
-                  <div>
-                    ${imageHTML}
-                  </div>
+const discount = Math.min(
+  100,
+  Math.max(0, Number(product.discount_percentage || 0))
+);
 
-                  <div style="
-                    display:flex;
-                    flex-wrap:wrap;
-                    gap:10px;
-                    margin-top:12px;
-                  ">
+const finalPrice = Math.round(
+  price * (1 - discount / 100)
+);
 
-                    <button
-                      onclick="editProduct(${productId})"
-                      style="
-                        background:#1976d2;
-                        color:white;
-                        padding:9px 15px;
-                        border:0;
-                        border-radius:6px;
-                        cursor:pointer;
-                      "
-                    >
-                      ✏️ ${t("editButton")}
-                    </button>
+const formattedPrice = money(price);
+const formattedFinalPrice = money(finalPrice);
 
-                    <button
-                      onclick="deleteProduct(${productId})"
-                      style="
-                        background:#d32f2f;
-                        color:white;
-                        padding:9px 15px;
-                        border:0;
-                        border-radius:6px;
-                        cursor:pointer;
-                      "
-                    >
-                      🗑️ ${t("deleteButton")}
-                    </button>
+return `
+  <article style="
+    border:1px solid #e0e0e0;
+    padding:16px;
+    margin:14px 0;
+    border-radius:14px;
+    background:white;
+    box-shadow:0 3px 12px rgba(0,0,0,0.06);
+  ">
 
-<button
-  onclick="openStockAdjustment(${productId})"
-  style="
-    background:#00897b;
-    color:white;
-    padding:9px 15px;
-    border:0;
-    border-radius:6px;
-    cursor:pointer;
-  "
->
-  📦 ${t("stockAdjustButton")}
-</button>
+    <h3 style="margin-top:0;">
+      ${productName}
+    </h3>
 
-                  </div>
+    <div style="
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-bottom:12px;
+    ">
+      <span style="
+        background:#e3f2fd;
+        color:#1565c0;
+        padding:5px 10px;
+        border-radius:20px;
+        font-size:12px;
+      ">
+        ${category}
+      </span>
 
-                </article>
-              `;
-
-            }).join("")
+      ${
+        discount > 0
+          ? `<span style="
+              background:#ffebee;
+              color:#c62828;
+              padding:5px 10px;
+              border-radius:20px;
+              font-size:12px;
+              font-weight:bold;
+            ">
+              -${discount}%
+            </span>`
+          : ""
       }
+    </div>
+
+    <div style="
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:12px 0;
+    ">
+      ${
+        imageHTML ||
+        `<p>${t("inventoryImageAlt")}</p>`
+      }
+    </div>
+
+    <div style="
+      background:#f8f9fa;
+      padding:12px;
+      border-radius:10px;
+      margin:12px 0;
+    ">
+      <p style="margin:4px 0;">
+        💰 ${t("newProductPrice")}:
+        ${
+          discount > 0
+            ? `<span style="
+                text-decoration:line-through;
+                color:#888;
+              ">${formattedPrice}</span>`
+            : `<strong>${formattedPrice}</strong>`
+        }
+      </p>
+
+      ${
+        discount > 0
+          ? `<p style="
+              color:#16834a;
+              font-size:18px;
+              font-weight:bold;
+              margin:8px 0;
+            ">
+              ${t("inventoryFinalPrice")}: ${formattedFinalPrice}
+            </p>`
+          : ""
+      }
+
+      <p style="margin:8px 0;">
+        🏷️ ${t("inventoryCategory")}: ${category}
+      </p>
+
+      <p style="
+        margin:8px 0;
+        overflow-wrap:anywhere;
+      ">
+        📝 ${t("inventoryDescription")}: ${description}
+      </p>
+    </div>
+
+    <p>
+      📦 ${t("inventoryStock")}:
+      <strong>${stock}</strong>
+    </p>
+
+    <p style="
+      color:${statusColor};
+      font-weight:bold;
+    ">
+      ${t(statusKey)}
+    </p>
+
+    <div style="
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    ">
+
+      <button
+        onclick="editProduct(${productId})"
+        style="
+          background:#1976d2;
+          color:white;
+          padding:9px 15px;
+          border:0;
+          border-radius:6px;
+          cursor:pointer;
+        "
+      >
+        ✏️ ${t("editButton")}
+      </button>
+
+      <button
+        onclick="deleteProduct(${productId})"
+        style="
+          background:#d32f2f;
+          color:white;
+          padding:9px 15px;
+          border:0;
+          border-radius:6px;
+          cursor:pointer;
+        "
+      >
+        🗑️ ${t("deleteButton")}
+      </button>
+
+      <button
+        onclick="openStockAdjustment(${productId})"
+        style="
+          background:#00897b;
+          color:white;
+          padding:9px 15px;
+          border:0;
+          border-radius:6px;
+          cursor:pointer;
+        "
+      >
+        📦 ${t("stockAdjustButton")}
+      </button>
+
+    </div>
+
+  </article>
+`;
+}).join("")
 
     </section>
   `;
 }
-
 
 // ==========================================
 // INVENTORY SEARCH
@@ -2422,6 +2530,9 @@ stockAdjustSave: "Hifadhi Mabadiliko",
 stockAdjustInvalid: "Tafadhali weka idadi sahihi.",
 stockAdjustBackendPending: "Muonekano uko tayari. Uunganishaji wa kuhifadhi mabadiliko unafuata.",
    stockAdjustNotFound: "Bidhaa haijapatikana.", 
+    inventoryFinalPrice: "Bei baada ya punguzo",
+inventoryCategory: "Kundi",
+inventoryDescription: "Maelezo",
 // PASSWORD RECOVERY
 newPasswordTitle: "Weka Nenosiri Jipya",
 newPasswordPlaceholder: "Nenosiri jipya (angalau herufi 8)",
@@ -2749,6 +2860,9 @@ stockAdjustSave: "Save Changes",
 stockAdjustInvalid: "Please enter a valid quantity.",
 stockAdjustBackendPending: "The interface is ready. Saving functionality will be connected next.",
    stockAdjustNotFound: "Product not found.", 
+   inventoryFinalPrice: "Price after discount",
+inventoryCategory: "Category",
+inventoryDescription: "Description", 
    // PASSWORD RECOVERY
 newPasswordTitle: "Set a New Password",
 newPasswordPlaceholder: "New password (at least 8 characters)",
@@ -3075,6 +3189,9 @@ stockAdjustSave: "Enregistrer les modifications",
 stockAdjustInvalid: "Veuillez saisir une quantité valide.",
 stockAdjustBackendPending: "L’interface est prête. La sauvegarde sera connectée à l’étape suivante.",
     stockAdjustNotFound: "Produit introuvable.",
+    inventoryFinalPrice: "Prix après réduction",
+inventoryCategory: "Catégorie",
+inventoryDescription: "Description",
     // PASSWORD RECOVERY
 newPasswordTitle: "Définir un nouveau mot de passe",
 newPasswordPlaceholder: "Nouveau mot de passe (8 caractères minimum)",
@@ -3400,7 +3517,10 @@ stockAdjustCancel: "إلغاء",
 stockAdjustSave: "حفظ التغييرات",
 stockAdjustInvalid: "يرجى إدخال كمية صحيحة.",
 stockAdjustBackendPending: "الواجهة جاهزة. سيتم ربط وظيفة الحفظ في الخطوة التالية.",
-  stockAdjustNotFound: "لم يتم العثور على المنتج.",  
+  stockAdjustNotFound: "لم يتم العثور على المنتج.",
+   inventoryFinalPrice: "السعر بعد الخصم",
+inventoryCategory: "الفئة",
+inventoryDescription: "الوصف", 
 // PASSWORD RECOVERY
 newPasswordTitle: "تعيين كلمة مرور جديدة",
 newPasswordPlaceholder: "كلمة المرور الجديدة (8 أحرف على الأقل)",
