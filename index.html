@@ -1365,6 +1365,20 @@ function renderSellerInventory() {
                       🗑️ ${t("deleteButton")}
                     </button>
 
+<button
+  onclick="openStockAdjustment(${productId})"
+  style="
+    background:#00897b;
+    color:white;
+    padding:9px 15px;
+    border:0;
+    border-radius:6px;
+    cursor:pointer;
+  "
+>
+  📦 ${t("stockAdjustButton")}
+</button>
+
                   </div>
 
                 </article>
@@ -6110,6 +6124,194 @@ if (productImagesInput && selectedImagesLabel) {
   });
 } 
  
+let selectedStockProductId = null;
+
+function openStockAdjustment(productId) {
+  const product = sellerInventoryProducts.find(
+    p => Number(p.id) === Number(productId)
+  );
+
+  if (!product) {
+    alert("Product not found");
+    return;
+  }
+
+  selectedStockProductId = Number(productId);
+
+  const currentStock = Number(product.stock ?? 0);
+
+  document.getElementById("stock-adjustment-modal")?.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "stock-adjustment-modal";
+
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+    padding:15px;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background:white;
+      color:#222;
+      width:100%;
+      max-width:420px;
+      padding:22px;
+      border-radius:14px;
+      box-shadow:0 10px 35px rgba(0,0,0,.25);
+    ">
+
+      <h3 style="margin-top:0">
+        📦 ${t("stockAdjustTitle")}
+      </h3>
+
+      <p>
+        <strong>${inventoryEscape(product.Name || product.name || "")}</strong>
+      </p>
+
+      <p>
+        ${t("stockAdjustCurrent")}:
+        <strong>${currentStock}</strong>
+      </p>
+
+      <label>${t("stockAdjustQuantity")}</label>
+
+      <select
+        id="stock-adjustment-type"
+        onchange="previewStockAdjustment()"
+        style="width:100%;padding:10px;margin:10px 0"
+      >
+        <option value="add">${t("stockAdjustAdd")}</option>
+        <option value="remove">${t("stockAdjustRemove")}</option>
+      </select>
+
+      <input
+        id="stock-adjustment-quantity"
+        type="number"
+        min="1"
+        step="1"
+        value="1"
+        oninput="previewStockAdjustment()"
+        style="width:100%;padding:10px;margin:10px 0"
+      >
+
+      <div style="
+        background:#f1f5f9;
+        padding:14px;
+        border-radius:8px;
+        margin:15px 0;
+      ">
+        ${t("stockAdjustNew")}:
+        <strong id="stock-adjustment-preview">${currentStock}</strong>
+      </div>
+
+      <p
+        id="stock-adjustment-message"
+        style="color:#d32f2f;font-size:13px"
+      ></p>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+
+        <button
+          onclick="closeStockAdjustment()"
+          style="flex:1;padding:11px;border:0;border-radius:7px"
+        >
+          ${t("stockAdjustCancel")}
+        </button>
+
+        <button
+          disabled
+          style="
+            flex:1;
+            padding:11px;
+            border:0;
+            border-radius:7px;
+            background:#00897b;
+            color:white;
+            opacity:.6;
+          "
+        >
+          ${t("stockAdjustSave")}
+        </button>
+
+      </div>
+
+      <p style="font-size:12px;color:#777;margin-bottom:0">
+        ${t("stockAdjustBackendPending")}
+      </p>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  previewStockAdjustment();
+}
+
+
+function previewStockAdjustment() {
+  const product = sellerInventoryProducts.find(
+    p => Number(p.id) === selectedStockProductId
+  );
+
+  if (!product) return;
+
+  const currentStock = Number(product.stock ?? 0);
+
+  const quantityInput = document.getElementById(
+    "stock-adjustment-quantity"
+  );
+
+  const typeInput = document.getElementById(
+    "stock-adjustment-type"
+  );
+
+  const preview = document.getElementById(
+    "stock-adjustment-preview"
+  );
+
+  const message = document.getElementById(
+    "stock-adjustment-message"
+  );
+
+  if (!quantityInput || !typeInput || !preview || !message) {
+    return;
+  }
+
+  const quantity = Number(quantityInput.value);
+
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    preview.textContent = "—";
+    message.textContent = t("stockAdjustInvalid");
+    return;
+  }
+
+  const newStock = typeInput.value === "add"
+    ? currentStock + quantity
+    : currentStock - quantity;
+
+  if (newStock < 0) {
+    preview.textContent = "—";
+    message.textContent = t("stockAdjustInvalid");
+    return;
+  }
+
+  preview.textContent = newStock;
+  message.textContent = "";
+}
+
+
+function closeStockAdjustment() {
+  document.getElementById("stock-adjustment-modal")?.remove();
+  selectedStockProductId = null;
+}
+
 </script>
   <script>
   setLanguage(currentLanguage);
