@@ -6382,7 +6382,7 @@ modal.addEventListener("click", function(event) {
 previewStockAdjustment();
 
 document.getElementById("stock-adjustment-quantity")?.focus();
- 
+ }
 function previewStockAdjustment() {
   const product = sellerInventoryProducts.find(
     p => Number(p.id) === selectedStockProductId
