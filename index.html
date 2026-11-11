@@ -6139,7 +6139,7 @@ if (productImagesInput && selectedImagesLabel) {
     }
   });
 } 
- 
+
 let selectedStockProductId = null;
 
 function openStockAdjustment(productId) {
@@ -6148,7 +6148,7 @@ function openStockAdjustment(productId) {
   );
 
   if (!product) {
-    alert("Product not found");
+    alert(t("stockAdjustNotFound"));
     return;
   }
 
@@ -6160,6 +6160,7 @@ function openStockAdjustment(productId) {
 
   const modal = document.createElement("div");
   modal.id = "stock-adjustment-modal";
+  modal.dir = currentLanguage === "ar" ? "rtl" : "ltr";
 
   modal.style.cssText = `
     position:fixed;
@@ -6242,6 +6243,8 @@ function openStockAdjustment(productId) {
         </button>
 
         <button
+          id="stock-adjustment-save"
+          onclick="saveStockAdjustment()"
           disabled
           style="
             flex:1;
@@ -6250,7 +6253,8 @@ function openStockAdjustment(productId) {
             border-radius:7px;
             background:#00897b;
             color:white;
-            opacity:.6;
+            opacity:.5;
+            cursor:not-allowed;
           "
         >
           ${t("stockAdjustSave")}
@@ -6296,30 +6300,64 @@ function previewStockAdjustment() {
     "stock-adjustment-message"
   );
 
-  if (!quantityInput || !typeInput || !preview || !message) {
+  const saveButton = document.getElementById(
+    "stock-adjustment-save"
+  );
+
+  if (!quantityInput || !typeInput || !preview || !message || !saveButton) {
     return;
   }
 
   const quantity = Number(quantityInput.value);
 
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    preview.textContent = "—";
-    message.textContent = t("stockAdjustInvalid");
-    return;
+  let valid =
+    Number.isSafeInteger(quantity) &&
+    quantity > 0 &&
+    Number.isSafeInteger(currentStock) &&
+    currentStock >= 0;
+
+  let newStock = currentStock;
+
+  if (valid) {
+    newStock = typeInput.value === "add"
+      ? currentStock + quantity
+      : currentStock - quantity;
+
+    valid =
+      Number.isSafeInteger(newStock) &&
+      newStock >= 0;
   }
 
-  const newStock = typeInput.value === "add"
-    ? currentStock + quantity
-    : currentStock - quantity;
-
-  if (newStock < 0) {
+  if (!valid) {
     preview.textContent = "—";
     message.textContent = t("stockAdjustInvalid");
+    saveButton.disabled = true;
+    saveButton.style.opacity = ".5";
+    saveButton.style.cursor = "not-allowed";
     return;
   }
 
   preview.textContent = newStock;
   message.textContent = "";
+
+  saveButton.disabled = false;
+  saveButton.style.opacity = "1";
+  saveButton.style.cursor = "pointer";
+}
+
+
+function saveStockAdjustment() {
+  previewStockAdjustment();
+
+  const saveButton = document.getElementById(
+    "stock-adjustment-save"
+  );
+
+  if (!saveButton || saveButton.disabled) return;
+
+  // Backend haijaunganishwa.
+  // Hakuna stock inayobadilishwa hapa.
+  alert(t("stockAdjustBackendPending"));
 }
 
 
@@ -6327,7 +6365,7 @@ function closeStockAdjustment() {
   document.getElementById("stock-adjustment-modal")?.remove();
   selectedStockProductId = null;
 }
-
+    
 </script>
   <script>
   setLanguage(currentLanguage);
