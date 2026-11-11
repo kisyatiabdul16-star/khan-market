@@ -1093,7 +1093,7 @@ let sellerInventoryProducts = [];
 let sellerInventoryImages = [];
 let sellerInventoryFilter = "all";
 let sellerInventorySearch = "";
-
+let sellerInventorySort = "default";
 
 // ==========================================
 // RENDER SELLER INVENTORY
@@ -1243,11 +1243,53 @@ function renderSellerInventory() {
         <option value="out_of_stock" ${sellerInventoryFilter === "out_of_stock" ? "selected" : ""}>
           ${t("inventoryFilterOutOfStock")}
         </option>
+</select>
 
-      </select>
+<label for="inventory-sort" style="
+  display:block;
+  margin-top:14px;
+  font-weight:bold;
+">
+  ${t("inventorySortLabel")}
+</label>
 
-    </section>
+<select
+  id="inventory-sort"
+  onchange="handleInventorySort(this.value)"
+  style="
+    width:100%;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    margin-top:6px;
+  "
+>
+  <option value="default" ${sellerInventorySort === "default" ? "selected" : ""}>
+    ${t("inventorySortDefault")}
+  </option>
 
+  <option value="name_asc" ${sellerInventorySort === "name_asc" ? "selected" : ""}>
+    ${t("inventorySortNameAsc")}
+  </option>
+
+  <option value="stock_asc" ${sellerInventorySort === "stock_asc" ? "selected" : ""}>
+    ${t("inventorySortStockAsc")}
+  </option>
+
+  <option value="stock_desc" ${sellerInventorySort === "stock_desc" ? "selected" : ""}>
+    ${t("inventorySortStockDesc")}
+  </option>
+
+  <option value="low_first" ${sellerInventorySort === "low_first" ? "selected" : ""}>
+    ${t("inventorySortLowFirst")}
+  </option>
+
+  <option value="out_first" ${sellerInventorySort === "out_first" ? "selected" : ""}>
+    ${t("inventorySortOutFirst")}
+  </option>
+</select>
+
+</section>
 
     <!-- PRODUCT LIST -->
     <section>
@@ -1433,7 +1475,27 @@ function handleInventoryFilter(value) {
 
   renderSellerInventory();
 }
+// ==========================================
+// INVENTORY SORTING
+// ==========================================
 
+function handleInventorySort(value) {
+
+  const allowedSorts = [
+    "default",
+    "name_asc",
+    "stock_asc",
+    "stock_desc",
+    "low_first",
+    "out_first"
+  ];
+
+  sellerInventorySort = allowedSorts.includes(value)
+    ? value
+    : "default";
+
+  renderSellerInventory();
+}
 async function loadSellerProducts() {
   const container = document.getElementById("seller-products");
 
