@@ -6159,8 +6159,12 @@ function openStockAdjustment(productId) {
   selectedStockProductId = Number(productId);
 
   const currentStock = Number(product.stock ?? 0);
+document.removeEventListener(
+  "keydown",
+  handleStockAdjustmentEscape
+);
 
-  document.getElementById("stock-adjustment-modal")?.remove();
+document.getElementById("stock-adjustment-modal")?.remove();
 
   const modal = document.createElement("div");
   modal.id = "stock-adjustment-modal";
