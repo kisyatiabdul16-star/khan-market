@@ -6139,7 +6139,11 @@ if (productImagesInput && selectedImagesLabel) {
     }
   });
 } 
-
+function handleStockAdjustmentEscape(event) {
+  if (event.key === "Escape") {
+    closeStockAdjustment();
+  }
+}
 let selectedStockProductId = null;
 
 function openStockAdjustment(productId) {
