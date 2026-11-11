@@ -6369,7 +6369,10 @@ modal.innerHTML = `
 `;
 
 document.body.appendChild(modal);
-
+document.addEventListener(
+  "keydown",
+  handleStockAdjustmentEscape
+);
 modal.addEventListener("click", function(event) {
   if (event.target === modal) {
     closeStockAdjustment();
@@ -6464,13 +6467,15 @@ function saveStockAdjustment() {
   // Hakuna stock inayobadilishwa hapa.
   alert(t("stockAdjustBackendPending"));
 }
-
-
 function closeStockAdjustment() {
+  document.removeEventListener(
+    "keydown",
+    handleStockAdjustmentEscape
+  );
+
   document.getElementById("stock-adjustment-modal")?.remove();
   selectedStockProductId = null;
-}
-    
+}    
 </script>
   <script>
   setLanguage(currentLanguage);
