@@ -2534,6 +2534,7 @@ stockAdjustBackendPending: "Muonekano uko tayari. Uunganishaji wa kuhifadhi maba
     inventoryFinalPrice: "Bei baada ya punguzo",
 inventoryCategory: "Kundi",
 inventoryDescription: "Maelezo",
+    stockAdjustSaveError: "Imeshindikana kuhifadhi mabadiliko ya stock. Jaribu tena.",
 // PASSWORD RECOVERY
 newPasswordTitle: "Weka Nenosiri Jipya",
 newPasswordPlaceholder: "Nenosiri jipya (angalau herufi 8)",
@@ -2864,6 +2865,7 @@ stockAdjustBackendPending: "The interface is ready. Saving functionality will be
    inventoryFinalPrice: "Price after discount",
 inventoryCategory: "Category",
 inventoryDescription: "Description", 
+   stockAdjustSaveError: "Failed to save stock changes. Please try again.", 
    // PASSWORD RECOVERY
 newPasswordTitle: "Set a New Password",
 newPasswordPlaceholder: "New password (at least 8 characters)",
@@ -3193,6 +3195,7 @@ stockAdjustBackendPending: "L’interface est prête. La sauvegarde sera connect
     inventoryFinalPrice: "Prix après réduction",
 inventoryCategory: "Catégorie",
 inventoryDescription: "Description",
+    stockAdjustSaveError: "Échec de l’enregistrement du stock. Veuillez réessayer.",
     // PASSWORD RECOVERY
 newPasswordTitle: "Définir un nouveau mot de passe",
 newPasswordPlaceholder: "Nouveau mot de passe (8 caractères minimum)",
@@ -3522,6 +3525,7 @@ stockAdjustBackendPending: "الواجهة جاهزة. سيتم ربط وظيف�
    inventoryFinalPrice: "السعر بعد الخصم",
 inventoryCategory: "الفئة",
 inventoryDescription: "الوصف", 
+    stockAdjustSaveError: "تعذّر حفظ تغييرات المخزون. يُرجى المحاولة مرة أخرى.",
 // PASSWORD RECOVERY
 newPasswordTitle: "تعيين كلمة مرور جديدة",
 newPasswordPlaceholder: "كلمة المرور الجديدة (8 أحرف على الأقل)",
@@ -6727,7 +6731,84 @@ function closeStockAdjustment() {
 
   document.getElementById("stock-adjustment-modal")?.remove();
   selectedStockProductId = null;
-}    
+} 
+
+async function saveStockAdjustment() {
+  const productId = selectedStockProductId;
+
+  const product = sellerInventoryProducts.find(
+    p => Number(p.id) === Number(productId)
+  );
+
+  const quantityInput = document.getElementById(
+    "stock-adjustment-quantity"
+  );
+
+  const typeInput = document.getElementById(
+    "stock-adjustment-type"
+  );
+
+  const message = document.getElementById(
+    "stock-adjustment-message"
+  );
+
+  const saveButton = document.getElementById(
+    "stock-adjustment-save"
+  );
+
+  if (!product || !quantityInput || !typeInput ||
+      !message || !saveButton || saveButton.disabled) {
+    return;
+  }
+
+  previewStockAdjustment();
+
+  if (saveButton.disabled) return;
+
+  const quantity = Number(quantityInput.value);
+  const adjustmentType = typeInput.value;
+
+  if (
+    !Number.isSafeInteger(quantity) ||
+    quantity <= 0 ||
+    !["add", "remove"].includes(adjustmentType)
+  ) {
+    return;
+  }
+
+  saveButton.disabled = true;
+  message.textContent = "";
+
+  try {
+    const { data, error } = await supabaseClient.rpc(
+      "seller_adjust_product_stock",
+      {
+        p_product_id: productId,
+        p_adjustment_type: adjustmentType,
+        p_quantity: quantity
+      }
+    );
+
+    if (error) throw error;
+
+    const updatedStock = Number(data);
+
+    if (!Number.isSafeInteger(updatedStock) || updatedStock < 0) {
+      throw new Error("Invalid stock response from server.");
+    }
+
+    product.stock = updatedStock;
+
+    closeStockAdjustment();
+    renderSellerInventory();
+
+  } catch (error) {
+    console.error("STOCK ADJUSTMENT ERROR:", error);
+message.textContent = t("stockAdjustSaveError");
+    saveButton.disabled = false;
+  }
+}
+  
 </script>
   <script>
 </script>
