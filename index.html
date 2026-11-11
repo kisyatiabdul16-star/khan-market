@@ -1116,7 +1116,7 @@ function renderSellerInventory() {
   };
 
   // SEARCH + FILTER
-  const filteredProducts = sellerInventoryProducts.filter(product => {
+  let filteredProducts = sellerInventoryProducts.filter(product => {
     const name = String(product.Name || "").toLowerCase();
 
     const matchesSearch = name.includes(
