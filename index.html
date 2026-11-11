@@ -1382,15 +1382,15 @@ function renderSellerInventory() {
 const productId = Number(product.id);
 
 const productName = inventoryEscape(
-  product.Name || "Bidhaa"
+  product.Name || t("unnamedProduct")
 );
 
 const category = inventoryEscape(
-  product.category || "Nyingine"
+  product.category || t("otherCategory")
 );
 
 const description = inventoryEscape(
-  product.Dicription || "Hakuna maelezo ya bidhaa."
+  product.Dicription || t("noProductDescription")
 );
 
 const price = Number(product.Price || 0);
@@ -2534,7 +2534,10 @@ stockAdjustBackendPending: "Muonekano uko tayari. Uunganishaji wa kuhifadhi maba
     inventoryFinalPrice: "Bei baada ya punguzo",
 inventoryCategory: "Kundi",
 inventoryDescription: "Maelezo",
-    stockAdjustSaveError: "Imeshindikana kuhifadhi mabadiliko ya stock. Jaribu tena.",
+  stockAdjustSaveError: "Imeshindikana kuhifadhi mabadiliko ya stock. Jaribu tena.",
+   noProductDescription: "Hakuna maelezo ya bidhaa.",
+    unnamedProduct: "Bidhaa",
+otherCategory: "Nyingine",
 // PASSWORD RECOVERY
 newPasswordTitle: "Weka Nenosiri Jipya",
 newPasswordPlaceholder: "Nenosiri jipya (angalau herufi 8)",
@@ -2866,6 +2869,9 @@ stockAdjustBackendPending: "The interface is ready. Saving functionality will be
 inventoryCategory: "Category",
 inventoryDescription: "Description", 
    stockAdjustSaveError: "Failed to save stock changes. Please try again.", 
+    noProductDescription: "No product description.",
+    unnamedProduct: "Unnamed product",
+otherCategory: "Other",
    // PASSWORD RECOVERY
 newPasswordTitle: "Set a New Password",
 newPasswordPlaceholder: "New password (at least 8 characters)",
@@ -3196,6 +3202,9 @@ stockAdjustBackendPending: "L’interface est prête. La sauvegarde sera connect
 inventoryCategory: "Catégorie",
 inventoryDescription: "Description",
     stockAdjustSaveError: "Échec de l’enregistrement du stock. Veuillez réessayer.",
+   noProductDescription: "Aucune description du produit.", 
+    unnamedProduct: "Produit sans nom",
+otherCategory: "Autre",
     // PASSWORD RECOVERY
 newPasswordTitle: "Définir un nouveau mot de passe",
 newPasswordPlaceholder: "Nouveau mot de passe (8 caractères minimum)",
@@ -3526,6 +3535,9 @@ stockAdjustBackendPending: "الواجهة جاهزة. سيتم ربط وظيف�
 inventoryCategory: "الفئة",
 inventoryDescription: "الوصف", 
     stockAdjustSaveError: "تعذّر حفظ تغييرات المخزون. يُرجى المحاولة مرة أخرى.",
+    noProductDescription: "لا يوجد وصف للمنتج.",
+   unnamedProduct: "منتج بدون اسم",
+otherCategory: "أخرى", 
 // PASSWORD RECOVERY
 newPasswordTitle: "تعيين كلمة مرور جديدة",
 newPasswordPlaceholder: "كلمة المرور الجديدة (8 أحرف على الأقل)",
