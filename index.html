@@ -2555,6 +2555,11 @@ if (
   alert(t("invalidLowStockThreshold"));
   return;
 }
+  console.log("LOW STOCK THRESHOLD:", newLowStockThreshold);
+console.log(
+  "LOW STOCK THRESHOLD NUMBER:",
+  Number(newLowStockThreshold)
+);
   const { error: updateError } = await supabaseClient
     .from("products")
    .update({
