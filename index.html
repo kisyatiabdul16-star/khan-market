@@ -1170,10 +1170,19 @@ if (sellerInventoryFilter === "in_stock") {
         return stockB - stockA;
 
       case "low_first": {
-        const rankA = stockA > 0 && stockA <= 5 ? 0 : stockA === 0 ? 2 : 1;
-        const rankB = stockB > 0 && stockB <= 5 ? 0 : stockB === 0 ? 2 : 1;
-        return rankA - rankB || stockA - stockB;
-      }
+  const thresholdA = Number.isSafeInteger(Number(a.low_stock_threshold))
+    ? Number(a.low_stock_threshold)
+    : 5;
+
+  const thresholdB = Number.isSafeInteger(Number(b.low_stock_threshold))
+    ? Number(b.low_stock_threshold)
+    : 5;
+
+  const rankA = stockA > 0 && stockA <= thresholdA ? 0 : stockA === 0 ? 2 : 1;
+  const rankB = stockB > 0 && stockB <= thresholdB ? 0 : stockB === 0 ? 2 : 1;
+
+  return rankA - rankB || stockA - stockB;
+}
 
       case "out_first": {
         const rankA = stockA === 0 ? 0 : 1;
