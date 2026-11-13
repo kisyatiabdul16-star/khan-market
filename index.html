@@ -6813,28 +6813,84 @@ async function loadSellerNotifications() {
 
   const lang = currentLanguage || "sw";
 
-  const notificationTranslations = {
-    sw: {
-      newOrder: "Oda Mpya",
-      receivedOrder: id => `Umepokea oda mpya #${id}`,
-      markAsRead: "Weka kuwa imesomwa"
-    },
-    en: {
-      newOrder: "New Order",
-      receivedOrder: id => `You received a new order #${id}`,
-      markAsRead: "Mark as read"
-    },
-    fr: {
-      newOrder: "Nouvelle commande",
-      receivedOrder: id => `Vous avez reçu une nouvelle commande #${id}`,
-      markAsRead: "Marquer comme lu"
-    },
-    ar: {
-      newOrder: "طلب جديد",
-      receivedOrder: id => `لقد استلمت طلبًا جديدًا رقم ${id}`,
-      markAsRead: "تحديد كمقروء"
-    }
-  };
+const notificationTranslations = {
+  sw: {
+    newOrder: "Oda Mpya",
+    receivedOrder: id => `Umepokea oda mpya #${id}`,
+    markAsRead: "Weka kuwa imesomwa",
+    productFallback: "Bidhaa",
+
+    lowStockTitle: "Tahadhari: Stock Iko Chini",
+    lowStockMessage: (name, stock, threshold) =>
+      `Stock ya ${name} imefikia ${stock}. Kiwango cha tahadhari ni ${threshold}.`,
+
+    outOfStockTitle: "Bidhaa Imeisha",
+    outOfStockMessage: name =>
+      `Bidhaa ya ${name} imeisha kabisa.`,
+
+    recoveredTitle: "Stock Imerudi",
+    recoveredMessage: (name, stock) =>
+      `Stock ya ${name} imeongezeka hadi ${stock}.`
+  },
+
+  en: {
+    newOrder: "New Order",
+    receivedOrder: id => `You received a new order #${id}`,
+    markAsRead: "Mark as read",
+    productFallback: "Product",
+
+    lowStockTitle: "Low Stock Alert",
+    lowStockMessage: (name, stock, threshold) =>
+      `${name} stock has reached ${stock}. Alert threshold is ${threshold}.`,
+
+    outOfStockTitle: "Out of Stock",
+    outOfStockMessage: name =>
+      `${name} is completely out of stock.`,
+
+    recoveredTitle: "Stock Recovered",
+    recoveredMessage: (name, stock) =>
+      `${name} stock has recovered to ${stock}.`
+  },
+
+  fr: {
+    newOrder: "Nouvelle commande",
+    receivedOrder: id => `Vous avez reçu une nouvelle commande #${id}`,
+    markAsRead: "Marquer comme lu",
+    productFallback: "Produit",
+
+    lowStockTitle: "Alerte de stock faible",
+    lowStockMessage: (name, stock, threshold) =>
+      `Le stock de ${name} est tombé à ${stock}. Le seuil d'alerte est ${threshold}.`,
+
+    outOfStockTitle: "Rupture de stock",
+    outOfStockMessage: name =>
+      `Le produit ${name} est complètement épuisé.`,
+
+    recoveredTitle: "Stock réapprovisionné",
+    recoveredMessage: (name, stock) =>
+      `Le stock de ${name} est remonté à ${stock}.`
+  },
+
+  ar: {
+    newOrder: "طلب جديد",
+    receivedOrder: id => `لقد استلمت طلبًا جديدًا رقم ${id}`,
+    markAsRead: "تحديد كمقروء",
+    productFallback: "المنتج",
+
+    lowStockTitle: "تنبيه: المخزون منخفض",
+    lowStockMessage: (name, stock, threshold) =>
+      `وصل مخزون ${name} إلى ${stock}. حد التنبيه هو ${threshold}.`,
+
+    outOfStockTitle: "نفاد المخزون",
+    outOfStockMessage: name =>
+      `نفد مخزون المنتج ${name} بالكامل.`,
+
+    recoveredTitle: "تم استعادة المخزون",
+    recoveredMessage: (name, stock) =>
+      `ارتفع مخزون ${name} مجددًا إلى ${stock}.`
+  }
+};
+
 
   const translationsForNotifications =
     notificationTranslations[lang] || notificationTranslations.sw;
@@ -6883,16 +6939,53 @@ async function loadSellerNotifications() {
     const title = document.createElement("h4");
     const message = document.createElement("p");
 
-    if (item.notification_type === "new_order") {
-      const orderId = item.related_entity_id || "";
+const metadata = item.metadata || {};
 
-      title.textContent = translationsForNotifications.newOrder;
-      message.textContent =
-        translationsForNotifications.receivedOrder(orderId);
-    } else {
-      title.textContent = item.title;
-      message.textContent = item.message;
-    }
+if (item.notification_type === "new_order") {
+  const orderId = item.related_entity_id || "";
+
+  title.textContent = translationsForNotifications.newOrder;
+  message.textContent =
+    translationsForNotifications.receivedOrder(orderId);
+
+} else if (item.notification_type === "inventory_low_stock") {
+  const productName =
+    metadata.product_name || translationsForNotifications.productFallback;
+
+  title.textContent = translationsForNotifications.lowStockTitle;
+
+  message.textContent =
+    translationsForNotifications.lowStockMessage(
+      productName,
+      metadata.stock_after ?? 0,
+      metadata.threshold ?? 0
+    );
+
+} else if (item.notification_type === "inventory_out_of_stock") {
+  const productName =
+    metadata.product_name || translationsForNotifications.productFallback;
+
+  title.textContent = translationsForNotifications.outOfStockTitle;
+
+  message.textContent =
+    translationsForNotifications.outOfStockMessage(productName);
+
+} else if (item.notification_type === "inventory_recovered") {
+  const productName =
+    metadata.product_name || translationsForNotifications.productFallback;
+
+  title.textContent = translationsForNotifications.recoveredTitle;
+
+  message.textContent =
+    translationsForNotifications.recoveredMessage(
+      productName,
+      metadata.stock_after ?? 0
+    );
+
+} else {
+  title.textContent = item.title || "";
+  message.textContent = item.message || "";
+}
 
     const date = document.createElement("small");
 
