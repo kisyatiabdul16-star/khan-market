@@ -1613,17 +1613,19 @@ function handleInventorySearch(value) {
   }
 }
 // ==========================================
-// STOCK MOVEMENT HISTORY
+// LOAD STOCK MOVEMENT HISTORY
 // ==========================================
-
 async function loadStockMovementHistory() {
-  if (stockHistoryLoading) return;
+  const requestedProductId = stockHistoryProductId;
 
   const container = document.getElementById(
     "stock-history-content"
   );
 
-  if (!container || !stockHistoryProductId) return;
+  if (!container || !requestedProductId) return;
+
+  // Identify this request
+  const requestToken = ++stockHistoryRequestToken;
 
   stockHistoryLoading = true;
 
@@ -1632,8 +1634,11 @@ async function loadStockMovementHistory() {
   `;
 
   try {
-    const from = stockHistoryPage * STOCK_HISTORY_PAGE_SIZE;
-    const to = from + STOCK_HISTORY_PAGE_SIZE - 1;
+    const from =
+      stockHistoryPage * STOCK_HISTORY_PAGE_SIZE;
+
+    const to =
+      from + STOCK_HISTORY_PAGE_SIZE - 1;
 
     let query = supabaseClient
       .from("seller_stock_adjustments")
@@ -1641,7 +1646,7 @@ async function loadStockMovementHistory() {
         "id, adjustment_type, quantity, stock_before, stock_after, created_at",
         { count: "exact" }
       )
-      .eq("product_id", stockHistoryProductId)
+      .eq("product_id", requestedProductId)
       .order("created_at", { ascending: false })
       .range(from, to);
 
@@ -1654,22 +1659,52 @@ async function loadStockMovementHistory() {
 
     const { data, error, count } = await query;
 
+    // Ignore outdated responses
+    if (
+      requestToken !== stockHistoryRequestToken ||
+      requestedProductId !== stockHistoryProductId
+    ) {
+      return;
+    }
+
     if (error) throw error;
 
-    renderStockMovementHistory(data || [], count || 0);
+    const currentContainer = document.getElementById(
+      "stock-history-content"
+    );
+
+    if (!currentContainer) return;
+
+    renderStockMovementHistory(
+      data || [],
+      count || 0
+    );
 
   } catch (error) {
     console.error("STOCK HISTORY ERROR:", error);
 
-    container.innerHTML = `
-      <p>${t("stockHistoryLoadError")}</p>
-    `;
+    if (
+      requestToken === stockHistoryRequestToken &&
+      requestedProductId === stockHistoryProductId
+    ) {
+      const currentContainer = document.getElementById(
+        "stock-history-content"
+      );
+
+      if (currentContainer) {
+        currentContainer.innerHTML = `
+          <p>${t("stockHistoryLoadError")}</p>
+        `;
+      }
+    }
 
   } finally {
-    stockHistoryLoading = false;
+    if (requestToken === stockHistoryRequestToken) {
+      stockHistoryLoading = false;
+    }
   }
 }
-// ==========================================
+
 // RENDER STOCK MOVEMENT HISTORY
 // ==========================================
 
