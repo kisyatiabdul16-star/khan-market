@@ -1343,11 +1343,17 @@ function renderSellerInventory() {
                   String(image.product_id) === String(product.id)
               );
 
-              const statusKey = stock === 0
-                ? "inventoryOutOfStock"
-                : stock <= 5
-                  ? "inventoryLowStock"
-                  : "inventoryInStock";
+           const lowStockThreshold = Number.isSafeInteger(
+  Number(product.low_stock_threshold)
+)
+  ? Number(product.low_stock_threshold)
+  : 5;
+
+const statusKey = stock === 0
+  ? "inventoryOutOfStock"
+  : stock <= lowStockThreshold
+    ? "inventoryLowStock"
+    : "inventoryInStock";
 
               const statusColor = stock === 0
                 ? "#d32f2f"
