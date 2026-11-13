@@ -1210,13 +1210,17 @@ case "stock_desc":
         return 0;
     }
   });
-  // INVENTORY STATISTICS
-  const totalProducts = sellerInventoryProducts.length;
+  
+// INVENTORY STATISTICS
+const totalProducts = sellerInventoryProducts.length;
 
-  const totalUnits = sellerInventoryProducts.reduce(
-    (sum, product) => sum + getStock(product),
-    0
-  );
+const totalUnits = sellerInventoryProducts.reduce(
+  (sum, product) => {
+    const stock = getStock(product);
+    return sum + (stock === null ? 0 : stock);
+  },
+  0
+);
 
 const lowStock = sellerInventoryProducts.filter(product => {
   const stock = getStock(product);
@@ -1230,13 +1234,18 @@ const lowStock = sellerInventoryProducts.filter(product => {
       ? threshold
       : 5;
 
-  return stock > 0 && stock <= lowStockThreshold;
+  return stock !== null &&
+    stock > 0 &&
+    stock <= lowStockThreshold;
 }).length;
 
-  const outOfStock = sellerInventoryProducts.filter(
-    product => getStock(product) === 0
-  ).length;
+const outOfStock = sellerInventoryProducts.filter(
+  product => getStock(product) === 0
+).length;
 
+const unknownStock = sellerInventoryProducts.filter(
+  product => getStock(product) === null
+).length;
 
   // INVENTORY UI
   container.innerHTML = `
