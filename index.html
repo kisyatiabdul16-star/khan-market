@@ -7109,7 +7109,9 @@ function openStockAdjustment(productId) {
 stockAdjustmentRequestId = null;
 stockAdjustmentRequestSignature = null;
 stockAdjustmentInFlight = false;
-  const currentStock = Number(product.stock ?? 0);
+ const currentStock = product.stock === null
+  ? null
+  : Number(product.stock); 
 document.removeEventListener(
   "keydown",
   handleStockAdjustmentEscape
@@ -7340,8 +7342,9 @@ function previewStockAdjustment() {
   );
 
   if (!product) return;
-
-  const currentStock = Number(product.stock ?? 0);
+const currentStock = product.stock === null
+  ? null
+  : Number(product.stock);
 
   const quantityInput = document.getElementById(
     "stock-adjustment-quantity"
@@ -7369,11 +7372,12 @@ function previewStockAdjustment() {
 
   const quantity = Number(quantityInput.value);
 
-  let valid =
-    Number.isSafeInteger(quantity) &&
-    quantity > 0 &&
-    Number.isSafeInteger(currentStock) &&
-    currentStock >= 0;
+let valid =
+  currentStock !== null &&
+  Number.isSafeInteger(currentStock) &&
+  currentStock >= 0 &&
+  Number.isSafeInteger(quantity) &&
+  quantity > 0;
 
   let newStock = currentStock;
 
@@ -7387,14 +7391,18 @@ function previewStockAdjustment() {
       newStock >= 0;
   }
 
-  if (!valid) {
-    preview.textContent = "—";
-    message.textContent = t("stockAdjustInvalid");
-    saveButton.disabled = true;
-    saveButton.style.opacity = ".5";
-    saveButton.style.cursor = "not-allowed";
-    return;
-  }
+if (!valid) {
+  preview.textContent = "—";
+
+  message.textContent = currentStock === null
+    ? t("stockUnknown")
+    : t("stockAdjustInvalid");
+
+  saveButton.disabled = true;
+  saveButton.style.opacity = ".5";
+  saveButton.style.cursor = "not-allowed";
+  return;
+}
 
   preview.textContent = newStock;
   message.textContent = "";
