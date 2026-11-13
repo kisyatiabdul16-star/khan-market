@@ -1384,11 +1384,11 @@ const statusKey = stock === 0
     ? "inventoryLowStock"
     : "inventoryInStock";
 
-              const statusColor = stock === 0
-                ? "#d32f2f"
-                : stock <= 5
-                  ? "#ed6c02"
-                  : "#2e7d32";
+            const statusColor = stock === 0
+  ? "#d32f2f"
+  : stock <= lowStockThreshold
+    ? "#ed6c02"
+    : "#2e7d32";
 
               const imageHTML = productImages.map(image => {
 
