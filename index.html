@@ -7197,7 +7197,9 @@ modal.innerHTML = `
 
       <div style="font-size:14px;color:#555">
         ${t("stockAdjustCurrent")}:
-        <strong style="color:#222">${currentStock}</strong>
+       <strong style="color:#222">
+  ${currentStock === null ? "—" : currentStock}
+</strong> 
       </div>
     </div>
 
