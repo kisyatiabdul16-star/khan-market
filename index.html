@@ -1162,7 +1162,10 @@ if (sellerInventoryFilter === "in_stock") {
 } else if (sellerInventoryFilter === "out_of_stock") {
   matchesFilter = stock === 0;
 }
-
+else if (sellerInventoryFilter === "unknown_stock") {
+  matchesFilter = stock === null;
+}
+    
     return matchesSearch && matchesFilter;
   });
   // INVENTORY SORTING
