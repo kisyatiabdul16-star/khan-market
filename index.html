@@ -1360,6 +1360,9 @@ const unknownStock = sellerInventoryProducts.filter(
         <option value="out_of_stock" ${sellerInventoryFilter === "out_of_stock" ? "selected" : ""}>
           ${t("inventoryFilterOutOfStock")}
         </option>
+      <option value="unknown_stock" ${sellerInventoryFilter === "unknown_stock" ? "selected" : ""}>
+  ${t("inventoryUnknownStock")}
+</option>  
 </select>
 
 <label for="inventory-sort" style="
