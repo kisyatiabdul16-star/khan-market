@@ -2557,11 +2557,12 @@ if (
 }
   const { error: updateError } = await supabaseClient
     .from("products")
-    .update({
-      Name: newName.trim(),
-      Price: Number(newPrice),
-      stock: Number(newStock)
-    })
+   .update({
+  Name: newName.trim(),
+  Price: Number(newPrice),
+  stock: Number(newStock),
+  low_stock_threshold: Number(newLowStockThreshold)
+})
     .eq("id", productId)
     .in("store_id", storeIds);
 
