@@ -6827,6 +6827,9 @@ async function saveStockAdjustment() {
   saveButton.style.cursor = "not-allowed";
   message.textContent = "";
 
+  let updatedStock;
+
+  // SEHEMU YA KWANZA: BACKEND RPC
   try {
     const { data, error } = await supabaseClient.rpc(
       "seller_adjust_product_stock",
@@ -6840,7 +6843,7 @@ async function saveStockAdjustment() {
 
     if (error) throw error;
 
-    const updatedStock = Number(data);
+    updatedStock = Number(data);
 
     if (
       !Number.isSafeInteger(updatedStock) ||
@@ -6849,26 +6852,49 @@ async function saveStockAdjustment() {
       throw new Error("Invalid stock response.");
     }
 
-    product.stock = updatedStock;
-
-    stockAdjustmentRequestId = null;
-    stockAdjustmentRequestSignature = null;
-    stockAdjustmentInFlight = false;
-
-    closeStockAdjustment();
-    renderSellerInventory();
-
   } catch (error) {
-    console.error("STOCK ADJUSTMENT ERROR:", error);
+    console.error("STOCK ADJUSTMENT RPC ERROR:", error);
 
     message.textContent = t("stockAdjustSaveError");
 
+    // Hifadhi request ID kwa retry ya ombi lilelile.
     stockAdjustmentInFlight = false;
+
     saveButton.disabled = false;
     saveButton.style.opacity = "1";
     saveButton.style.cursor = "pointer";
+
+    return;
   }
-}  
+
+  // SEHEMU YA PILI: BACKEND IMETHIBITISHA MAFANIKIO
+  product.stock = updatedStock;
+
+  // Usiruhusu adjustment ileile kutumwa tena.
+  stockAdjustmentRequestId = null;
+  stockAdjustmentRequestSignature = null;
+  stockAdjustmentInFlight = false;
+
+  // SEHEMU YA TATU: UI REFRESH
+  // UI error haiwezi kurudisha adjustment kwenye retry.
+  try {
+    closeStockAdjustment();
+  } catch (uiError) {
+    console.error(
+      "STOCK ADJUSTMENT CLOSE ERROR:",
+      uiError
+    );
+  }
+
+  try {
+    renderSellerInventory();
+  } catch (uiError) {
+    console.error(
+      "STOCK ADJUSTMENT REFRESH ERROR:",
+      uiError
+    );
+  }
+}
 
 </script>
 
