@@ -2146,13 +2146,14 @@ function handleStockHistoryEscape(event) {
 // ==========================================
 
 function handleInventoryFilter(value) {
-
-  const allowedFilters = [
-    "all",
-    "in_stock",
-    "low_stock",
-    "out_of_stock"
-  ];
+const allowedFilters = [
+  "all",
+  "in_stock",
+  "low_stock",
+  "out_of_stock",
+  "unknown_stock"
+];
+  
 
   sellerInventoryFilter = allowedFilters.includes(value)
     ? value
