@@ -1185,20 +1185,35 @@ case "stock_desc":
   if (stockB === null) return -1;
   return stockB - stockA;
 
-      case "low_first": {
-  const thresholdA = Number.isSafeInteger(Number(a.low_stock_threshold))
-    ? Number(a.low_stock_threshold)
-    : 5;
+    case "low_first": {
+  const thresholdA =
+    a.low_stock_threshold !== null &&
+    a.low_stock_threshold !== undefined &&
+    Number.isSafeInteger(Number(a.low_stock_threshold))
+      ? Number(a.low_stock_threshold)
+      : 5;
 
-  const thresholdB = Number.isSafeInteger(Number(b.low_stock_threshold))
-    ? Number(b.low_stock_threshold)
-    : 5;
+  const thresholdB =
+    b.low_stock_threshold !== null &&
+    b.low_stock_threshold !== undefined &&
+    Number.isSafeInteger(Number(b.low_stock_threshold))
+      ? Number(b.low_stock_threshold)
+      : 5;
 
-  const rankA = stockA > 0 && stockA <= thresholdA ? 0 : stockA === 0 ? 2 : 1;
-  const rankB = stockB > 0 && stockB <= thresholdB ? 0 : stockB === 0 ? 2 : 1;
+  if (stockA === null && stockB === null) return 0;
+  if (stockA === null) return 1;
+  if (stockB === null) return -1;
+
+  const rankA =
+    stockA > 0 && stockA <= thresholdA ? 0 :
+    stockA === 0 ? 1 : 2;
+
+  const rankB =
+    stockB > 0 && stockB <= thresholdB ? 0 :
+    stockB === 0 ? 1 : 2;
 
   return rankA - rankB || stockA - stockB;
-}
+}  
 
       case "out_first": {
         const rankA = stockA === 0 ? 0 : 1;
