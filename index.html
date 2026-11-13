@@ -1382,23 +1382,31 @@ const lowStock = sellerInventoryProducts.filter(product => {
                   String(image.product_id) === String(product.id)
               );
 
-           const lowStockThreshold = Number.isSafeInteger(
-  Number(product.low_stock_threshold)
-)
-  ? Number(product.low_stock_threshold)
-  : 5;
+           const thresholdValue = Number(product.low_stock_threshold);
 
-const statusKey = stock === 0
-  ? "inventoryOutOfStock"
-  : stock <= lowStockThreshold
-    ? "inventoryLowStock"
-    : "inventoryInStock";
+const lowStockThreshold =
+  product.low_stock_threshold !== null &&
+  product.low_stock_threshold !== undefined &&
+  Number.isSafeInteger(thresholdValue) &&
+  thresholdValue >= 0
+    ? thresholdValue
+    : 5;
 
-            const statusColor = stock === 0
-  ? "#d32f2f"
-  : stock <= lowStockThreshold
-    ? "#ed6c02"
-    : "#2e7d32";
+const statusKey = stock === null
+  ? "inventoryUnknownStock"
+  : stock === 0
+    ? "inventoryOutOfStock"
+    : stock <= lowStockThreshold
+      ? "inventoryLowStock"
+      : "inventoryInStock";
+
+const statusColor = stock === null
+  ? "#757575"
+  : stock === 0
+    ? "#d32f2f"
+    : stock <= lowStockThreshold
+      ? "#ed6c02"
+      : "#2e7d32";
 
               const imageHTML = productImages.map(image => {
 
