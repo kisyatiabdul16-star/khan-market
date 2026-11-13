@@ -1174,10 +1174,16 @@ if (sellerInventoryFilter === "in_stock") {
         return nameSort(a).localeCompare(nameSort(b));
 
       case "stock_asc":
-        return stockA - stockB;
+  if (stockA === null && stockB === null) return 0;
+  if (stockA === null) return 1;
+  if (stockB === null) return -1;
+  return stockA - stockB;
 
-      case "stock_desc":
-        return stockB - stockA;
+case "stock_desc":
+  if (stockA === null && stockB === null) return 0;
+  if (stockA === null) return 1;
+  if (stockB === null) return -1;
+  return stockB - stockA;
 
       case "low_first": {
   const thresholdA = Number.isSafeInteger(Number(a.low_stock_threshold))
