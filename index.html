@@ -7266,7 +7266,7 @@ modal.innerHTML = `
       <strong
         id="stock-adjustment-preview"
         style="font-size:28px;color:#167447"
-      >${currentStock}</strong>
+      >${currentStock === null ? "—" : currentStock}</strong>
     </div>
 
     <p
@@ -7318,15 +7318,6 @@ modal.innerHTML = `
       </button>
 
     </div>
-
-    <p style="
-      font-size:12px;
-      color:#777;
-      text-align:center;
-      margin:16px 0 0;
-    ">
-      ${t("stockAdjustBackendPending")}
-    </p>
 
   </div>
 `;
@@ -7383,6 +7374,9 @@ const currentStock = product.stock === null
   const quantity = Number(quantityInput.value);
   const adjustmentType = typeInput.value;
 quantityInput.min = adjustmentType === "set" ? "0" : "1";
+typeInput.disabled = stockAdjustmentInFlight;
+quantityInput.disabled = stockAdjustmentInFlight;
+  
   const validType = ["add", "remove", "set"].includes(adjustmentType);
 
   let valid =
@@ -7418,10 +7412,11 @@ quantityInput.min = adjustmentType === "set" ? "0" : "1";
       newStock >= 0;
   }
 
-if (!valid) {
+if (!valid || stockAdjustmentInFlight) {
   preview.textContent = "—";
 
-  message.textContent = currentStock === null
+  message.textContent =
+  currentStock === null && adjustmentType !== "set"
     ? t("stockUnknown")
     : t("stockAdjustInvalid");
 
@@ -7528,6 +7523,9 @@ async function saveStockAdjustment() {
   const requestId = stockAdjustmentRequestId;
 
   stockAdjustmentInFlight = true;
+ typeInput.disabled = true;
+quantityInput.disabled = true;
+  
   saveButton.disabled = true;
   saveButton.style.opacity = ".5";
   saveButton.style.cursor = "not-allowed";
@@ -7569,7 +7567,9 @@ async function saveStockAdjustment() {
     saveButton.disabled = false;
     saveButton.style.opacity = "1";
     saveButton.style.cursor = "pointer";
-
+    
+    typeInput.disabled = false;
+    quantityInput.disabled = false;
     return;
   }
 
