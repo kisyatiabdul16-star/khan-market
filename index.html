@@ -7381,20 +7381,37 @@ const currentStock = product.stock === null
   }
 
   const quantity = Number(quantityInput.value);
+  const adjustmentType = typeInput.value;
 
-let valid =
-  currentStock !== null &&
-  Number.isSafeInteger(currentStock) &&
-  currentStock >= 0 &&
-  Number.isSafeInteger(quantity) &&
-  quantity > 0;
+  const validType = ["add", "remove", "set"].includes(adjustmentType);
+
+  let valid =
+    validType &&
+    Number.isSafeInteger(quantity) &&
+    (
+      adjustmentType === "set"
+        ? quantity >= 0
+        : quantity > 0
+    ) &&
+    (
+      adjustmentType === "set" ||
+      (
+        currentStock !== null &&
+        Number.isSafeInteger(currentStock) &&
+        currentStock >= 0
+      )
+    );
 
   let newStock = currentStock;
 
   if (valid) {
-    newStock = typeInput.value === "add"
-      ? currentStock + quantity
-      : currentStock - quantity;
+    if (adjustmentType === "set") {
+      newStock = quantity;
+    } else if (adjustmentType === "add") {
+      newStock = currentStock + quantity;
+    } else {
+      newStock = currentStock - quantity;
+    }
 
     valid =
       Number.isSafeInteger(newStock) &&
