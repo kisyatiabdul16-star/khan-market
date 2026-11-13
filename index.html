@@ -1612,7 +1612,63 @@ function handleInventorySearch(value) {
     );
   }
 }
+// ==========================================
+// STOCK MOVEMENT HISTORY
+// ==========================================
 
+async function loadStockMovementHistory() {
+  if (stockHistoryLoading) return;
+
+  const container = document.getElementById(
+    "stock-history-content"
+  );
+
+  if (!container || !stockHistoryProductId) return;
+
+  stockHistoryLoading = true;
+
+  container.innerHTML = `
+    <p>${t("stockHistoryLoading")}</p>
+  `;
+
+  try {
+    const from = stockHistoryPage * STOCK_HISTORY_PAGE_SIZE;
+    const to = from + STOCK_HISTORY_PAGE_SIZE - 1;
+
+    let query = supabaseClient
+      .from("seller_stock_adjustments")
+      .select(
+        "id, adjustment_type, quantity, stock_before, stock_after, created_at",
+        { count: "exact" }
+      )
+      .eq("product_id", stockHistoryProductId)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (stockHistoryFilter !== "all") {
+      query = query.eq(
+        "adjustment_type",
+        stockHistoryFilter
+      );
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) throw error;
+
+    renderStockMovementHistory(data || [], count || 0);
+
+  } catch (error) {
+    console.error("STOCK HISTORY ERROR:", error);
+
+    container.innerHTML = `
+      <p>${t("stockHistoryLoadError")}</p>
+    `;
+
+  } finally {
+    stockHistoryLoading = false;
+  }
+}
 
 // ==========================================
 // INVENTORY FILTER
@@ -2532,6 +2588,8 @@ inventorySortOutFirst: "Zilizoishiwa stock kwanza",
 // STOCK ADJUSTMENT
 stockAdjustButton: "Badilisha Stock",
    stockHistoryButton: "Historia ya Mabadiliko ya Stock", 
+   stockHistoryLoading: "Inapakia historia...",
+stockHistoryLoadError: "Imeshindwa kupakia historia.", 
 stockAdjustTitle: "Usimamizi wa Stock",
 stockAdjustAdd: "Ongeza Stock",
 stockAdjustRemove: "Punguza Stock",
@@ -2867,7 +2925,9 @@ inventorySortLowFirst: "Low stock first",
 inventorySortOutFirst: "Out of stock first",
 // STOCK ADJUSTMENT
 stockAdjustButton: "Adjust Stock",
-stockHistoryButton: "Stock Movement History",    
+stockHistoryButton: "Stock Movement History",  
+ stockHistoryLoading: "Loading history...",
+stockHistoryLoadError: "Failed to load history.",   
 stockAdjustTitle: "Stock Management",
 stockAdjustAdd: "Increase Stock",
 stockAdjustRemove: "Decrease Stock",
@@ -3203,6 +3263,8 @@ inventorySortOutFirst: "Rupture de stock en premier",
 // STOCK ADJUSTMENT
 stockAdjustButton: "Ajuster le stock",
    stockHistoryButton: "Historique des mouvements de stock", 
+    stockHistoryLoading: "Chargement de l’historique...",
+stockHistoryLoadError: "Échec du chargement de l’historique.",
 stockAdjustTitle: "Gestion du stock",
 stockAdjustAdd: "Augmenter le stock",
 stockAdjustRemove: "Diminuer le stock",
@@ -3538,6 +3600,8 @@ inventorySortOutFirst: "المنتجات النافدة أولاً",
 // STOCK ADJUSTMENT
 stockAdjustButton: "تعديل المخزون",
    stockHistoryButton: "سجل حركات المخزون", 
+    stockHistoryLoading: "جارٍ تحميل السجل...",
+stockHistoryLoadError: "فشل تحميل السجل.",
 stockAdjustTitle: "إدارة المخزون",
 stockAdjustAdd: "زيادة المخزون",
 stockAdjustRemove: "تقليل المخزون",
