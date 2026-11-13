@@ -1125,7 +1125,9 @@ function renderSellerInventory() {
 
   // SEARCH + FILTER
   let filteredProducts = sellerInventoryProducts.filter(product => {
-    const name = String(product.Name || "").toLowerCase();
+    const name = String(
+  product.Name || product.name || ""
+).toLowerCase();
 
     const matchesSearch = name.includes(
       sellerInventorySearch.trim().toLowerCase()
