@@ -7236,7 +7236,7 @@ modal.innerHTML = `
     <input
       id="stock-adjustment-quantity"
       type="number"
-      min="1"
+      min="0"
       max="9007199254740991"
       step="1"
       value="1"
@@ -7382,7 +7382,7 @@ const currentStock = product.stock === null
 
   const quantity = Number(quantityInput.value);
   const adjustmentType = typeInput.value;
-
+quantityInput.min = adjustmentType === "set" ? "0" : "1";
   const validType = ["add", "remove", "set"].includes(adjustmentType);
 
   let valid =
@@ -7439,20 +7439,6 @@ if (!valid) {
   saveButton.style.cursor = "pointer";
 }
 
-
-function saveStockAdjustment() {
-  previewStockAdjustment();
-
-  const saveButton = document.getElementById(
-    "stock-adjustment-save"
-  );
-
-  if (!saveButton || saveButton.disabled) return;
-
-  // Backend haijaunganishwa.
-  // Hakuna stock inayobadilishwa hapa.
-  alert(t("stockAdjustBackendPending"));
-}
 function closeStockAdjustment() {
   if (stockAdjustmentInFlight) return;
 
@@ -7502,11 +7488,22 @@ async function saveStockAdjustment() {
   const quantity = Number(quantityInput.value);
   const adjustmentType = typeInput.value;
 
+   const validAdjustmentType = ["add", "remove", "set"].includes(
+    adjustmentType
+  );
+
+  const validQuantity =
+    Number.isSafeInteger(quantity) &&
+    (
+      adjustmentType === "set"
+        ? quantity >= 0
+        : quantity > 0
+    );
+
   if (
     !Number.isSafeInteger(Number(productId)) ||
-    !Number.isSafeInteger(quantity) ||
-    quantity <= 0 ||
-    !["add", "remove"].includes(adjustmentType)
+    !validAdjustmentType ||
+    !validQuantity
   ) {
     previewStockAdjustment();
     return;
