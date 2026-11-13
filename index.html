@@ -1136,14 +1136,16 @@ const lowStockThreshold =
     : 5;
 
 let matchesFilter = true;
-
 if (sellerInventoryFilter === "in_stock") {
-  matchesFilter = stock > lowStockThreshold;
+  matchesFilter = stock !== null && stock > lowStockThreshold;
 } else if (sellerInventoryFilter === "low_stock") {
-  matchesFilter = stock > 0 && stock <= lowStockThreshold;
+  matchesFilter =
+    stock !== null &&
+    stock > 0 &&
+    stock <= lowStockThreshold;
 } else if (sellerInventoryFilter === "out_of_stock") {
   matchesFilter = stock === 0;
-}   
+}
 
     return matchesSearch && matchesFilter;
   });
