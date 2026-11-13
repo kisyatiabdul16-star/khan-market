@@ -2538,7 +2538,23 @@ async function editProduct(productId) {
     alert(t("invalidStock"));
     return;
   }
+const newLowStockThreshold = prompt(
+  t("newProductLowStockThreshold"),
+  String(product.low_stock_threshold ?? 5)
+);
 
+if (
+  newLowStockThreshold === null ||
+  newLowStockThreshold.trim() === ""
+) return;
+
+if (
+  !Number.isSafeInteger(Number(newLowStockThreshold)) ||
+  Number(newLowStockThreshold) < 0
+) {
+  alert(t("invalidLowStockThreshold"));
+  return;
+}
   const { error: updateError } = await supabaseClient
     .from("products")
     .update({
