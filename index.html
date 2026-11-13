@@ -1878,14 +1878,13 @@ function openStockMovementHistory(productId) {
     alert(t("stockAdjustNotFound"));
     return;
   }
+// Remove existing modal first
+closeStockMovementHistory();
 
-  // Reset history state
-  stockHistoryProductId = id;
-  stockHistoryFilter = "all";
-  stockHistoryPage = 0;
-
-  // Remove an existing history modal
-  closeStockMovementHistory();
+// Reset history state for the selected product
+stockHistoryProductId = id;
+stockHistoryFilter = "all";
+stockHistoryPage = 0;
 
   const productName = inventoryEscape(
     product.name || t("unnamedProduct")
