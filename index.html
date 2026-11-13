@@ -2575,7 +2575,15 @@ console.log(
     alert(t("editError") + updateError.message);
     return;
   }
+const { data: verifyProduct, error: verifyError } =
+  await supabaseClient
+    .from("products")
+    .select("id, low_stock_threshold")
+    .eq("id", productId)
+    .single();
 
+console.log("SAVED THRESHOLD:", verifyProduct);
+console.log("VERIFY ERROR:", verifyError);
   alert(t("editSuccess"));
 
   await loadSellerProducts();
