@@ -1768,13 +1768,23 @@ function renderStockMovementHistory(records, totalCount) {
   }
 
   const historyHTML = records.map(record => {
-    const isAdd = record.adjustment_type === "add";
+    
 
-    const typeLabel = isAdd
-      ? t("stockHistoryAdd")
-      : t("stockHistoryRemove");
+const isAdd = record.adjustment_type === "add";
+const isRemove = record.adjustment_type === "remove";
+const isSet = record.adjustment_type === "set";
 
-    const color = isAdd ? "#2e7d32" : "#d32f2f";
+const typeLabel = isAdd
+  ? t("stockHistoryAdd")
+  : isRemove
+    ? t("stockHistoryRemove")
+    : t("stockAdjustSet");
+
+const color = isAdd
+  ? "#2e7d32"
+  : isRemove
+    ? "#d32f2f"
+    : "#1565c0";
 
     const date = new Date(record.created_at);
 
