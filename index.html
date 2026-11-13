@@ -6412,8 +6412,11 @@ function handleStockAdjustmentEscape(event) {
     closeStockAdjustment();
   }
 }
-let selectedStockProductId = null;
 
+let selectedStockProductId = null;
+let stockAdjustmentRequestId = null;
+let stockAdjustmentRequestSignature = null;
+let stockAdjustmentInFlight = false;
 function openStockAdjustment(productId) {
   const product = sellerInventoryProducts.find(
     p => Number(p.id) === Number(productId)
