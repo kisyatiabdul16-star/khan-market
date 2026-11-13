@@ -1108,12 +1108,20 @@ function renderSellerInventory() {
   container.dir = rtl ? "rtl" : "ltr";
 
   const getStock = product => {
-    const value = Number(product.stock ?? 0);
+  if (
+    product.stock === null ||
+    product.stock === undefined ||
+    product.stock === ""
+  ) {
+    return null;
+  }
 
-    return Number.isFinite(value) && value > 0
-      ? value
-      : 0;
-  };
+  const value = Number(product.stock);
+
+  return Number.isSafeInteger(value) && value >= 0
+    ? value
+    : null;
+};
 
   // SEARCH + FILTER
   let filteredProducts = sellerInventoryProducts.filter(product => {
