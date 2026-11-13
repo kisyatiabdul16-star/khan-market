@@ -2538,6 +2538,7 @@ inventoryDescription: "Maelezo",
    noProductDescription: "Hakuna maelezo ya bidhaa.",
     unnamedProduct: "Bidhaa",
 otherCategory: "Nyingine",
+   stockAdjustRequestUnavailable: "Haiwezekani kuanzisha ombi salama. Tafadhali jaribu tena.", 
 // PASSWORD RECOVERY
 newPasswordTitle: "Weka Nenosiri Jipya",
 newPasswordPlaceholder: "Nenosiri jipya (angalau herufi 8)",
@@ -2872,6 +2873,7 @@ inventoryDescription: "Description",
     noProductDescription: "No product description.",
     unnamedProduct: "Unnamed product",
 otherCategory: "Other",
+   stockAdjustRequestUnavailable: "Unable to create a secure request. Please try again.", 
    // PASSWORD RECOVERY
 newPasswordTitle: "Set a New Password",
 newPasswordPlaceholder: "New password (at least 8 characters)",
@@ -3205,6 +3207,7 @@ inventoryDescription: "Description",
    noProductDescription: "Aucune description du produit.", 
     unnamedProduct: "Produit sans nom",
 otherCategory: "Autre",
+   stockAdjustRequestUnavailable: "Impossible de créer une demande sécurisée. Veuillez réessayer.", 
     // PASSWORD RECOVERY
 newPasswordTitle: "Définir un nouveau mot de passe",
 newPasswordPlaceholder: "Nouveau mot de passe (8 caractères minimum)",
@@ -3538,6 +3541,7 @@ inventoryDescription: "الوصف",
     noProductDescription: "لا يوجد وصف للمنتج.",
    unnamedProduct: "منتج بدون اسم",
 otherCategory: "أخرى", 
+    stockAdjustRequestUnavailable: "تعذر إنشاء طلب آمن. يُرجى المحاولة مرة أخرى.",
 // PASSWORD RECOVERY
 newPasswordTitle: "تعيين كلمة مرور جديدة",
 newPasswordPlaceholder: "كلمة المرور الجديدة (8 أحرف على الأقل)",
@@ -6428,7 +6432,9 @@ function openStockAdjustment(productId) {
   }
 
   selectedStockProductId = Number(productId);
-
+stockAdjustmentRequestId = null;
+stockAdjustmentRequestSignature = null;
+stockAdjustmentInFlight = false;
   const currentStock = Number(product.stock ?? 0);
 document.removeEventListener(
   "keydown",
@@ -6739,6 +6745,8 @@ function saveStockAdjustment() {
   alert(t("stockAdjustBackendPending"));
 }
 function closeStockAdjustment() {
+  if (stockAdjustmentInFlight) return;
+
   document.removeEventListener(
     "keydown",
     handleStockAdjustmentEscape
@@ -6746,13 +6754,17 @@ function closeStockAdjustment() {
 
   document.getElementById("stock-adjustment-modal")?.remove();
   selectedStockProductId = null;
-} 
+}
 
 async function saveStockAdjustment() {
-  const productId = selectedStockProductId;
+  if (stockAdjustmentInFlight) return;
 
-  const product = sellerInventoryProducts.find(
-    p => Number(p.id) === Number(productId)
+  const saveButton = document.getElementById(
+    "stock-adjustment-save"
+  );
+
+  const message = document.getElementById(
+    "stock-adjustment-message"
   );
 
   const quantityInput = document.getElementById(
@@ -6763,35 +6775,56 @@ async function saveStockAdjustment() {
     "stock-adjustment-type"
   );
 
-  const message = document.getElementById(
-    "stock-adjustment-message"
-  );
-
-  const saveButton = document.getElementById(
-    "stock-adjustment-save"
-  );
-
-  if (!product || !quantityInput || !typeInput ||
-      !message || !saveButton || saveButton.disabled) {
+  if (!saveButton || !message || !quantityInput || !typeInput) {
     return;
   }
 
-  previewStockAdjustment();
+  const productId = selectedStockProductId;
 
-  if (saveButton.disabled) return;
+  const product = sellerInventoryProducts.find(
+    p => Number(p.id) === Number(productId)
+  );
+
+  if (!product) {
+    message.textContent = t("stockAdjustNotFound");
+    return;
+  }
 
   const quantity = Number(quantityInput.value);
   const adjustmentType = typeInput.value;
 
   if (
+    !Number.isSafeInteger(Number(productId)) ||
     !Number.isSafeInteger(quantity) ||
     quantity <= 0 ||
     !["add", "remove"].includes(adjustmentType)
   ) {
+    previewStockAdjustment();
     return;
   }
 
+  if (!globalThis.crypto?.randomUUID) {
+    message.textContent = t("stockAdjustRequestUnavailable");
+    return;
+  }
+
+  const requestSignature =
+    `${productId}:${adjustmentType}:${quantity}`;
+
+  if (
+    !stockAdjustmentRequestId ||
+    stockAdjustmentRequestSignature !== requestSignature
+  ) {
+    stockAdjustmentRequestId = crypto.randomUUID();
+    stockAdjustmentRequestSignature = requestSignature;
+  }
+
+  const requestId = stockAdjustmentRequestId;
+
+  stockAdjustmentInFlight = true;
   saveButton.disabled = true;
+  saveButton.style.opacity = ".5";
+  saveButton.style.cursor = "not-allowed";
   message.textContent = "";
 
   try {
@@ -6800,7 +6833,8 @@ async function saveStockAdjustment() {
       {
         p_product_id: productId,
         p_adjustment_type: adjustmentType,
-        p_quantity: quantity
+        p_quantity: quantity,
+        p_request_id: requestId
       }
     );
 
@@ -6808,22 +6842,33 @@ async function saveStockAdjustment() {
 
     const updatedStock = Number(data);
 
-    if (!Number.isSafeInteger(updatedStock) || updatedStock < 0) {
-      throw new Error("Invalid stock response from server.");
+    if (
+      !Number.isSafeInteger(updatedStock) ||
+      updatedStock < 0
+    ) {
+      throw new Error("Invalid stock response.");
     }
 
     product.stock = updatedStock;
+
+    stockAdjustmentRequestId = null;
+    stockAdjustmentRequestSignature = null;
+    stockAdjustmentInFlight = false;
 
     closeStockAdjustment();
     renderSellerInventory();
 
   } catch (error) {
     console.error("STOCK ADJUSTMENT ERROR:", error);
-message.textContent = t("stockAdjustSaveError");
-    saveButton.disabled = false;
-  }
 
-}
+    message.textContent = t("stockAdjustSaveError");
+
+    stockAdjustmentInFlight = false;
+    saveButton.disabled = false;
+    saveButton.style.opacity = "1";
+    saveButton.style.cursor = "pointer";
+  }
+}  
 
 </script>
 
