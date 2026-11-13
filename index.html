@@ -1568,7 +1568,19 @@ return `
       >
         📦 ${t("stockAdjustButton")}
       </button>
-
+      <button
+        onclick="openStockMovementHistory(${productId})"
+        style="
+          background:#5e35b1;
+          color:white;
+          padding:9px 15px;
+          border:0;
+          border-radius:6px;
+          cursor:pointer;
+        "
+      >
+        📋 ${t("stockHistoryButton")}
+      </button>
     </div>
 
   </article>
@@ -2519,6 +2531,7 @@ inventorySortLowFirst: "Stock inayokaribia kuisha kwanza",
 inventorySortOutFirst: "Zilizoishiwa stock kwanza",
 // STOCK ADJUSTMENT
 stockAdjustButton: "Badilisha Stock",
+   stockHistoryButton: "Historia ya Mabadiliko ya Stock", 
 stockAdjustTitle: "Usimamizi wa Stock",
 stockAdjustAdd: "Ongeza Stock",
 stockAdjustRemove: "Punguza Stock",
@@ -2854,6 +2867,7 @@ inventorySortLowFirst: "Low stock first",
 inventorySortOutFirst: "Out of stock first",
 // STOCK ADJUSTMENT
 stockAdjustButton: "Adjust Stock",
+stockHistoryButton: "Stock Movement History",    
 stockAdjustTitle: "Stock Management",
 stockAdjustAdd: "Increase Stock",
 stockAdjustRemove: "Decrease Stock",
@@ -3188,6 +3202,7 @@ inventorySortLowFirst: "Stock faible en premier",
 inventorySortOutFirst: "Rupture de stock en premier",
 // STOCK ADJUSTMENT
 stockAdjustButton: "Ajuster le stock",
+   stockHistoryButton: "Historique des mouvements de stock", 
 stockAdjustTitle: "Gestion du stock",
 stockAdjustAdd: "Augmenter le stock",
 stockAdjustRemove: "Diminuer le stock",
@@ -3522,6 +3537,7 @@ inventorySortLowFirst: "المخزون المنخفض أولاً",
 inventorySortOutFirst: "المنتجات النافدة أولاً",
 // STOCK ADJUSTMENT
 stockAdjustButton: "تعديل المخزون",
+   stockHistoryButton: "سجل حركات المخزون", 
 stockAdjustTitle: "إدارة المخزون",
 stockAdjustAdd: "زيادة المخزون",
 stockAdjustRemove: "تقليل المخزون",
