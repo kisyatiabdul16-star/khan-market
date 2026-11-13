@@ -1123,17 +1123,27 @@ function renderSellerInventory() {
       sellerInventorySearch.trim().toLowerCase()
     );
 
-    const stock = getStock(product);
+const stock = getStock(product);
 
-    let matchesFilter = true;
+const thresholdValue = Number(product.low_stock_threshold);
 
-    if (sellerInventoryFilter === "in_stock") {
-      matchesFilter = stock > 5;
-    } else if (sellerInventoryFilter === "low_stock") {
-      matchesFilter = stock > 0 && stock <= 5;
-    } else if (sellerInventoryFilter === "out_of_stock") {
-      matchesFilter = stock === 0;
-    }
+const lowStockThreshold =
+  product.low_stock_threshold !== null &&
+  product.low_stock_threshold !== undefined &&
+  Number.isSafeInteger(thresholdValue) &&
+  thresholdValue >= 0
+    ? thresholdValue
+    : 5;
+
+let matchesFilter = true;
+
+if (sellerInventoryFilter === "in_stock") {
+  matchesFilter = stock > lowStockThreshold;
+} else if (sellerInventoryFilter === "low_stock") {
+  matchesFilter = stock > 0 && stock <= lowStockThreshold;
+} else if (sellerInventoryFilter === "out_of_stock") {
+  matchesFilter = stock === 0;
+}   
 
     return matchesSearch && matchesFilter;
   });
