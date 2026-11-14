@@ -2269,43 +2269,50 @@ async function updateOrderStatus(orderId, newStatus) {
 
   if (!confirmed) return;
 
-  let error = null;
+  try {
+    let result;
 
-  if (newStatus === "rejected") {
-    const result = await supabaseClient.rpc(
-      "seller_reject_order_with_stock_release",
-      {
-        p_order_id: orderId
-      }
-    );
-
-    error = result.error;
-
-    if (!error && result.data?.success !== true) {
-      error = new Error("ORDER_REJECTION_NOT_CONFIRMED");
+    if (newStatus === "rejected") {
+      result = await supabaseClient.rpc(
+        "seller_reject_order_with_stock_release",
+        {
+          p_order_id: orderId
+        }
+      );
+    } else {
+      result = await supabaseClient.rpc(
+        "seller_update_order_status",
+        {
+          p_order_id: orderId,
+          p_new_status: newStatus
+        }
+      );
     }
 
-    if (!error) {
-      console.log("ORDER STOCK RELEASE RESULT:", result.data);
+    const { data, error } = result;
+
+    if (error) {
+      console.error("UPDATE ORDER ERROR:", error);
+      alert(t("updateOrderError") + error.message);
+      return;
     }
-  } else {
-    const result = await supabaseClient
-      .from("orders")
-      .update({ status: newStatus })
-      .eq("id", orderId);
 
-    error = result.error;
-  }
+    if (data?.success !== true) {
+      console.error("ORDER STATUS NOT CONFIRMED:", data);
+      alert(t("updateOrderError") + "ORDER_STATUS_NOT_CONFIRMED");
+      return;
+    }
 
-  if (error) {
-    console.error("UPDATE ORDER ERROR:", error);
+    console.log("ORDER STATUS RESULT:", data);
+
+    alert(t("updateOrderSuccess"));
+
+    await loadSellerOrders();
+
+  } catch (error) {
+    console.error("UPDATE ORDER EXCEPTION:", error);
     alert(t("updateOrderError") + error.message);
-    return;
   }
-
-  alert(t("updateOrderSuccess"));
-
-  await loadSellerOrders();
 }
   
 async function loadSellerOrders() {
