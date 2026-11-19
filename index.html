@@ -948,11 +948,11 @@ async function order(){
     }
   };
 
-  const language = checkoutMessages[currentLanguage]
+const checkoutLanguage = checkoutMessages[currentLanguage]
     ? currentLanguage
     : "en";
 
-  const msg = checkoutMessages[language];
+const msg = checkoutMessages[checkoutLanguage];
 
   // Send only product IDs and quantities
   const cartItems = Object.entries(cart).map(([id, qty]) => ({
