@@ -971,7 +971,8 @@ async function order(){
     }
   );
 
-  if(error){
+ 
+if(error){
     console.error("SECURE CHECKOUT ERROR:", error);
 
     if(error.message.includes("PRODUCT_STOCK_NOT_SET")){
@@ -998,14 +999,68 @@ async function order(){
     return;
   }
 
-  const grandTotal = Number(data.grand_total);
+  // Format each currency separately.
+  const formatOrderTotal = (amount, currency) => {
+    const value = Number(amount);
 
-  alert(t("orderSuccess") + money(grandTotal));
+    if(!Number.isFinite(value)){
+      throw new Error("INVALID_ORDER_TOTAL");
+    }
+
+    if(currency === "TZS"){
+      return money(value);
+    }
+
+    return value.toLocaleString(undefined, {
+      maximumFractionDigits: 2
+    }) + " " + currency;
+  };
+
+  const totalsByCurrency = data.grand_totals_by_currency;
+
+  let successMessage = t("orderSuccess");
+
+  if(
+    totalsByCurrency &&
+    typeof totalsByCurrency === "object" &&
+    !Array.isArray(totalsByCurrency)
+  ){
+    const currencyTotals = Object.entries(totalsByCurrency);
+
+    if(currencyTotals.length === 0){
+      alert(msg.generalError);
+      return;
+    }
+
+    const formattedTotals = currencyTotals.map(
+      ([currency, amount]) =>
+        formatOrderTotal(amount, currency)
+    );
+
+    if(currencyTotals.length === 1){
+      successMessage += formattedTotals[0];
+    } else {
+      successMessage += "\n" + formattedTotals.join("\n");
+    }
+
+  } else if(data.grand_total !== null && data.grand_total !== undefined){
+
+    const currency = data.currency || "TZS";
+
+    successMessage += formatOrderTotal(
+      data.grand_total,
+      currency
+    );
+
+  } else {
+    alert(msg.generalError);
+    return;
+  }
+
+  alert(successMessage);
 
   cart = {};
   showCart();
-}
-
 
 async function loadProducts() {
   const { data, error } = await supabaseClient
