@@ -1004,6 +1004,7 @@ if(error){
   alert(t("orderSuccess") + money(grandTotal));
   cart = {};
   showCart();
+  }
 
 async function loadProducts() {
   const { data, error } = await supabaseClient
