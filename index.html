@@ -998,12 +998,35 @@ if(error){
     alert(msg.generalError);
     return;
   }
+const currencyTotals = data.grand_totals_by_currency || {};
 
-   const grandTotal = Number(data.grand_total);
+const currencyLines = Object.entries(currencyTotals).map(
+  ([currency, amount]) =>
+    `${Number(amount).toLocaleString()} ${currency}`
+);
 
-  alert(t("orderSuccess") + money(grandTotal));
-  cart = {};
-  showCart();
+const totalText = currencyLines.length
+  ? currencyLines.join("\n")
+  : money(Number(data.grand_total));
+
+const conversionNote = data.requires_currency_conversion
+  ? ({
+      sw: "Jumla zimeonyeshwa kwa sarafu zake. Hakuna ubadilishaji wa fedha uliofanyika.",
+      en: "Totals are shown in their original currencies. No currency conversion was applied.",
+      fr: "Les totaux sont affichés dans leurs devises d’origine. Aucune conversion n’a été effectuée.",
+      ar: "تُعرض الإجماليات بعملاتها الأصلية. لم يتم تحويل العملات."
+    }[currentLanguage] || "Totals are shown in their original currencies.")
+  : "";
+
+alert(
+  t("orderSuccess") +
+  "\n" +
+  totalText +
+  (conversionNote ? "\n\n" + conversionNote : "")
+);
+
+cart = {};
+showCart();
   }
 
 async function loadProducts() {
