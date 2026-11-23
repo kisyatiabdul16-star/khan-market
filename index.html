@@ -7524,6 +7524,7 @@ quantityInput.disabled = stockAdjustmentInFlight;
   let valid =
     validType &&
     Number.isSafeInteger(quantity) &&
+    quantity <= 2147483647 &&
     (
       adjustmentType === "set"
         ? quantity >= 0
@@ -7551,7 +7552,8 @@ quantityInput.disabled = stockAdjustmentInFlight;
 
     valid =
       Number.isSafeInteger(newStock) &&
-      newStock >= 0;
+      newStock >= 0 &&
+      newStock <= 2147483647;
   }
 
 if (!valid || stockAdjustmentInFlight) {
