@@ -2685,16 +2685,7 @@ async function editProduct(productId) {
     return;
   }
 
-  const newStock = prompt(
-    t("newProductStock"),
-    String(product.stock ?? 0)
-  );
-
-  if (newStock === null || newStock.trim() === "") return;
-
-  if (!Number.isInteger(Number(newStock)) || Number(newStock) < 0) {
-    alert(t("invalidStock"));
-    return;
+  
   }
 const newLowStockThreshold = prompt(
   t("newProductLowStockThreshold"),
@@ -2723,7 +2714,6 @@ console.log(
    .update({
   Name: newName.trim(),
   Price: Number(newPrice),
-  stock: Number(newStock),
   low_stock_threshold: Number(newLowStockThreshold)
 })
     .eq("id", productId)
