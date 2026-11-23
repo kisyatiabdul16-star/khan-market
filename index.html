@@ -5623,7 +5623,6 @@ const store = stores[0];
   discount_percentage: discount,
   Dicription: description,
   category: category,
-  stock: stock,
   image_url: null,
   store_id: store.id
 })
@@ -5636,6 +5635,24 @@ if (productError) {
   return;
 }
 
+ if (stock !== null) {
+  const { error: stockError } = await supabaseClient.rpc(
+    "seller_adjust_product_stock",
+    {
+      p_product_id: product.id,
+      p_adjustment_type: "set",
+      p_quantity: stock,
+      p_request_id: crypto.randomUUID()
+    }
+  );
+
+  if (stockError) {
+    message.textContent =
+      t("productSaveError") + " Stock setup failed: " + stockError.message;
+    console.error("OPENING STOCK ERROR:", stockError);
+    return;
+  }
+} 
 const imageFiles = Array.from(
   document.getElementById("product-images").files
 );
