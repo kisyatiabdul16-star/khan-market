@@ -2684,9 +2684,7 @@ async function editProduct(productId) {
     alert(t("invalidProduct"));
     return;
   }
-
   
-  }
 const newLowStockThreshold = prompt(
   t("newProductLowStockThreshold"),
   String(product.low_stock_threshold ?? 5)
