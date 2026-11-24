@@ -1121,6 +1121,50 @@ let sellerInventoryFilter = "all";
 let sellerInventorySearch = "";
 let sellerInventorySort = "default";
 
+function getProductInventoryBalance(product, locationId = null) {
+  if (!product) return null;
+
+  const locations = sellerInventoryLocations.filter(
+    location =>
+      location.store_id === product.store_id &&
+      location.is_active
+  );
+
+  const location = locationId
+    ? locations.find(item => item.id === locationId)
+    : locations.find(item => item.is_default) || locations[0];
+
+  if (!location) return null;
+
+  const balance = sellerInventoryBalances.find(
+    item =>
+      Number(item.product_id) === Number(product.id) &&
+      item.store_id === product.store_id &&
+      item.location_id === location.id
+  );
+
+  if (!balance) return null;
+
+  const onHand = Number(balance.on_hand_units);
+  const reserved = Number(balance.reserved_units);
+  const blocked = Number(balance.blocked_units);
+  const available = Number(balance.available_units);
+
+  if (
+    ![onHand, reserved, blocked, available].every(Number.isSafeInteger) ||
+    [onHand, reserved, blocked, available].some(value => value < 0)
+  ) {
+    return null;
+  }
+
+  return {
+    location,
+    onHand,
+    reserved,
+    blocked,
+    available
+  };
+}    
 // ==========================================
 // RENDER SELLER INVENTORY
 // ==========================================
