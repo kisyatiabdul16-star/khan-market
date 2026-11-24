@@ -2208,6 +2208,7 @@ function handleInventorySort(value) {
 
   renderSellerInventory();
 }
+
 async function loadSellerProducts() {
   const container = document.getElementById("seller-products");
 
@@ -2234,12 +2235,17 @@ async function loadSellerProducts() {
     if (storeError) throw storeError;
 
     if (!stores || stores.length === 0) {
+      sellerInventoryProducts = [];
+      sellerInventoryImages = [];
+      sellerInventoryLocations = [];
+      sellerInventoryBalances = [];
       container.textContent = t("inventoryNoStore");
       return;
     }
 
     const storeIds = stores.map(store => store.id);
 
+    // 1. Load products
     const { data: products, error: productError } = await supabaseClient
       .from("products")
       .select("*")
@@ -2250,12 +2256,43 @@ async function loadSellerProducts() {
 
     sellerInventoryProducts = products || [];
 
+    // 2. Load active inventory locations
+    const { data: locations, error: locationError } =
+      await supabaseClient
+        .from("inventory_locations")
+        .select(
+          "id, store_id, location_name, location_type, is_default, is_active"
+        )
+        .in("store_id", storeIds)
+        .eq("is_active", true)
+        .order("is_default", { ascending: false })
+        .order("location_name", { ascending: true });
+
+    if (locationError) throw locationError;
+
+    sellerInventoryLocations = locations || [];
+
+    // 3. Load inventory balances
+    const { data: balances, error: balanceError } =
+      await supabaseClient
+        .from("inventory_balances")
+        .select(
+          "id, store_id, location_id, product_id, on_hand_units, reserved_units, blocked_units, available_units"
+        )
+        .in("store_id", storeIds);
+
+    if (balanceError) throw balanceError;
+
+    sellerInventoryBalances = balances || [];
+
+    // 4. Handle empty products
     if (sellerInventoryProducts.length === 0) {
       sellerInventoryImages = [];
       container.textContent = t("inventoryNoProducts");
       return;
     }
 
+    // 5. Load product images
     const productIds = sellerInventoryProducts.map(product => product.id);
 
     const { data: images, error: imageError } = await supabaseClient
