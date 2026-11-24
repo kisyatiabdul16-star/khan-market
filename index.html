@@ -1818,7 +1818,7 @@ async function loadStockMovementHistory() {
     let query = supabaseClient
       .from("inventory_movements")
       .select(
-        "id, movement_type, reference_type, on_hand_delta, on_hand_before, on_hand_after, created_at",
+        "id, movement_type, reference_type, reference_id, on_hand_delta, on_hand_before, on_hand_after, created_at",
         { count: "exact" }
       )
       .eq("product_id", requestedProductId)
@@ -1902,23 +1902,41 @@ function renderStockMovementHistory(records, totalCount) {
   }
 
   const historyHTML = records.map(record => {
-    
+    const referenceType = record.reference_type || "";
 
-const isAdd = record.adjustment_type === "add";
-const isRemove = record.adjustment_type === "remove";
-const isSet = record.adjustment_type === "set";
+    const isOpening = record.movement_type === "opening";
+    const isAdjustment = record.movement_type === "adjustment";
 
-const typeLabel = isAdd
-  ? t("stockHistoryAdd")
-  : isRemove
-    ? t("stockHistoryRemove")
-    : t("stockAdjustSet");
+    const adjustmentType = isAdjustment
+      ? referenceType.split(":").pop()
+      : isOpening
+        ? "set"
+        : null;
 
-const color = isAdd
-  ? "#2e7d32"
-  : isRemove
-    ? "#d32f2f"
-    : "#1565c0";
+    const isAdd = adjustmentType === "add";
+    const isRemove = adjustmentType === "remove";
+    const isSet = adjustmentType === "set";
+
+    const typeLabel = isAdd
+      ? t("stockHistoryAdd")
+      : isRemove
+        ? t("stockHistoryRemove")
+        : isSet
+          ? t("stockAdjustSet")
+          : inventoryEscape(record.movement_type || "—");
+
+    const color = isAdd
+      ? "#2e7d32"
+      : isRemove
+        ? "#d32f2f"
+        : "#1565c0";
+
+    const quantity = isSet
+      ? Number(record.reference_id)
+      : Math.abs(Number(record.on_hand_delta));
+
+    const before = Number(record.on_hand_before);
+    const after = Number(record.on_hand_after);
 
     const date = new Date(record.created_at);
 
@@ -1944,22 +1962,22 @@ const color = isAdd
       ">
 
         <strong style="color:${color};">
-          ${inventoryEscape(typeLabel)}
+          ${typeLabel}
         </strong>
 
         <p>
           ${t("stockHistoryQuantity")}:
-          <strong>${Number(record.quantity)}</strong>
+          <strong>${Number.isSafeInteger(quantity) ? quantity : "—"}</strong>
         </p>
 
         <p>
           ${t("stockHistoryBefore")}:
-          ${Number(record.stock_before)}
+          ${Number.isSafeInteger(before) ? before : "—"}
         </p>
 
         <p>
           ${t("stockHistoryAfter")}:
-          ${Number(record.stock_after)}
+          ${Number.isSafeInteger(after) ? after : "—"}
         </p>
 
         <small>
@@ -2007,6 +2025,7 @@ const color = isAdd
     </div>
   `;
 }
+
 // ==========================================
 // STOCK HISTORY PAGINATION
 // ==========================================
