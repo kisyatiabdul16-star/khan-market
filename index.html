@@ -1790,6 +1790,7 @@ function handleInventorySearch(value) {
 // ==========================================
 // LOAD STOCK MOVEMENT HISTORY
 // ==========================================
+
 async function loadStockMovementHistory() {
   const requestedProductId = stockHistoryProductId;
 
@@ -1799,7 +1800,6 @@ async function loadStockMovementHistory() {
 
   if (!container || !requestedProductId) return;
 
-  // Identify this request
   const requestToken = ++stockHistoryRequestToken;
 
   stockHistoryLoading = true;
@@ -1816,25 +1816,24 @@ async function loadStockMovementHistory() {
       from + STOCK_HISTORY_PAGE_SIZE - 1;
 
     let query = supabaseClient
-      .from("seller_stock_adjustments")
+      .from("inventory_movements")
       .select(
-        "id, adjustment_type, quantity, stock_before, stock_after, created_at",
+        "id, movement_type, reference_type, on_hand_delta, on_hand_before, on_hand_after, created_at",
         { count: "exact" }
       )
       .eq("product_id", requestedProductId)
       .order("created_at", { ascending: false })
       .range(from, to);
 
-    if (stockHistoryFilter !== "all") {
+    if (["add", "remove", "set"].includes(stockHistoryFilter)) {
       query = query.eq(
-        "adjustment_type",
-        stockHistoryFilter
+        "reference_type",
+        `seller_adjustment:${stockHistoryFilter}`
       );
     }
 
     const { data, error, count } = await query;
 
-    // Ignore outdated responses
     if (
       requestToken !== stockHistoryRequestToken ||
       requestedProductId !== stockHistoryProductId
@@ -1843,12 +1842,6 @@ async function loadStockMovementHistory() {
     }
 
     if (error) throw error;
-
-    const currentContainer = document.getElementById(
-      "stock-history-content"
-    );
-
-    if (!currentContainer) return;
 
     renderStockMovementHistory(
       data || [],
@@ -1879,6 +1872,7 @@ async function loadStockMovementHistory() {
     }
   }
 }
+
 
 // RENDER STOCK MOVEMENT HISTORY
 // ==========================================
