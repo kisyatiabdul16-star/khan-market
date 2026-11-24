@@ -7597,9 +7597,29 @@ function previewStockAdjustment() {
   );
 
   if (!product) return;
-const currentStock = product.stock === null
-  ? null
-  : Number(product.stock);
+const productLocations = sellerInventoryLocations.filter(
+  location =>
+    location.store_id === product.store_id &&
+    location.is_active
+);
+
+const productLocation =
+  productLocations.find(location => location.is_default) ||
+  productLocations[0];
+
+if (!productLocation) {
+  alert(t("stockAdjustNotFound"));
+  return;
+}
+
+selectedStockLocationId = productLocation.id;
+
+const balance = getProductInventoryBalance(
+  product,
+  selectedStockLocationId
+);
+
+const currentStock = balance ? balance.onHand : null;
 
   const quantityInput = document.getElementById(
     "stock-adjustment-quantity"
