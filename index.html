@@ -7733,6 +7733,7 @@ function closeStockAdjustment() {
   selectedStockProductId = null;
 }
 
+
 async function saveStockAdjustment() {
   if (stockAdjustmentInFlight) return;
 
@@ -7767,12 +7768,25 @@ async function saveStockAdjustment() {
     return;
   }
 
+  const location = sellerInventoryLocations.find(
+    item =>
+      item.id === selectedStockLocationId &&
+      item.store_id === product.store_id &&
+      item.is_active
+  );
+
+  if (!location) {
+    message.textContent = t("stockAdjustNotFound");
+    return;
+  }
+
   const quantity = Number(quantityInput.value);
   const adjustmentType = typeInput.value;
 
-   const validAdjustmentType = ["add", "remove", "set"].includes(
+  const validAdjustmentType = ["add", "remove", "set"].includes(
     adjustmentType
   );
+
   const validQuantity =
     Number.isSafeInteger(quantity) &&
     quantity <= 2147483647 &&
@@ -7797,7 +7811,7 @@ async function saveStockAdjustment() {
   }
 
   const requestSignature =
-    `${productId}:${adjustmentType}:${quantity}`;
+    `${productId}:${selectedStockLocationId}:${adjustmentType}:${quantity}`;
 
   if (
     !stockAdjustmentRequestId ||
@@ -7810,84 +7824,92 @@ async function saveStockAdjustment() {
   const requestId = stockAdjustmentRequestId;
 
   stockAdjustmentInFlight = true;
- typeInput.disabled = true;
-quantityInput.disabled = true;
-  
+
+  typeInput.disabled = true;
+  quantityInput.disabled = true;
+
   saveButton.disabled = true;
   saveButton.style.opacity = ".5";
   saveButton.style.cursor = "not-allowed";
   message.textContent = "";
 
-  let updatedStock;
-
-  // SEHEMU YA KWANZA: BACKEND RPC
   try {
     const { data, error } = await supabaseClient.rpc(
-      "seller_adjust_product_stock",
+      "seller_adjust_inventory_stock",
       {
         p_product_id: productId,
+        p_location_id: selectedStockLocationId,
         p_adjustment_type: adjustmentType,
         p_quantity: quantity,
-        p_request_id: requestId
+        p_request_id: requestId,
+        p_description: null
       }
     );
 
     if (error) throw error;
 
-    updatedStock = Number(data);
+    const result = Array.isArray(data) ? data[0] : data;
+    const updatedStock = Number(result?.stock_after);
 
-        if (
+    if (
+      !result?.movement_id ||
       !Number.isSafeInteger(updatedStock) ||
-      updatedStock < 0 ||
-      updatedStock > 2147483647
+      updatedStock < 0
     ) {
-      throw new Error("Invalid stock response.");
+      throw new Error("Invalid inventory adjustment response.");
     }
 
+    const existingBalance = sellerInventoryBalances.find(
+      item =>
+        Number(item.product_id) === Number(productId) &&
+        item.store_id === product.store_id &&
+        item.location_id === selectedStockLocationId
+    );
+
+    if (existingBalance) {
+      const reserved = Number(existingBalance.reserved_units);
+      const blocked = Number(existingBalance.blocked_units);
+
+      existingBalance.on_hand_units = updatedStock;
+      existingBalance.available_units =
+        updatedStock - reserved - blocked;
+    } else {
+      sellerInventoryBalances.push({
+        store_id: product.store_id,
+        location_id: selectedStockLocationId,
+        product_id: Number(productId),
+        on_hand_units: updatedStock,
+        reserved_units: 0,
+        blocked_units: 0,
+        available_units: updatedStock
+      });
+    }
+
+    stockAdjustmentRequestId = null;
+    stockAdjustmentRequestSignature = null;
+    stockAdjustmentInFlight = false;
+
+    closeStockAdjustment();
+    renderSellerInventory();
+
   } catch (error) {
-    console.error("STOCK ADJUSTMENT RPC ERROR:", error);
+    console.error("INVENTORY ADJUSTMENT RPC ERROR:", error);
 
     message.textContent = t("stockAdjustSaveError");
 
-    // Hifadhi request ID kwa retry ya ombi lilelile.
     stockAdjustmentInFlight = false;
 
     saveButton.disabled = false;
     saveButton.style.opacity = "1";
     saveButton.style.cursor = "pointer";
-    
+
     typeInput.disabled = false;
     quantityInput.disabled = false;
+
+    // Request ID inabaki kwa retry salama ya ombi lilelile.
     return;
   }
-
-  // SEHEMU YA PILI: BACKEND IMETHIBITISHA MAFANIKIO
-  product.stock = updatedStock;
-
-  // Usiruhusu adjustment ileile kutumwa tena.
-  stockAdjustmentRequestId = null;
-  stockAdjustmentRequestSignature = null;
-  stockAdjustmentInFlight = false;
-
-  // SEHEMU YA TATU: UI REFRESH
-  // UI error haiwezi kurudisha adjustment kwenye retry.
-  try {
-    closeStockAdjustment();
-  } catch (uiError) {
-    console.error(
-      "STOCK ADJUSTMENT CLOSE ERROR:",
-      uiError
-    );
-  }
-
-  try {
-    renderSellerInventory();
-  } catch (uiError) {
-    console.error(
-      "STOCK ADJUSTMENT REFRESH ERROR:",
-      uiError
-    );
-  }
+}
 }
 
 </script>
