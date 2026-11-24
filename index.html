@@ -1308,8 +1308,8 @@ const totalProducts = sellerInventoryProducts.length;
 
 const totalUnits = sellerInventoryProducts.reduce(
   (sum, product) => {
-    const stock = getStock(product);
-    return sum + (stock === null ? 0 : stock);
+    const balance = getProductInventoryBalance(product);
+    return sum + (balance ? balance.onHand : 0);
   },
   0
 );
