@@ -7591,35 +7591,43 @@ previewStockAdjustment();
 
 document.getElementById("stock-adjustment-quantity")?.focus();
  }
+
 function previewStockAdjustment() {
   const product = sellerInventoryProducts.find(
     p => Number(p.id) === selectedStockProductId
   );
 
   if (!product) return;
-const productLocations = sellerInventoryLocations.filter(
-  location =>
-    location.store_id === product.store_id &&
-    location.is_active
-);
 
-const productLocation =
-  productLocations.find(location => location.is_default) ||
-  productLocations[0];
+  const productLocations = sellerInventoryLocations.filter(
+    location =>
+      location.store_id === product.store_id &&
+      location.is_active
+  );
 
-if (!productLocation) {
-  alert(t("stockAdjustNotFound"));
-  return;
-}
+  const productLocation =
+    productLocations.find(
+      location => location.id === selectedStockLocationId
+    ) ||
+    productLocations.find(location => location.is_default) ||
+    productLocations[0];
 
-selectedStockLocationId = productLocation.id;
+  if (!productLocation) {
+    alert(t("stockAdjustNotFound"));
+    return;
+  }
 
-const balance = getProductInventoryBalance(
-  product,
-  selectedStockLocationId
-);
+  selectedStockLocationId = productLocation.id;
 
-const currentStock = balance ? balance.onHand : null;
+  const balance = getProductInventoryBalance(
+    product,
+    selectedStockLocationId
+  );
+
+  const currentStock = balance ? balance.onHand : null;
+  const reservedStock = balance ? balance.reserved : 0;
+  const blockedStock = balance ? balance.blocked : 0;
+  const availableStock = balance ? balance.available : 0;
 
   const quantityInput = document.getElementById(
     "stock-adjustment-quantity"
@@ -7647,10 +7655,11 @@ const currentStock = balance ? balance.onHand : null;
 
   const quantity = Number(quantityInput.value);
   const adjustmentType = typeInput.value;
-quantityInput.min = adjustmentType === "set" ? "0" : "1";
-typeInput.disabled = stockAdjustmentInFlight;
-quantityInput.disabled = stockAdjustmentInFlight;
-  
+
+  quantityInput.min = adjustmentType === "set" ? "0" : "1";
+  typeInput.disabled = stockAdjustmentInFlight;
+  quantityInput.disabled = stockAdjustmentInFlight;
+
   const validType = ["add", "remove", "set"].includes(adjustmentType);
 
   let valid =
@@ -7664,11 +7673,7 @@ quantityInput.disabled = stockAdjustmentInFlight;
     ) &&
     (
       adjustmentType === "set" ||
-      (
-        currentStock !== null &&
-        Number.isSafeInteger(currentStock) &&
-        currentStock >= 0
-      )
+      currentStock !== null
     );
 
   let newStock = currentStock;
@@ -7676,31 +7681,37 @@ quantityInput.disabled = stockAdjustmentInFlight;
   if (valid) {
     if (adjustmentType === "set") {
       newStock = quantity;
+
+      valid = newStock >= reservedStock + blockedStock;
     } else if (adjustmentType === "add") {
       newStock = currentStock + quantity;
     } else {
+      valid =
+        quantity <= availableStock;
+
       newStock = currentStock - quantity;
     }
 
     valid =
+      valid &&
       Number.isSafeInteger(newStock) &&
       newStock >= 0 &&
       newStock <= 2147483647;
   }
 
-if (!valid || stockAdjustmentInFlight) {
-  preview.textContent = "—";
+  if (!valid || stockAdjustmentInFlight) {
+    preview.textContent = "—";
 
-  message.textContent =
-  currentStock === null && adjustmentType !== "set"
-    ? t("stockUnknown")
-    : t("stockAdjustInvalid");
+    message.textContent =
+      currentStock === null && adjustmentType !== "set"
+        ? t("stockUnknown")
+        : t("stockAdjustInvalid");
 
-  saveButton.disabled = true;
-  saveButton.style.opacity = ".5";
-  saveButton.style.cursor = "not-allowed";
-  return;
-}
+    saveButton.disabled = true;
+    saveButton.style.opacity = ".5";
+    saveButton.style.cursor = "not-allowed";
+    return;
+  }
 
   preview.textContent = newStock;
   message.textContent = "";
