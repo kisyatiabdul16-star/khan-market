@@ -1182,13 +1182,6 @@ function renderSellerInventory() {
   return balance ? balance.available : null;
 };
 
-  const value = Number(product.stock);
-
-  return Number.isSafeInteger(value) && value >= 0
-    ? value
-    : null;
-};
-
   // SEARCH + FILTER
   let filteredProducts = sellerInventoryProducts.filter(product => {
     const name = String(
