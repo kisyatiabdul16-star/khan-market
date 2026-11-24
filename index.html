@@ -1674,10 +1674,26 @@ return `
       </p>
     </div>
 
-    <p>
-      📦 ${t("inventoryStock")}:
-      <strong>${stock}</strong>
-    </p>
+   ${(() => {
+  const balance = getProductInventoryBalance(product);
+
+  if (!balance) {
+    return `
+      <p>📦 ${t("inventoryStock")}: 
+        <strong>${t("inventoryUnknownStock")}</strong>
+      </p>
+    `;
+  }
+
+  return `
+    <div class="inventory-stock-details">
+      <p>📦 ${t("inventoryOnHand")}: <strong>${balance.onHand}</strong></p>
+      <p>🔒 ${t("inventoryReserved")}: <strong>${balance.reserved}</strong></p>
+      <p>🚫 ${t("inventoryBlocked")}: <strong>${balance.blocked}</strong></p>
+      <p>✅ ${t("inventoryAvailable")}: <strong>${balance.available}</strong></p>
+    </div>
+  `;
+})()} 
 
     <p style="
       color:${statusColor};
