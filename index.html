@@ -1178,13 +1178,9 @@ function renderSellerInventory() {
   container.dir = rtl ? "rtl" : "ltr";
 
   const getStock = product => {
-  if (
-    product.stock === null ||
-    product.stock === undefined ||
-    product.stock === ""
-  ) {
-    return null;
-  }
+  const balance = getProductInventoryBalance(product);
+  return balance ? balance.available : null;
+};
 
   const value = Number(product.stock);
 
