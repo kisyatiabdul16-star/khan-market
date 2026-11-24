@@ -1931,9 +1931,11 @@ function renderStockMovementHistory(records, totalCount) {
         ? "#d32f2f"
         : "#1565c0";
 
-    const quantity = isSet
-      ? Number(record.reference_id)
-      : Math.abs(Number(record.on_hand_delta));
+    const quantity = isOpening
+  ? Number(record.on_hand_after)
+  : isSet
+    ? Number(record.reference_id)
+    : Math.abs(Number(record.on_hand_delta));
 
     const before = Number(record.on_hand_before);
     const after = Number(record.on_hand_after);
